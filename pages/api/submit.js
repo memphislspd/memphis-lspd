@@ -11,6 +11,7 @@ const DEPARTMENTS = {
   'iad': { name: 'IAD', emoji: '⚖️', roleId: '1514608894700159139', webhook: process.env.WEBHOOK_REPORT_IAD },
   'swat': { name: 'SWAT', emoji: '🛡️', roleId: '1514608894679191601', webhook: process.env.WEBHOOK_REPORT_SWAT },
   'pai': { name: 'PAI', emoji: '🎓', roleId: '1514608894679191598', webhook: process.env.WEBHOOK_REPORT_PAI },
+  'pa': { name: 'PA', emoji: '🎓', roleId: '1514608894679191598', webhook: process.env.WEBHOOK_REPORT_PA },
   'dvd': { name: 'DVD', emoji: '🚗', roleId: '1514608894679191600', webhook: process.env.WEBHOOK_REPORT_DVD },
   'db': { name: 'DB', emoji: '🕵️', roleId: '1514608894679191599', webhook: process.env.WEBHOOK_REPORT_DB },
   'k9': { name: 'K9', emoji: '🐕', roleId: '1514695474362450093', webhook: process.env.WEBHOOK_REPORT_K9 },
