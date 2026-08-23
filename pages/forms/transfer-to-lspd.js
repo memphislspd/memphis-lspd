@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
-export default function TransferToLSCSDForm() {
+export default function TransferToLSPDForm() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,7 @@ export default function TransferToLSCSDForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'transfer-to-lscsd',
+          type: 'transfer-to-LSPD',
           fullName: formData.fullName,
           approvalProof: formData.approvalProof,
           rankProof: formData.rankProof
@@ -57,7 +57,7 @@ export default function TransferToLSCSDForm() {
       });
 
       if (res.ok) {
-        alert('✅ Заявка на перевод в LSCSD успешно отправлена!');
+        alert('✅ Заявка на перевод в LSPD успешно отправлена!');
         router.push('/dashboard');
       } else {
         const error = await res.json();
@@ -86,7 +86,7 @@ export default function TransferToLSCSDForm() {
       </button>
       
       <div className="form-container">
-        <h1>🏛️ Перевод в LSCSD</h1>
+        <h1>🏛️ Перевод в LSPD</h1>
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
