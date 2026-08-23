@@ -8,6 +8,7 @@ const DEPARTMENTS = [
   { id: 'pai', name: 'PAI', emoji: '🎓' },
   { id: 'dvd', name: 'DVD', emoji: '🚗' },
   { id: 'db', name: 'DB', emoji: '🕵️' },
+  { id: 'pa', name: 'PA', emoji: '🎓' },
   { id: 'k9', name: 'K9', emoji: '🐕' },
   { id: 'alpha', name: 'ALPHA', emoji: '💥' },
   { id: 'mcd', name: 'MCD', emoji: '🚨' },
