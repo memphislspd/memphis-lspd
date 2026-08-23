@@ -110,7 +110,7 @@ export default function ReinstatementForm() {
       </button>
       
       <div className="form-container">
-        <h1>🔄 Восстановление в LSCSD</h1>
+        <h1>🔄 Восстановление в LSPD</h1>
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
