@@ -12,6 +12,7 @@ const DEPARTMENTS = [
   { id: 'alpha', name: 'ALPHA', emoji: '💥' },
   { id: 'mcd', name: 'MCD', emoji: '🚨' },
   { id: 'cpd', name: 'CPD', emoji: '🚔' },
+  { id: 'pa', name: 'PA', emoji: '🎓' },
   { id: 'halt', name: 'HALT', emoji: '🚁' },
   { id: 'ctrt', name: 'CTRT', emoji: '🔫' }
 ];
