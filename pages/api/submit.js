@@ -44,9 +44,11 @@ const webhooks = {
 
 async function sendToDiscord(webhookUrl, data, retries = 3) {
   let lastError = null;
+  const url = data.thread_id ? `${webhookUrl}?thread_id=${data.thread_id}` : webhookUrl;
+  const { thread_id, ...payload } = data;
   for (let i = 0; i < retries; i++) {
     try {
-      const res = await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (res.ok) return { success: true };
       if (res.status === 429) { await new Promise(r => setTimeout(r, (parseInt(res.headers.get('Retry-After')) || 5) * 1000)); continue; }
       return { success: false, error: await res.text() };
@@ -114,7 +116,7 @@ export default async function handler(req, res) {
     });
   }
 
-  let webhookUrl, roleMentions = '';
+  let webhookUrl, roleMentions = '', threadId = null;
 
   if (type === 'report') {
     const dept = DEPARTMENTS[department];
@@ -135,6 +137,7 @@ export default async function handler(req, res) {
     webhookUrl = webhooks.leave;
     const di = DEPARTMENTS[department];
     if (di?.roleId) roleMentions += `<@&${di.roleId}> `;
+    threadId = leaveType === 'ooc' ? '1541113530743390288' : '1541113565505781891';
   } else { webhookUrl = webhooks.promotion; roleMentions = '<@&1514608894679191597>'; }
   if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
 
@@ -152,7 +155,13 @@ export default async function handler(req, res) {
     timestamp: new Date().toISOString()
   };
 
-  const result = await sendToDiscord(webhookUrl, { content: roleMentions.trim() || undefined, embeds: [embed], username: 'LSPD Forms', avatar_url: 'https://i.imgur.com/AfFp7pu.png' });
+  const result = await sendToDiscord(webhookUrl, { 
+    content: roleMentions.trim() || undefined, 
+    embeds: [embed], 
+    username: 'LSPD Forms', 
+    avatar_url: 'https://i.imgur.com/AfFp7pu.png',
+    ...(threadId ? { thread_id: threadId } : {})
+  });
 
   if (result.success) {
     const today = new Date().toISOString().split('T')[0];
