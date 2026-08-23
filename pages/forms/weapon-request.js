@@ -13,6 +13,7 @@ const DEPARTMENTS = [
   { id: 'mcd', name: 'MCD', emoji: '🚨' },
   { id: 'cpd', name: 'CPD', emoji: '🚔' },
   { id: 'halt', name: 'HALT', emoji: '🚁' },
+  { id: 'pa', name: 'PA', emoji: '🎓' },
   { id: 'ctrt', name: 'CTRT', emoji: '🔫' }
 ];
 
