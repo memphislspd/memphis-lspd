@@ -2,20 +2,18 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 const DEPARTMENTS = [
-  { id: 'db', name: 'DB', emoji: '🕵️' },
-  { id: 'spd', name: 'SPD', emoji: '🚔' },
-  { id: 'sai', name: 'SAI', emoji: '🔍' },
-  { id: 'sa', name: 'SA', emoji: '🎓' },
-  { id: 'k9', name: 'K9', emoji: '🐕' },
-  { id: 'seb', name: 'SEB', emoji: '💥' },
-  { id: 'iad', name: 'IAD', emoji: '⚖️' },
   { id: 'af', name: 'AF', emoji: '✈️' },
-  { id: 'ted', name: 'TED', emoji: '🔫' },
+  { id: 'iad', name: 'IAD', emoji: '⚖️' },
+  { id: 'swat', name: 'SWAT', emoji: '🛡️' },
+  { id: 'pai', name: 'PAI', emoji: '🎓' },
   { id: 'dvd', name: 'DVD', emoji: '🚗' },
-  { id: 'srt', name: 'SRT', emoji: '🛡️' },
-  { id: 'nred', name: 'NRED', emoji: '🚨' },
-  { id: 'med', name: 'MED', emoji: '🏥' },
-  { id: 'halt', name: 'HALT', emoji: '🚁' }
+  { id: 'db', name: 'DB', emoji: '🕵️' },
+  { id: 'k9', name: 'K9', emoji: '🐕' },
+  { id: 'alpha', name: 'ALPHA', emoji: '💥' },
+  { id: 'mcd', name: 'MCD', emoji: '🚨' },
+  { id: 'cpd', name: 'CPD', emoji: '🚔' },
+  { id: 'halt', name: 'HALT', emoji: '🚁' },
+  { id: 'ctrt', name: 'CTRT', emoji: '🔫' }
 ];
 
 const LEAVE_TYPES = [
@@ -37,6 +35,7 @@ export default function LeaveForm() {
     fetch('/api/me').then(r => r.json()).then(d => {
       if (!d.user) { router.push('/'); return; }
       setUser(d.user);
+      setLoading(false);
     });
     fetch('/api/profile').then(r => r.json()).then(d => {
       setProfile(d.profile);
@@ -45,7 +44,6 @@ export default function LeaveForm() {
         fullName: d.profile.fullName || '',
         department: d.profile.department || ''
       }));
-      setLoading(false);
     });
   }, []);
 
@@ -66,7 +64,7 @@ export default function LeaveForm() {
     finally { setSubmitting(false); }
   };
 
-if (loading || !user) return <div style={{ display:'flex',justifyContent:'center',alignItems:'center',minHeight:'100vh',background:'#0a0a1a',color:'white' }}>Загрузка...</div>;
+  if (loading || !user) return <div style={{ display:'flex',justifyContent:'center',alignItems:'center',minHeight:'100vh',background:'#0a0a1a',color:'white' }}>Загрузка...</div>;
 
   const s = { width:'100%',padding:'12px 15px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:'8px',color:'white',fontSize:'15px',boxSizing:'border-box' };
 
@@ -85,7 +83,7 @@ if (loading || !user) return <div style={{ display:'flex',justifyContent:'center
           </div>
           <div style={{ marginBottom:'20px' }}>
             <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50',fontSize:'12px' }}>(из профиля)</span>}</label>
-            <input type="text" required value={formData.fullName} onChange={e => setFormData({...formData,fullName:e.target.value})} placeholder="Sanya Suspect 270726" disabled={!!profile.fullName} style={{...s,opacity:profile.fullName?0.5:1,cursor:profile.fullName?'not-allowed':'text'}} />
+            <input type="text" required value={formData.fullName} onChange={e => setFormData({...formData,fullName:e.target.value})} placeholder="Sanya Suspect 270726" disabled={!!profile.fullName} style={{...s,opacity:profile.fullName?0.5:1}} />
           </div>
           <div style={{ marginBottom:'20px' }}>
             <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Отдел * {profile.department && <span style={{ color:'#4CAF50',fontSize:'12px' }}>(из профиля)</span>}</label>
