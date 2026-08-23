@@ -5,6 +5,7 @@ const DEPARTMENTS = [
   { id: 'af', name: 'AF', emoji: '✈️' },
   { id: 'iad', name: 'IAD', emoji: '⚖️' },
   { id: 'swat', name: 'SWAT', emoji: '🛡️' },
+  { id: 'pai', name: 'PAI', emoji: '🎓' },
   { id: 'dvd', name: 'DVD', emoji: '🚗' },
   { id: 'db', name: 'DB', emoji: '🕵️' },
   { id: 'k9', name: 'K9', emoji: '🐕' },
@@ -12,7 +13,6 @@ const DEPARTMENTS = [
   { id: 'mcd', name: 'MCD', emoji: '🚨' },
   { id: 'cpd', name: 'CPD', emoji: '🚔' },
   { id: 'halt', name: 'HALT', emoji: '🚁' },
-  { id: 'pa', name: 'PA', emoji: '🎓' },
   { id: 'ctrt', name: 'CTRT', emoji: '🔫' }
 ];
 
