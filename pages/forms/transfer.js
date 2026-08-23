@@ -100,4 +100,84 @@ export default function TransferForm() {
   return (
     <div style={{ minHeight:'100vh',background:'linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 100%)',padding:'30px',color:'white' }}>
       <button onClick={() => router.push('/dashboard')} style={{ background:'rgba(255,255,255,0.1)',color:'white',border:'1px solid rgba(255,255,255,0.2)',padding:'10px 20px',borderRadius:'8px',cursor:'pointer',marginBottom:'20px' }}>← Назад</button>
-      <div style={{ maxWidth:'600px',margin:'0 auto',background:'rgba
+      <div style={{ maxWidth:'600px',margin:'0 auto',background:'rgba(255,255,255,0.05)',borderRadius:'20px',padding:'40px',border:'1px solid rgba(255,255,255,0.1)' }}>
+        <h1 style={{ marginBottom:'30px',fontSize:'28px' }}>🔄 Перевод в отдел</h1>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom:'20px' }}>
+            <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50',fontSize:'12px' }}>(из профиля)</span>}</label>
+            <input type="text" required value={formData.fullName} onChange={e => setFormData({...formData,fullName:e.target.value})} placeholder="Sanya Suspect 270726" disabled={!!profile.fullName} style={{...s,opacity:profile.fullName?0.5:1}} />
+          </div>
+          <div style={{ marginBottom:'20px' }}>
+            <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Ваш ранг *</label>
+            <select required value={formData.rank} onChange={e => setFormData({...formData,rank:e.target.value})} style={{...s,appearance:'none',cursor:'pointer'}}>
+              <option value="">-- Выберите ранг --</option>
+              {RANKS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            </select>
+          </div>
+          <div style={{ marginBottom:'20px' }}>
+            <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Текущий отдел * {profile.department && <span style={{ color:'#4CAF50',fontSize:'12px' }}>(из профиля)</span>}</label>
+            <select required value={formData.currentDepartment} onChange={e => setFormData({...formData,currentDepartment:e.target.value})} disabled={!!profile.department} style={{...s,appearance:'none',cursor:profile.department?'not-allowed':'pointer',opacity:profile.department?0.5:1}}>
+              <option value="">-- Выберите отдел --</option>
+              {DEPARTMENTS.map(d => <option key={d.id} value={d.id}>{d.emoji} {d.name}</option>)}
+            </select>
+          </div>
+          <div style={{ marginBottom:'20px' }}>
+            <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Желаемый отдел *</label>
+            <select required value={formData.targetDepartment} onChange={e => setFormData({...formData,targetDepartment:e.target.value,dbWhatIs:'',dbExperience:'',dbExamples:'',dbServers:'',dbKnowledge:'',dbLawKnowledge:''})} style={{...s,appearance:'none',cursor:'pointer'}}>
+              <option value="">-- Выберите отдел --</option>
+              {DEPARTMENTS.map(d => <option key={d.id} value={d.id}>{d.emoji} {d.name}</option>)}
+            </select>
+          </div>
+          {isSameDepartment && <div style={{ background:'rgba(244,67,54,0.15)',border:'1px solid #F44336',borderRadius:'10px',padding:'14px 18px',marginBottom:'20px',color:'#EF9A9A',fontSize:'14px' }}>❌ Нельзя перевестись в тот же отдел!</div>}
+          <div style={{ marginBottom:'20px' }}>
+            <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Причина перевода *</label>
+            <textarea required value={formData.reason} onChange={e => setFormData({...formData,reason:e.target.value})} placeholder="Опишите причину..." rows="4" style={{...s,resize:'vertical',minHeight:'100px'}} />
+          </div>
+          {showDbFields && (
+            <div style={{ background:'rgba(33,150,243,0.08)',border:'1px solid rgba(33,150,243,0.25)',borderRadius:'12px',padding:'20px',marginBottom:'20px' }}>
+              <h3 style={{ marginBottom:'20px',fontSize:'18px',borderBottom:'1px solid rgba(255,255,255,0.1)',paddingBottom:'10px' }}>📋 Дополнительные вопросы для DB</h3>
+              <div style={{ marginBottom:'20px' }}>
+                <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Чем занимается DB? *</label>
+                <textarea required value={formData.dbWhatIs} onChange={e => setFormData({...formData,dbWhatIs:e.target.value})} placeholder="Опишите чем занимается отдел DB..." rows="3" style={{...s,resize:'vertical',minHeight:'100px'}} />
+              </div>
+              <div style={{ marginBottom:'20px' }}>
+                <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Опыт работы в DB? *</label>
+                <select required value={formData.dbExperience} onChange={e => setFormData({...formData,dbExperience:e.target.value})} style={{...s,appearance:'none',cursor:'pointer'}}>
+                  <option value="">-- Выберите --</option>
+                  <option value="Нет опыта, но хочу попробовать">Нет опыта, но хочу попробовать</option>
+                  <option value="Был средним составом в подобных отделах">Был средним составом</option>
+                  <option value="Занимал руководящую должность">Занимал руководящую должность</option>
+                </select>
+              </div>
+              <div style={{ marginBottom:'20px' }}>
+                <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Примеры работ *</label>
+                <textarea required value={formData.dbExamples} onChange={e => setFormData({...formData,dbExamples:e.target.value})} placeholder="Приведите примеры ваших работ..." rows="3" style={{...s,resize:'vertical',minHeight:'100px'}} />
+              </div>
+              <div style={{ marginBottom:'20px' }}>
+                <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>На каких серверах были в DB? *</label>
+                <textarea required value={formData.dbServers} onChange={e => setFormData({...formData,dbServers:e.target.value})} placeholder="Укажите серверы..." rows="3" style={{...s,resize:'vertical',minHeight:'100px'}} />
+              </div>
+              <div style={{ marginBottom:'20px' }}>
+                <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Знания по работе DB (1-10) *</label>
+                <select required value={formData.dbKnowledge} onChange={e => setFormData({...formData,dbKnowledge:e.target.value})} style={{...s,appearance:'none',cursor:'pointer'}}>
+                  <option value="">-- Оцените --</option>
+                  {RATING_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <div style={{ marginBottom:'20px' }}>
+                <label style={{ display:'block',marginBottom:'8px',color:'#8b8ba7' }}>Знания по законке (1-10) *</label>
+                <select required value={formData.dbLawKnowledge} onChange={e => setFormData({...formData,dbLawKnowledge:e.target.value})} style={{...s,appearance:'none',cursor:'pointer'}}>
+                  <option value="">-- Оцените --</option>
+                  {RATING_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+          <button type="submit" disabled={submitting || !isFormValid()} style={{ width:'100%',padding:'14px',background:'#2196F3',color:'white',border:'none',borderRadius:'10px',fontSize:'16px',fontWeight:600,cursor:submitting?'not-allowed':'pointer',opacity:submitting?0.5:1,marginTop:'10px' }}>
+            {submitting ? '⏳ Отправка...' : '📤 Отправить'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
