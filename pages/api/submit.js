@@ -7,30 +7,27 @@ import { kv } from '@vercel/kv';
 const WHITELIST = ['200102286473691139'];
 
 const DEPARTMENTS = {
-  'db': { name: 'DB', emoji: '🕵️', roleId: '1514608350837346334', roleId2: '1514689884437090505', webhook: process.env.WEBHOOK_REPORT_DB },
-  'spd': { name: 'SPD', emoji: '🚔', roleId: '1514608350820827275', roleId2: '1514689954733887591', webhook: process.env.WEBHOOK_REPORT_SPD },
-  'sai': { name: 'SAI', emoji: '🔍', roleId: '1514608350820827274', roleId2: '1514689909317697556', webhook: process.env.WEBHOOK_REPORT_SAI },
-  'sa': { name: 'SA', emoji: '🎓', roleId: '1514608350820827274', roleId2: '1514689909317697556', webhook: process.env.WEBHOOK_REPORT_SA },
-  'k9': { name: 'K9', emoji: '🐕', roleId: '1514967189910847658', roleId2: '1514967193924796638', webhook: process.env.WEBHOOK_REPORT_K9 },
-  'seb': { name: 'SEB', emoji: '💥', roleId: '1514608350820827276', roleId2: '1514689757207073009', webhook: process.env.WEBHOOK_REPORT_SEB },
-  'iad': { name: 'IAD', emoji: '⚖️', roleId: '1514608350820827277', roleId2: '1514689763389477064', webhook: process.env.WEBHOOK_REPORT_IAD },
-  'af': { name: 'AF', emoji: '✈️', roleId: '1514967162677231698', roleId2: '1514967157526630491', webhook: process.env.WEBHOOK_REPORT_AF },
-  'ted': { name: 'TED', emoji: '🔫', roleId: '1515284457932980264', roleId2: '1515159465584754799', webhook: process.env.WEBHOOK_REPORT_TED },
-  'dvd': { name: 'DVD', emoji: '🚗', roleId: '1515297818276008006', roleId2: '1515159813212999710', webhook: process.env.WEBHOOK_REPORT_DVD },
-  'srt': { name: 'SRT', emoji: '🛡️', roleId: '1515159492914970744', roleId2: '1515284451293139045', webhook: process.env.WEBHOOK_REPORT_SRT },
-  'nred': { name: 'NRED', emoji: '🚨', roleId: '1515284451989651506', roleId2: '1515159866639913160', webhook: process.env.WEBHOOK_REPORT_NRED },
-  'med': { name: 'MED', emoji: '🏥', roleId: '1515284458360672256', roleId2: '1515159560577355848', webhook: process.env.WEBHOOK_REPORT_MED },
-  'halt': { name: 'HALT', emoji: '🚁', roleId: '1515284438886514810', roleId2: '1515159846935203870', webhook: process.env.WEBHOOK_REPORT_HALT }
+  'af': { name: 'AF', emoji: '✈️', roleId: '1514695692520525834', webhook: process.env.WEBHOOK_REPORT_AF },
+  'iad': { name: 'IAD', emoji: '⚖️', roleId: '1514608894700159139', webhook: process.env.WEBHOOK_REPORT_IAD },
+  'swat': { name: 'SWAT', emoji: '🛡️', roleId: '1514608894679191601', webhook: process.env.WEBHOOK_REPORT_SWAT },
+  'pai': { name: 'PAI', emoji: '🎓', roleId: '1514608894679191598', webhook: process.env.WEBHOOK_REPORT_PAI },
+  'dvd': { name: 'DVD', emoji: '🚗', roleId: '1514608894679191600', webhook: process.env.WEBHOOK_REPORT_DVD },
+  'db': { name: 'DB', emoji: '🕵️', roleId: '1514608894679191599', webhook: process.env.WEBHOOK_REPORT_DB },
+  'k9': { name: 'K9', emoji: '🐕', roleId: '1514695474362450093', webhook: process.env.WEBHOOK_REPORT_K9 },
+  'alpha': { name: 'ALPHA', emoji: '💥', roleId: '1514695605123813496', webhook: process.env.WEBHOOK_REPORT_ALPHA },
+  'mcd': { name: 'MCD', emoji: '🚨', roleId: '1514690126276595873', webhook: process.env.WEBHOOK_REPORT_MCD },
+  'cpd': { name: 'CPD', emoji: '🚔', roleId: '1514695305633992706', webhook: process.env.WEBHOOK_REPORT_CPD },
+  'halt': { name: 'HALT', emoji: '🚁', roleId: '1514695733146554558', webhook: process.env.WEBHOOK_REPORT_HALT },
+  'ctrt': { name: 'CTRT', emoji: '🔫', roleId: '1515923752884506725', webhook: process.env.WEBHOOK_REPORT_CTRT }
 };
 
 const TRANSFER_WEBHOOKS = {
-  'db': process.env.WEBHOOK_TRANSFER_DB, 'spd': process.env.WEBHOOK_TRANSFER_SPD,
-  'sai': process.env.WEBHOOK_TRANSFER_SAI, 'k9': process.env.WEBHOOK_TRANSFER_K9,
-  'seb': process.env.WEBHOOK_TRANSFER_SEB, 'iad': process.env.WEBHOOK_TRANSFER_IAD,
-  'af': process.env.WEBHOOK_TRANSFER_AF, 'ted': process.env.WEBHOOK_TRANSFER_TED,
-  'dvd': process.env.WEBHOOK_TRANSFER_DVD, 'srt': process.env.WEBHOOK_TRANSFER_SRT,
-  'nred': process.env.WEBHOOK_TRANSFER_NRED, 'med': process.env.WEBHOOK_TRANSFER_MED,
-  'halt': process.env.WEBHOOK_TRANSFER_HALT
+  'af': process.env.WEBHOOK_TRANSFER_AF, 'iad': process.env.WEBHOOK_TRANSFER_IAD,
+  'swat': process.env.WEBHOOK_TRANSFER_SWAT, 'dvd': process.env.WEBHOOK_TRANSFER_DVD,
+  'db': process.env.WEBHOOK_TRANSFER_DB, 'k9': process.env.WEBHOOK_TRANSFER_K9,
+  'alpha': process.env.WEBHOOK_TRANSFER_ALPHA, 'mcd': process.env.WEBHOOK_TRANSFER_MCD,
+  'cpd': process.env.WEBHOOK_TRANSFER_CPD, 'halt': process.env.WEBHOOK_TRANSFER_HALT,
+  'ctrt': process.env.WEBHOOK_TRANSFER_CTRT
 };
 
 const webhooks = {
@@ -38,7 +35,7 @@ const webhooks = {
   highrank: process.env.WEBHOOK_HIGH_RANK_REPORT,
   resignation: process.env.WEBHOOK_RESIGNATION,
   reinstatement: process.env.WEBHOOK_REINSTATEMENT,
-  'transfer-to-lscsd': process.env.WEBHOOK_TRANSFER_TO_LSCSD,
+  'transfer-to-lspd': process.env.WEBHOOK_TRANSFER_TO_LSPD,
   hiring: process.env.WEBHOOK_HIRING,
   'weapon-request': process.env.WEBHOOK_WEAPON_REQUEST,
   leave: process.env.WEBHOOK_LEAVE
@@ -67,12 +64,12 @@ export default async function handler(req, res) {
   const isWhitelisted = WHITELIST.includes(user.id);
 
   if (!isWhitelisted) {
-    const isLocked = await kv.get('lscsd:global:locked');
-    if (isLocked) { const ttl = await kv.ttl('lscsd:global:locked'); return res.status(429).json({ error: `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl||1800)/60)} мин.` }); }
-    const gc = await kv.get('lscsd:global:requests');
+    const isLocked = await kv.get('lspd:global:locked');
+    if (isLocked) { const ttl = await kv.ttl('lspd:global:locked'); return res.status(429).json({ error: `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl||1800)/60)} мин.` }); }
+    const gc = await kv.get('lspd:global:requests');
     const ngc = gc ? parseInt(gc) + 1 : 1;
-    if (ngc > 10) { await kv.set('lscsd:global:locked', '1', { ex: 1800 }); await kv.del('lscsd:global:requests'); return res.status(429).json({ error: '🚫 Сайт заблокирован на 30 минут.' }); }
-    await kv.set('lscsd:global:requests', ngc, { ex: 20 });
+    if (ngc > 10) { await kv.set('lspd:global:locked', '1', { ex: 1800 }); await kv.del('lspd:global:requests'); return res.status(429).json({ error: '🚫 Сайт заблокирован на 30 минут.' }); }
+    await kv.set('lspd:global:requests', ngc, { ex: 20 });
 
     if (await isBlacklisted(user.id, ip)) return res.status(403).json({ error: '⛔ Вы заблокированы.' });
 
@@ -86,10 +83,9 @@ export default async function handler(req, res) {
 
   const allText = Object.values(formData).filter(v => typeof v === 'string').join(' ');
 
-  // Банворды без бана + указание поля
   if (!isWhitelisted && containsBadWords(allText)) {
     const foundWord = findBadWord(allText);
-    
+
     const fieldNames = {
       fullName: 'Имя Фамилия + Статик', age: 'Возраст', experience: 'Опыт работы',
       lawKnowledge: 'Знание законов', passport: 'Скриншот паспорта', militaryId: 'Военный билет',
@@ -123,28 +119,27 @@ export default async function handler(req, res) {
     const dept = DEPARTMENTS[department];
     if (!dept) return res.status(400).json({ error: 'Выберите отдел' });
     webhookUrl = dept.webhook; if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
-    if (dept.roleId) roleMentions += `<@&${dept.roleId}> `; if (dept.roleId2) roleMentions += `<@&${dept.roleId2}>`;
+    if (dept.roleId) roleMentions += `<@&${dept.roleId}> `;
   } else if (type === 'transfer') {
     webhookUrl = TRANSFER_WEBHOOKS[targetDepartment]; if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
     const di = DEPARTMENTS[targetDepartment];
     if (di?.roleId) roleMentions += `<@&${di.roleId}> `;
-    if (di?.roleId2) roleMentions += `<@&${di.roleId2}>`;
-  } else if (type === 'highrank') { webhookUrl = webhooks.highrank; roleMentions = '<@&1525425998370177074> <@&1514608350837346338>'; }
-  else if (type === 'resignation') { webhookUrl = webhooks.resignation; roleMentions = '<@&1514608350820827273>'; }
-  else if (type === 'reinstatement') { webhookUrl = webhooks.reinstatement; roleMentions = '<@&1514608350820827273>'; }
-  else if (type === 'transfer-to-lscsd') { webhookUrl = webhooks['transfer-to-lscsd']; roleMentions = '<@&1525425998370177074> <@&1514608350837346338>'; }
-  else if (type === 'hiring') { webhookUrl = webhooks.hiring; roleMentions = '<@&1514608350820827274> <@&1514689909317697556>'; }
-  else if (type === 'weapon-request') { webhookUrl = webhooks['weapon-request']; roleMentions = '<@&1525425998370177074> <@&1514733249409060876>'; }
+  } else if (type === 'highrank') { webhookUrl = webhooks.highrank; roleMentions = '<@&1514608894679191597>'; }
+  else if (type === 'resignation') { webhookUrl = webhooks.resignation; roleMentions = '<@&1514608894679191597>'; }
+  else if (type === 'reinstatement') { webhookUrl = webhooks.reinstatement; roleMentions = '<@&1514608894679191597>'; }
+  else if (type === 'transfer-to-lspd') { webhookUrl = webhooks['transfer-to-lspd']; roleMentions = '<@&1514608894679191597>'; }
+  else if (type === 'hiring') { webhookUrl = webhooks.hiring; roleMentions = '<@&1514608894679191598>'; }
+  else if (type === 'weapon-request') { webhookUrl = webhooks['weapon-request']; roleMentions = '<@&1514608894679191597>'; }
   else if (type === 'leave') {
     webhookUrl = webhooks.leave;
     const di = DEPARTMENTS[department];
-    if (di?.roleId) roleMentions += `<@&${di.roleId}> `; if (di?.roleId2) roleMentions += `<@&${di.roleId2}>`;
-  } else { webhookUrl = webhooks.promotion; roleMentions = '<@&1514608350820827273>'; }
+    if (di?.roleId) roleMentions += `<@&${di.roleId}> `;
+  } else { webhookUrl = webhooks.promotion; roleMentions = '<@&1514608894679191597>'; }
   if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
 
   if (!isWhitelisted) {
-    const ipCount = await kv.get(`lscsd:spam:ip:${ip}`);
-    if (ipCount && parseInt(ipCount) >= 5) return res.status(429).json({ error: '🚫 Слишком много с IP.' });
+    const ipCount = await kv.get(`lspd:spam:ip:${ip}`);
+    if (ipCount && parseInt(ipCount) >= 6) return res.status(429).json({ error: '🚫 Слишком много с IP.' });
   }
 
   const embed = {
@@ -152,18 +147,18 @@ export default async function handler(req, res) {
     color: getFormColor(type),
     author: { name: user.username, icon_url: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` },
     fields: buildFields(type, department, targetDepartment, formData, leaveType, user.id),
-    footer: { text: 'LSCSD Forms • ' + new Date().toLocaleDateString('ru-RU') },
+    footer: { text: 'LSPD Forms • ' + new Date().toLocaleDateString('ru-RU') },
     timestamp: new Date().toISOString()
   };
 
-  const result = await sendToDiscord(webhookUrl, { content: roleMentions.trim() || undefined, embeds: [embed], username: 'LSCSD Forms', avatar_url: 'https://i.imgur.com/AfFp7pu.png' });
+  const result = await sendToDiscord(webhookUrl, { content: roleMentions.trim() || undefined, embeds: [embed], username: 'LSPD Forms', avatar_url: 'https://i.imgur.com/AfFp7pu.png' });
 
   if (result.success) {
     const today = new Date().toISOString().split('T')[0];
-    await kv.incr('lscsd:stats:total');
-    await kv.incr(`lscsd:stats:${today}`);
-    await kv.lpush(`lscsd:history:${user.id}`, JSON.stringify({ type, title: embed.title, date: new Date().toISOString(), id: Date.now().toString(36) }));
-    await kv.ltrim(`lscsd:history:${user.id}`, 0, 49);
+    await kv.incr('lspd:stats:total');
+    await kv.incr(`lspd:stats:${today}`);
+    await kv.lpush(`lspd:history:${user.id}`, JSON.stringify({ type, title: embed.title, date: new Date().toISOString(), id: Date.now().toString(36) }));
+    await kv.ltrim(`lspd:history:${user.id}`, 0, 49);
     res.status(200).json({ success: true });
   } else {
     res.status(500).json({ error: `Не удалось отправить: ${result.error}` });
@@ -172,19 +167,19 @@ export default async function handler(req, res) {
 
 function getFormTitle(type, department, targetDepartment, leaveType) {
   if (type === 'report') { const d = DEPARTMENTS[department]; return `📋 Отчёт о повышении • ${d ? d.emoji + ' ' + d.name : 'Отдел'}`; }
-  if (type === 'transfer') { const n = { db:'DB',spd:'SPD',sai:'SAI',k9:'K9',seb:'SEB',iad:'IAD',af:'AF',ted:'TED',dvd:'DVD',srt:'SRT',nred:'NRED',med:'MED',halt:'HALT' }; return `🔄 Запрос на перевод в ${n[targetDepartment]||'Отдел'}`; }
+  if (type === 'transfer') { const n = { af:'AF',iad:'IAD',swat:'SWAT',dvd:'DVD',db:'DB',k9:'K9',alpha:'ALPHA',mcd:'MCD',cpd:'CPD',halt:'HALT',ctrt:'CTRT' }; return `🔄 Запрос на перевод в ${n[targetDepartment]||'Отдел'}`; }
   if (type === 'highrank') return '🌟 Отчёт на повышение (Хай Ранги)';
   if (type === 'resignation') return '🚪 Заявление на увольнение';
-  if (type === 'reinstatement') return '🔄 Восстановление в LSCSD';
-  if (type === 'transfer-to-lscsd') return '🏛️ Перевод в LSCSD';
-  if (type === 'hiring') return '📝 Трудоустройство в LSCSD';
+  if (type === 'reinstatement') return '🔄 Восстановление в LSPD';
+  if (type === 'transfer-to-lspd') return '🏛️ Перевод в LSPD';
+  if (type === 'hiring') return '📝 Трудоустройство в LSPD';
   if (type === 'weapon-request') return '🔫 Запрос на спец вооружение';
   if (type === 'leave') return `🏖️ ${leaveType === 'ooc' ? 'OOC' : 'IC'} Отпуск`;
   return '📈 Запрос на повышение';
 }
 
 function getFormColor(type) {
-  const c = { promotion:0x4CAF50, transfer:0x2196F3, report:0xFF9800, highrank:0xFF69B4, resignation:0xDC3545, reinstatement:0x9C27B0, 'transfer-to-lscsd':0x00BCD4, hiring:0x4CAF50, 'weapon-request':0xFF5722, leave:0x00BCD4 };
+  const c = { promotion:0x4CAF50, transfer:0x2196F3, report:0xFF9800, highrank:0xFF69B4, resignation:0xDC3545, reinstatement:0x9C27B0, 'transfer-to-lspd':0x00BCD4, hiring:0x4CAF50, 'weapon-request':0xFF5722, leave:0x00BCD4 };
   return c[type] || 0x5865F2;
 }
 
@@ -249,7 +244,7 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
     ...base
   ];
 
-  if (type === 'transfer-to-lscsd') return [
+  if (type === 'transfer-to-lspd') return [
     { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
     { name: '✅ Одобрение перевода от начальства', value: data.approvalProof || 'Не указано', inline: false },
     { name: '📸 Доказательство ранга', value: data.rankProof || 'Не указано', inline: false },
@@ -315,6 +310,6 @@ async function sendBanWordAlert(user, badWords, fullText, type, req) {
       ],
       footer: { text: 'Модерация' }, timestamp: new Date().toISOString()
     }],
-    username: 'LSCSD Модератор', avatar_url: 'https://i.imgur.com/AfFp7pu.png'
+    username: 'LSPD Модератор', avatar_url: 'https://i.imgur.com/AfFp7pu.png'
   });
 }
