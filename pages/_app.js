@@ -77,7 +77,7 @@ export default function App({ Component, pageProps }) {
 
           {/* Название */}
           <div style={{ color: 'white', fontSize: '20px', fontWeight: 700, marginBottom: '20px', letterSpacing: '2px' }}>
-            MEMPHIS LSCSD FORMS
+            MEMPHIS LSPD FORMS
           </div>
 
           {/* Прогресс-бар */}
