@@ -131,10 +131,10 @@ export default async function handler(req, res) {
     if (di?.roleId2) roleMentions += `<@&${di.roleId2}> `;
   } else if (type === 'highrank') { webhookUrl = webhooks.highrank; roleMentions = '<@&1514608894679191597>'; }
   else if (type === 'resignation') { webhookUrl = webhooks.resignation; roleMentions = '<@&1514608894679191597>'; }
-  else if (type === 'reinstatement') { webhookUrl = webhooks.reinstatement; roleMentions = '<@&1514608894679191597>'; }
-  else if (type === 'transfer-to-lspd') { webhookUrl = webhooks['transfer-to-lspd']; roleMentions = '<@&1514608894679191597>'; }
-  else if (type === 'hiring') { webhookUrl = webhooks.hiring; roleMentions = '<@&1514608894679191598>'; }
-  else if (type === 'weapon-request') { webhookUrl = webhooks['weapon-request']; roleMentions = '<@&1514608894679191597>'; }
+  else if (type === 'reinstatement') { webhookUrl = webhooks.reinstatement; roleMentions = '<@&1514690313233371226> <@&1514608894679191598>'; }
+  else if (type === 'transfer-to-lspd') { webhookUrl = webhooks['transfer-to-lspd']; roleMentions = '<@&1514690313233371226> <@&1514608894700159142>'; }
+  else if (type === 'hiring') { webhookUrl = webhooks.hiring; roleMentions = '<@&1514608894666735724> <@&1514608894679191598> <@&1541129110623879249>'; }
+  else if (type === 'weapon-request') { webhookUrl = webhooks['weapon-request']; roleMentions = '<@&1514690313233371226> <@&1514608894700159142>'; }
   else if (type === 'leave') {
     webhookUrl = webhooks.leave;
     const di = DEPARTMENTS[department];
