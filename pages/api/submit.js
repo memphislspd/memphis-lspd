@@ -7,19 +7,19 @@ import { kv } from '@vercel/kv';
 const WHITELIST = ['200102286473691139'];
 
 const DEPARTMENTS = {
-  'af': { name: 'AF', emoji: '✈️', roleId: '1514695692520525834', webhook: process.env.WEBHOOK_REPORT_AF },
-  'iad': { name: 'IAD', emoji: '⚖️', roleId: '1514608894700159139', webhook: process.env.WEBHOOK_REPORT_IAD },
-  'swat': { name: 'SWAT', emoji: '🛡️', roleId: '1514608894679191601', webhook: process.env.WEBHOOK_REPORT_SWAT },
-  'pai': { name: 'PAI', emoji: '🎓', roleId: '1514608894679191598', webhook: process.env.WEBHOOK_REPORT_PAI },
-  'pa': { name: 'PA', emoji: '🎓', roleId: '1514608894679191598', webhook: process.env.WEBHOOK_REPORT_PA },
-  'dvd': { name: 'DVD', emoji: '🚗', roleId: '1514608894679191600', webhook: process.env.WEBHOOK_REPORT_DVD },
-  'db': { name: 'DB', emoji: '🕵️', roleId: '1514608894679191599', webhook: process.env.WEBHOOK_REPORT_DB },
-  'k9': { name: 'K9', emoji: '🐕', roleId: '1514695474362450093', webhook: process.env.WEBHOOK_REPORT_K9 },
-  'alpha': { name: 'ALPHA', emoji: '💥', roleId: '1514695605123813496', webhook: process.env.WEBHOOK_REPORT_ALPHA },
-  'mcd': { name: 'MCD', emoji: '🚨', roleId: '1514690126276595873', webhook: process.env.WEBHOOK_REPORT_MCD },
-  'cpd': { name: 'CPD', emoji: '🚔', roleId: '1514695305633992706', webhook: process.env.WEBHOOK_REPORT_CPD },
-  'halt': { name: 'HALT', emoji: '🚁', roleId: '1514695733146554558', webhook: process.env.WEBHOOK_REPORT_HALT },
-  'ctrt': { name: 'CTRT', emoji: '🔫', roleId: '1515923752884506725', webhook: process.env.WEBHOOK_REPORT_CTRT }
+  'af': { name: 'AF', emoji: '✈️', roleId: '1514695692520525834', roleId2: '1541128485089837136', webhook: process.env.WEBHOOK_REPORT_AF },
+  'iad': { name: 'IAD', emoji: '⚖️', roleId: '1514608894700159139', roleId2: '1541128640140550194', webhook: process.env.WEBHOOK_REPORT_IAD },
+  'swat': { name: 'SWAT', emoji: '🛡️', roleId: '1514608894679191601', roleId2: '1535279144102006784', webhook: process.env.WEBHOOK_REPORT_SWAT },
+  'pai': { name: 'PAI', emoji: '🎓', roleId: '1514608894679191598', roleId2: '1541129110623879249', webhook: process.env.WEBHOOK_REPORT_PAI },
+  'pa': { name: 'PA', emoji: '🎓', roleId: '1514608894679191598', roleId2: '1541129110623879249', webhook: process.env.WEBHOOK_REPORT_PA },
+  'dvd': { name: 'DVD', emoji: '🚗', roleId: '1514608894679191600', roleId2: '1541104206184845372', webhook: process.env.WEBHOOK_REPORT_DVD },
+  'db': { name: 'DB', emoji: '🕵️', roleId: '1514608894679191599', roleId2: '1541129158095020074', webhook: process.env.WEBHOOK_REPORT_DB },
+  'k9': { name: 'K9', emoji: '🐕', roleId: '1514695474362450093', roleId2: '1541105887408820224', webhook: process.env.WEBHOOK_REPORT_K9 },
+  'alpha': { name: 'ALPHA', emoji: '💥', roleId: '1514695605123813496', roleId2: '1541129199845384395', webhook: process.env.WEBHOOK_REPORT_ALPHA },
+  'mcd': { name: 'MCD', emoji: '🚨', roleId: '1514690126276595873', roleId2: '1541105062544281680', webhook: process.env.WEBHOOK_REPORT_MCD },
+  'cpd': { name: 'CPD', emoji: '🚔', roleId: '1514695305633992706', roleId2: '1541104610935177406', webhook: process.env.WEBHOOK_REPORT_CPD },
+  'halt': { name: 'HALT', emoji: '🚁', roleId: '1514695733146554558', roleId2: '1541129314257346630', webhook: process.env.WEBHOOK_REPORT_HALT },
+  'ctrt': { name: 'CTRT', emoji: '🔫', roleId: '1515923752884506725', roleId2: '1541128540932808744', webhook: process.env.WEBHOOK_REPORT_CTRT }
 };
 
 const TRANSFER_WEBHOOKS = {
@@ -123,10 +123,12 @@ export default async function handler(req, res) {
     if (!dept) return res.status(400).json({ error: 'Выберите отдел' });
     webhookUrl = dept.webhook; if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
     if (dept.roleId) roleMentions += `<@&${dept.roleId}> `;
+    if (dept.roleId2) roleMentions += `<@&${dept.roleId2}> `;
   } else if (type === 'transfer') {
     webhookUrl = TRANSFER_WEBHOOKS[targetDepartment]; if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
     const di = DEPARTMENTS[targetDepartment];
     if (di?.roleId) roleMentions += `<@&${di.roleId}> `;
+    if (di?.roleId2) roleMentions += `<@&${di.roleId2}> `;
   } else if (type === 'highrank') { webhookUrl = webhooks.highrank; roleMentions = '<@&1514608894679191597>'; }
   else if (type === 'resignation') { webhookUrl = webhooks.resignation; roleMentions = '<@&1514608894679191597>'; }
   else if (type === 'reinstatement') { webhookUrl = webhooks.reinstatement; roleMentions = '<@&1514608894679191597>'; }
@@ -137,6 +139,7 @@ export default async function handler(req, res) {
     webhookUrl = webhooks.leave;
     const di = DEPARTMENTS[department];
     if (di?.roleId) roleMentions += `<@&${di.roleId}> `;
+    if (di?.roleId2) roleMentions += `<@&${di.roleId2}> `;
     threadId = leaveType === 'ooc' ? '1541113530743390288' : '1541113565505781891';
   } else { webhookUrl = webhooks.promotion; roleMentions = '<@&1514608894679191597>'; }
   if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
