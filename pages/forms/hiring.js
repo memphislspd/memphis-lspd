@@ -115,7 +115,7 @@ export default function HiringForm() {
       </button>
       
       <div className="form-container">
-        <h1>📝 Трудоустройство в LSCSD</h1>
+        <h1>📝 Трудоустройство в lspd</h1>
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
