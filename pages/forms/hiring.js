@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 const EXPERIENCE_OPTIONS = [
   'Нет опыта',
-  'Был в LSPD',
+  'Был в LSCSD',
   'Был в FIB',
   'Был в SANG',
   'Другое'
