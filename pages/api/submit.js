@@ -24,11 +24,11 @@ const DEPARTMENTS = {
 
 const TRANSFER_WEBHOOKS = {
   'af': process.env.WEBHOOK_TRANSFER_AF, 'iad': process.env.WEBHOOK_TRANSFER_IAD,
-  'swat': process.env.WEBHOOK_TRANSFER_SWAT, 'dvd': process.env.WEBHOOK_TRANSFER_DVD,
-  'db': process.env.WEBHOOK_TRANSFER_DB, 'k9': process.env.WEBHOOK_TRANSFER_K9,
-  'alpha': process.env.WEBHOOK_TRANSFER_ALPHA, 'mcd': process.env.WEBHOOK_TRANSFER_MCD,
-  'cpd': process.env.WEBHOOK_TRANSFER_CPD, 'halt': process.env.WEBHOOK_TRANSFER_HALT,
-  'ctrt': process.env.WEBHOOK_TRANSFER_CTRT
+  'swat': process.env.WEBHOOK_TRANSFER_SWAT, 'pai': process.env.WEBHOOK_TRANSFER_PAI,
+  'dvd': process.env.WEBHOOK_TRANSFER_DVD, 'db': process.env.WEBHOOK_TRANSFER_DB,
+  'k9': process.env.WEBHOOK_TRANSFER_K9, 'alpha': process.env.WEBHOOK_TRANSFER_ALPHA,
+  'mcd': process.env.WEBHOOK_TRANSFER_MCD, 'cpd': process.env.WEBHOOK_TRANSFER_CPD,
+  'halt': process.env.WEBHOOK_TRANSFER_HALT, 'ctrt': process.env.WEBHOOK_TRANSFER_CTRT
 };
 
 const webhooks = {
@@ -168,7 +168,7 @@ export default async function handler(req, res) {
 
 function getFormTitle(type, department, targetDepartment, leaveType) {
   if (type === 'report') { const d = DEPARTMENTS[department]; return `📋 Отчёт о повышении • ${d ? d.emoji + ' ' + d.name : 'Отдел'}`; }
-  if (type === 'transfer') { const n = { af:'AF',iad:'IAD',swat:'SWAT',dvd:'DVD',db:'DB',k9:'K9',alpha:'ALPHA',mcd:'MCD',cpd:'CPD',halt:'HALT',ctrt:'CTRT' }; return `🔄 Запрос на перевод в ${n[targetDepartment]||'Отдел'}`; }
+  if (type === 'transfer') { const n = { af:'AF',iad:'IAD',swat:'SWAT',pai:'PAI',dvd:'DVD',db:'DB',k9:'K9',alpha:'ALPHA',mcd:'MCD',cpd:'CPD',halt:'HALT',ctrt:'CTRT' }; return `🔄 Запрос на перевод в ${n[targetDepartment]||'Отдел'}`; }
   if (type === 'highrank') return '🌟 Отчёт на повышение (Хай Ранги)';
   if (type === 'resignation') return '🚪 Заявление на увольнение';
   if (type === 'reinstatement') return '🔄 Восстановление в LSPD';
