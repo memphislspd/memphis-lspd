@@ -7,9 +7,9 @@ export default async function handler(req, res) {
 
   const today = new Date().toISOString().split('T')[0];
   const [total, todayCount, history] = await Promise.all([
-    kv.get('lscsd:stats:total') || 0,
-    kv.get(`lscsd:stats:${today}`) || 0,
-    kv.lrange(`lscsd:history:${user.id}`, 0, 49)
+    kv.get('lspd:stats:total') || 0,
+    kv.get(`lspd:stats:${today}`) || 0,
+    kv.lrange(`lspd:history:${user.id}`, 0, 49)
   ]);
 
   res.status(200).json({
