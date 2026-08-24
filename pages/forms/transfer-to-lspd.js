@@ -49,7 +49,7 @@ export default function TransferToLSPDForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'transfer-to-LSPD',
+          type: 'transfer-to-lspd',
           fullName: formData.fullName,
           approvalProof: formData.approvalProof,
           rankProof: formData.rankProof
