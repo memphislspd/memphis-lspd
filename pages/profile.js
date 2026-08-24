@@ -6,6 +6,7 @@ const DEPARTMENTS = [
   { id: 'iad', name: 'IAD', emoji: '⚖️' },
   { id: 'swat', name: 'SWAT', emoji: '🛡️' },
   { id: 'pai', name: 'PAI', emoji: '🎓' },
+  { id: 'pa', name: 'PA', emoji: '🎓' },
   { id: 'dvd', name: 'DVD', emoji: '🚗' },
   { id: 'db', name: 'DB', emoji: '🕵️' },
   { id: 'k9', name: 'K9', emoji: '🐕' },
@@ -39,15 +40,29 @@ export default function Profile() {
   }, []);
 
   const saveName = async () => {
-    const res = await fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fullName: newName }) });
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName: newName })
+    });
     const d = await res.json();
-    if (res.ok) { setProfile(d.profile); setEditingName(false); }
+    if (res.ok) {
+      setProfile(d.profile);
+      setEditingName(false);
+    }
   };
 
   const saveDepartment = async (deptId) => {
-    const res = await fetch('/api/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ department: deptId }) });
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ department: deptId })
+    });
     const d = await res.json();
-    if (res.ok) { setProfile(d.profile); setEditingDept(false); }
+    if (res.ok) {
+      setProfile(d.profile);
+      setEditingDept(false);
+    }
   };
 
   const copyId = () => {
@@ -57,13 +72,20 @@ export default function Profile() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading || !user) return <div style={{ display:'flex',justifyContent:'center',alignItems:'center',minHeight:'100vh',background:'#0a0a1a',color:'white' }}>Загрузка...</div>;
+  if (loading || !user) return (
+    <div style={{ display:'flex',justifyContent:'center',alignItems:'center',minHeight:'100vh',background:'#0a0a1a',color:'white' }}>
+      Загрузка...
+    </div>
+  );
 
   const currentDept = DEPARTMENTS.find(d => d.id === profile.department);
 
   return (
     <div style={{ minHeight:'100vh',background:'linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 100%)',padding:'30px',color:'white' }}>
-      <button onClick={() => router.push('/dashboard')} style={{ background:'rgba(255,255,255,0.1)',color:'white',border:'1px solid rgba(255,255,255,0.2)',padding:'10px 20px',borderRadius:'8px',cursor:'pointer',marginBottom:'20px' }}>← Назад</button>
+      <button onClick={() => router.push('/dashboard')} style={{ background:'rgba(255,255,255,0.1)',color:'white',border:'1px solid rgba(255,255,255,0.2)',padding:'10px 20px',borderRadius:'8px',cursor:'pointer',marginBottom:'20px' }}>
+        ← Назад
+      </button>
+
       <div style={{ maxWidth:'600px',margin:'0 auto' }}>
         <div style={{ background:'rgba(255,255,255,0.05)',borderRadius:'20px',padding:'30px',border:'1px solid rgba(255,255,255,0.1)',textAlign:'center',marginBottom:'20px' }}>
           <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} alt="Avatar" style={{ width:'80px',height:'80px',borderRadius:'50%',border:'2px solid #5865F2' }} />
@@ -73,37 +95,63 @@ export default function Profile() {
             {copied ? '✅ Скопировано' : '📋 Копировать ID'}
           </button>
         </div>
+
         <div style={{ background:'rgba(255,255,255,0.05)',borderRadius:'20px',padding:'30px',border:'1px solid rgba(255,255,255,0.1)',marginBottom:'20px' }}>
           <h2 style={{ fontSize:'18px',marginBottom:'15px' }}>🎮 Игровые данные</h2>
           {editingName ? (
             <div>
-              <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Имя Фамилия + Статик" style={{ width:'100%',padding:'12px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:'8px',color:'white',marginBottom:'10px' }} />
+              <input
+                type="text"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                placeholder="Имя Фамилия + Статик"
+                style={{ width:'100%',padding:'12px',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:'8px',color:'white',marginBottom:'10px' }}
+              />
               <button onClick={saveName} style={{ background:'#4CAF50',color:'white',border:'none',padding:'10px 20px',borderRadius:'8px',cursor:'pointer' }}>Сохранить</button>
             </div>
           ) : (
             <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center' }}>
-              <span style={{ color: profile.fullName ? 'white' : '#8b8ba7' }}>{profile.fullName || 'Не указано'}</span>
-              <button onClick={() => setEditingName(true)} style={{ background:'rgba(255,255,255,0.08)',color:'white',border:'1px solid rgba(255,255,255,0.15)',padding:'8px 16px',borderRadius:'8px',cursor:'pointer' }}>Изменить</button>
+              <span style={{ color: profile.fullName ? 'white' : '#8b8ba7' }}>
+                {profile.fullName || 'Не указано'}
+              </span>
+              <button onClick={() => setEditingName(true)} style={{ background:'rgba(255,255,255,0.08)',color:'white',border:'1px solid rgba(255,255,255,0.15)',padding:'8px 16px',borderRadius:'8px',cursor:'pointer' }}>
+                Изменить
+              </button>
             </div>
           )}
         </div>
+
         <div style={{ background:'rgba(255,255,255,0.05)',borderRadius:'20px',padding:'30px',border:'1px solid rgba(255,255,255,0.1)',marginBottom:'20px' }}>
           <h2 style={{ fontSize:'18px',marginBottom:'15px' }}>🏢 Отдел</h2>
           {editingDept ? (
-            <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:'10px' }}>
-              {DEPARTMENTS.map(d => (
-                <button key={d.id} onClick={() => saveDepartment(d.id)} style={{ background: profile.department === d.id ? 'rgba(88,101,242,0.2)' : 'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:'10px',padding:'15px',cursor:'pointer',color:'white',textAlign:'center' }}>
-                  <div style={{ fontSize:'24px' }}>{d.emoji}</div>
-                  <div style={{ fontSize:'13px',marginTop:'5px' }}>{d.name}</div>
-                </button>
-              ))}
+            <div>
+              <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:'10px' }}>
+                {DEPARTMENTS.map(d => (
+                  <button key={d.id} onClick={() => saveDepartment(d.id)} style={{ background: profile.department === d.id ? 'rgba(88,101,242,0.2)' : 'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:'10px',padding:'15px',cursor:'pointer',color:'white',textAlign:'center' }}>
+                    <div style={{ fontSize:'24px' }}>{d.emoji}</div>
+                    <div style={{ fontSize:'13px',marginTop:'5px' }}>{d.name}</div>
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => saveDepartment('')} style={{ width:'100%',marginTop:'15px',background:'rgba(220,53,69,0.1)',color:'#ff6b6b',border:'1px solid rgba(220,53,69,0.4)',padding:'10px',borderRadius:'8px',cursor:'pointer' }}>
+                ❌ Убрать отдел
+              </button>
             </div>
           ) : (
             <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center' }}>
               <span style={{ color: currentDept ? 'white' : '#8b8ba7', fontSize:'16px' }}>
                 {currentDept ? `${currentDept.emoji} ${currentDept.name}` : 'Не выбран'}
               </span>
-              <button onClick={() => setEditingDept(true)} style={{ background:'rgba(255,255,255,0.08)',color:'white',border:'1px solid rgba(255,255,255,0.15)',padding:'8px 16px',borderRadius:'8px',cursor:'pointer' }}>Сменить</button>
+              <div style={{ display:'flex',gap:'8px' }}>
+                {currentDept && (
+                  <button onClick={() => saveDepartment('')} style={{ background:'rgba(220,53,69,0.1)',color:'#ff6b6b',border:'1px solid rgba(220,53,69,0.4)',padding:'8px 16px',borderRadius:'8px',cursor:'pointer' }}>
+                    Убрать
+                  </button>
+                )}
+                <button onClick={() => setEditingDept(true)} style={{ background:'rgba(255,255,255,0.08)',color:'white',border:'1px solid rgba(255,255,255,0.15)',padding:'8px 16px',borderRadius:'8px',cursor:'pointer' }}>
+                  Сменить
+                </button>
+              </div>
             </div>
           )}
         </div>
