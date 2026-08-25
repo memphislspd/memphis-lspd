@@ -9,12 +9,12 @@ const DEPARTMENTS = [
   { id: 'dvd', name: 'DVD', emoji: '🚗' },
   { id: 'db', name: 'DB', emoji: '🕵️' },
   { id: 'k9', name: 'K9', emoji: '🐕' },
-  { id: 'alpha', name: 'ALPHA', emoji: '💥' },
-  { id: 'mcd', name: 'MCD', emoji: '🚨' },
   { id: 'cpd', name: 'CPD', emoji: '🚔' },
   { id: 'halt', name: 'HALT', emoji: '🚁' },
-  { id: 'pa', name: 'PA', emoji: '🎓' },
-  { id: 'ctrt', name: 'CTRT', emoji: '🔫' }
+  { id: 'ted', name: 'TED', emoji: '🔫' },
+  { id: 'srt', name: 'SRT', emoji: '🛡️' },
+  { id: 'nred', name: 'NRED', emoji: '🚨' },
+  { id: 'med', name: 'MED', emoji: '🏥' }
 ];
 
 const RANKS = [
