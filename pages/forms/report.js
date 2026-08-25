@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 const DEPARTMENTS = [
   { id: 'af', name: 'AF', emoji: '✈️' },
   { id: 'iad', name: 'IAD', emoji: '⚖️' },
+  { id: 'pa', name: 'PA', emoji: '🎓' },
   { id: 'swat', name: 'SWAT', emoji: '🛡️' },
   { id: 'pai', name: 'PAI', emoji: '🎓' },
   { id: 'dvd', name: 'DVD', emoji: '🚗' },
