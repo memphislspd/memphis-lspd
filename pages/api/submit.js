@@ -11,24 +11,25 @@ const DEPARTMENTS = {
   'iad': { name: 'IAD', emoji: '⚖️', roleId: '1514608894700159139', roleId2: '1541128640140550194', webhook: process.env.WEBHOOK_REPORT_IAD },
   'swat': { name: 'SWAT', emoji: '🛡️', roleId: '1514608894679191601', roleId2: '1535279144102006784', webhook: process.env.WEBHOOK_REPORT_SWAT },
   'pai': { name: 'PAI', emoji: '🎓', roleId: '1514608894679191598', roleId2: '1541129110623879249', webhook: process.env.WEBHOOK_REPORT_PAI },
-  'pa': { name: 'PA', emoji: '🎓', roleId: '1514608894679191598', roleId2: '1541129110623879249', webhook: process.env.WEBHOOK_REPORT_PA },
   'dvd': { name: 'DVD', emoji: '🚗', roleId: '1514608894679191600', roleId2: '1541104206184845372', webhook: process.env.WEBHOOK_REPORT_DVD },
   'db': { name: 'DB', emoji: '🕵️', roleId: '1514608894679191599', roleId2: '1541129158095020074', webhook: process.env.WEBHOOK_REPORT_DB },
   'k9': { name: 'K9', emoji: '🐕', roleId: '1514695474362450093', roleId2: '1541105887408820224', webhook: process.env.WEBHOOK_REPORT_K9 },
-  'alpha': { name: 'ALPHA', emoji: '💥', roleId: '1514695605123813496', roleId2: '1541129199845384395', webhook: process.env.WEBHOOK_REPORT_ALPHA },
-  'mcd': { name: 'MCD', emoji: '🚨', roleId: '1514690126276595873', roleId2: '1541105062544281680', webhook: process.env.WEBHOOK_REPORT_MCD },
   'cpd': { name: 'CPD', emoji: '🚔', roleId: '1514695305633992706', roleId2: '1541104610935177406', webhook: process.env.WEBHOOK_REPORT_CPD },
   'halt': { name: 'HALT', emoji: '🚁', roleId: '1514695733146554558', roleId2: '1541129314257346630', webhook: process.env.WEBHOOK_REPORT_HALT },
-  'ctrt': { name: 'CTRT', emoji: '🔫', roleId: '1515923752884506725', roleId2: '1541128540932808744', webhook: process.env.WEBHOOK_REPORT_CTRT }
+  'ted': { name: 'TED', emoji: '🔫', roleId: '1541117825169752175', roleId2: '1541166789822648354', webhook: process.env.WEBHOOK_REPORT_TED },
+  'srt': { name: 'SRT', emoji: '🛡️', roleId: '1541638981865705502', roleId2: '1541638846242881606', webhook: process.env.WEBHOOK_REPORT_SRT },
+  'nred': { name: 'NRED', emoji: '🚨', roleId: '1541135772864880730', roleId2: '1541137871379898451', webhook: process.env.WEBHOOK_REPORT_NRED },
+  'med': { name: 'MED', emoji: '🏥', roleId: '1541133627772117032', roleId2: '1541110783885443092', webhook: process.env.WEBHOOK_REPORT_MED }
 };
 
 const TRANSFER_WEBHOOKS = {
   'af': process.env.WEBHOOK_TRANSFER_AF, 'iad': process.env.WEBHOOK_TRANSFER_IAD,
   'swat': process.env.WEBHOOK_TRANSFER_SWAT, 'pai': process.env.WEBHOOK_TRANSFER_PAI,
   'dvd': process.env.WEBHOOK_TRANSFER_DVD, 'db': process.env.WEBHOOK_TRANSFER_DB,
-  'k9': process.env.WEBHOOK_TRANSFER_K9, 'alpha': process.env.WEBHOOK_TRANSFER_ALPHA,
-  'mcd': process.env.WEBHOOK_TRANSFER_MCD, 'cpd': process.env.WEBHOOK_TRANSFER_CPD,
-  'halt': process.env.WEBHOOK_TRANSFER_HALT, 'ctrt': process.env.WEBHOOK_TRANSFER_CTRT
+  'k9': process.env.WEBHOOK_TRANSFER_K9, 'cpd': process.env.WEBHOOK_TRANSFER_CPD,
+  'halt': process.env.WEBHOOK_TRANSFER_HALT, 'ted': process.env.WEBHOOK_TRANSFER_TED,
+  'srt': process.env.WEBHOOK_TRANSFER_SRT, 'nred': process.env.WEBHOOK_TRANSFER_NRED,
+  'med': process.env.WEBHOOK_TRANSFER_MED
 };
 
 const webhooks = {
@@ -180,7 +181,7 @@ export default async function handler(req, res) {
 
 function getFormTitle(type, department, targetDepartment, leaveType) {
   if (type === 'report') { const d = DEPARTMENTS[department]; return `📋 Отчёт о повышении • ${d ? d.emoji + ' ' + d.name : 'Отдел'}`; }
-  if (type === 'transfer') { const n = { af:'AF',iad:'IAD',swat:'SWAT',pai:'PAI',dvd:'DVD',db:'DB',k9:'K9',alpha:'ALPHA',mcd:'MCD',cpd:'CPD',halt:'HALT',ctrt:'CTRT' }; return `🔄 Запрос на перевод в ${n[targetDepartment]||'Отдел'}`; }
+  if (type === 'transfer') { const n = { af:'AF',iad:'IAD',swat:'SWAT',pai:'PAI',dvd:'DVD',db:'DB',k9:'K9',cpd:'CPD',halt:'HALT',ted:'TED',srt:'SRT',nred:'NRED',med:'MED' }; return `🔄 Запрос на перевод в ${n[targetDepartment]||'Отдел'}`; }
   if (type === 'highrank') return '🌟 Отчёт на повышение (Хай Ранги)';
   if (type === 'resignation') return '🚪 Заявление на увольнение';
   if (type === 'reinstatement') return '🔄 Восстановление в LSPD';
