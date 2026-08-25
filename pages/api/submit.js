@@ -14,6 +14,7 @@ const DEPARTMENTS = {
   'dvd': { name: 'DVD', emoji: '🚗', roleId: '1514608894679191600', roleId2: '1541104206184845372', webhook: process.env.WEBHOOK_REPORT_DVD },
   'db': { name: 'DB', emoji: '🕵️', roleId: '1514608894679191599', roleId2: '1541129158095020074', webhook: process.env.WEBHOOK_REPORT_DB },
   'k9': { name: 'K9', emoji: '🐕', roleId: '1514695474362450093', roleId2: '1541105887408820224', webhook: process.env.WEBHOOK_REPORT_K9 },
+  'pa': { name: 'PA', emoji: '🎓', roleId: '1514608894679191598', roleId2: '1541129110623879249', webhook: process.env.WEBHOOK_REPORT_PA },
   'cpd': { name: 'CPD', emoji: '🚔', roleId: '1514695305633992706', roleId2: '1541104610935177406', webhook: process.env.WEBHOOK_REPORT_CPD },
   'halt': { name: 'HALT', emoji: '🚁', roleId: '1514695733146554558', roleId2: '1541129314257346630', webhook: process.env.WEBHOOK_REPORT_HALT },
   'ted': { name: 'TED', emoji: '🔫', roleId: '1541117825169752175', roleId2: '1541166789822648354', webhook: process.env.WEBHOOK_REPORT_TED },
