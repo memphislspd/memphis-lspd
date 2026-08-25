@@ -130,7 +130,7 @@ export default async function handler(req, res) {
     const di = DEPARTMENTS[targetDepartment];
     if (di?.roleId) roleMentions += `<@&${di.roleId}> `;
     if (di?.roleId2) roleMentions += `<@&${di.roleId2}> `;
-  } else if (type === 'highrank') { webhookUrl = webhooks.highrank; roleMentions = '<@&1514608894679191597>'; }
+  } else if (type === 'highrank') { webhookUrl = webhooks.highrank; roleMentions = '<@&1514608894700159142> <@&1514690313233371226>'; }
   else if (type === 'resignation') { webhookUrl = webhooks.resignation; roleMentions = '<@&1514608894679191597>'; }
   else if (type === 'reinstatement') { webhookUrl = webhooks.reinstatement; roleMentions = '<@&1514690313233371226> <@&1514608894679191598>'; }
   else if (type === 'transfer-to-lspd') { webhookUrl = webhooks['transfer-to-lspd']; roleMentions = '<@&1514690313233371226> <@&1514608894700159142>'; }
