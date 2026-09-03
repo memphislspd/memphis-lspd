@@ -139,7 +139,7 @@ export default async function handler(req, res) {
   else if (type === 'transfer-to-lspd') { webhookUrl = webhooks['transfer-to-lspd']; roleMentions = '<@&1514690313233371226> <@&1514608894700159142>'; }
   else if (type === 'hiring') { webhookUrl = webhooks.hiring; roleMentions = '<@&1514608894666735724> <@&1514608894679191598> <@&1541129110623879249>'; }
   else if (type === 'weapon-request') { webhookUrl = webhooks['weapon-request']; roleMentions = '<@&1514690313233371226> <@&1514608894700159142>'; }
-  else if (type === 'premium') { webhookUrl = webhooks.premium; roleMentions = '<@&1514608894679191597>'; }
+  else if (type === 'premium') { webhookUrl = webhooks.premium; roleMentions = ''; }
   else if (type === 'leave') {
     webhookUrl = webhooks.leave;
     const di = DEPARTMENTS[department];
