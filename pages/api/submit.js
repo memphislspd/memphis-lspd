@@ -215,22 +215,20 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
       return { name: parts[0] || '-', rank: parts[1] || '-', static: parts[2] || '-', weeks: parts[3] || '-' };
     });
 
-    const col1Max = Math.max(4, ...rows.map(r => r.name.length));
-    const col2Max = Math.max(4, ...rows.map(r => r.rank.length));
-    const col3Max = Math.max(6, ...rows.map(r => r.static.length));
-    const col4Max = Math.max(6, ...rows.map(r => r.weeks.length));
+    const names = rows.map(r => r.name).join('\n');
+    const ranks = rows.map(r => r.rank).join('\n');
+    const statics = rows.map(r => r.static).join('\n');
+    const weeks = rows.map(r => r.weeks).join('\n');
 
-    const border = `┌${'─'.repeat(col1Max + 2)}┬${'─'.repeat(col2Max + 2)}┬${'─'.repeat(col3Max + 2)}┬${'─'.repeat(col4Max + 2)}┐`;
-    const header = `│ ${'Имя'.padEnd(col1Max)} │ ${'Ранг'.padEnd(col2Max)} │ ${'Static'.padEnd(col3Max)} │ ${'Недель'.padEnd(col4Max)} │`;
-    const separator = `├${'─'.repeat(col1Max + 2)}┼${'─'.repeat(col2Max + 2)}┼${'─'.repeat(col3Max + 2)}┼${'─'.repeat(col4Max + 2)}┤`;
-    const bottom = `└${'─'.repeat(col1Max + 2)}┴${'─'.repeat(col2Max + 2)}┴${'─'.repeat(col3Max + 2)}┴${'─'.repeat(col4Max + 2)}┘`;
-
-    const tableRows = rows.map(r => `│ ${r.name.padEnd(col1Max)} │ ${r.rank.padEnd(col2Max)} │ ${r.static.padEnd(col3Max)} │ ${r.weeks.padEnd(col4Max)} │`);
-    const table = [border, header, separator, ...tableRows, bottom].join('\n');
+    const dept = DEPARTMENTS[data.department];
 
     return [
-      { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
-      { name: '📋 Таблица', value: `\`\`\`\n${table}\n\`\`\``, inline: false },
+      { name: '🏢 Отдел', value: dept ? `${dept.emoji} ${dept.name}` : 'Не указан', inline: false },
+      { name: '👤 Имена', value: `\`\`\`\n${names}\n\`\`\``, inline: false },
+      { name: '⭐ Ранги', value: `\`\`\`\n${ranks}\n\`\`\``, inline: false },
+      { name: '🆔 Static ID', value: `\`\`\`\n${statics}\n\`\`\``, inline: false },
+      { name: '📅 Недели', value: `\`\`\`\n${weeks}\n\`\`\``, inline: false },
+      { name: '📝 Заполнил', value: `<@${userId}>`, inline: false },
       ...base
     ];
   }
