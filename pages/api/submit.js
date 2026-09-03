@@ -41,7 +41,8 @@ const webhooks = {
   'transfer-to-lspd': process.env.WEBHOOK_TRANSFER_TO_LSPD,
   hiring: process.env.WEBHOOK_HIRING,
   'weapon-request': process.env.WEBHOOK_WEAPON_REQUEST,
-  leave: process.env.WEBHOOK_LEAVE
+  leave: process.env.WEBHOOK_LEAVE,
+  premium: process.env.WEBHOOK_PREMIUM
 };
 
 async function sendToDiscord(webhookUrl, data, retries = 3) {
@@ -101,7 +102,8 @@ export default async function handler(req, res) {
       screenshot: 'Скриншот', rankProof: 'Доказательство ранга', approvalProof: 'Одобрение',
       stateFractionsProof: 'Скрин одобрения', rankAtDismissal: 'Ранг при увольнении',
       dbWhatIs: 'Что такое DB', dbExperience: 'Опыт в DB', dbExamples: 'Примеры работ',
-      dbServers: 'Серверы с DB', dbKnowledge: 'Знания DB', dbLawKnowledge: 'Знания законки'
+      dbServers: 'Серверы с DB', dbKnowledge: 'Знания DB', dbLawKnowledge: 'Знания законки',
+      participants: 'Участники'
     };
 
     let fieldName = 'заявке';
@@ -137,6 +139,7 @@ export default async function handler(req, res) {
   else if (type === 'transfer-to-lspd') { webhookUrl = webhooks['transfer-to-lspd']; roleMentions = '<@&1514690313233371226> <@&1514608894700159142>'; }
   else if (type === 'hiring') { webhookUrl = webhooks.hiring; roleMentions = '<@&1514608894666735724> <@&1514608894679191598> <@&1541129110623879249>'; }
   else if (type === 'weapon-request') { webhookUrl = webhooks['weapon-request']; roleMentions = '<@&1514690313233371226> <@&1514608894700159142>'; }
+  else if (type === 'premium') { webhookUrl = webhooks.premium; roleMentions = '<@&1514608894679191597>'; }
   else if (type === 'leave') {
     webhookUrl = webhooks.leave;
     const di = DEPARTMENTS[department];
@@ -189,12 +192,13 @@ function getFormTitle(type, department, targetDepartment, leaveType) {
   if (type === 'transfer-to-lspd') return '🏛️ Перевод в LSPD';
   if (type === 'hiring') return '📝 Трудоустройство в LSPD';
   if (type === 'weapon-request') return '🔫 Запрос на спец вооружение';
+  if (type === 'premium') return '🎯 Премия';
   if (type === 'leave') return `🏖️ ${leaveType === 'ooc' ? 'OOC' : 'IC'} Отпуск`;
   return '📈 Запрос на повышение';
 }
 
 function getFormColor(type) {
-  const c = { promotion:0x4CAF50, transfer:0x2196F3, report:0xFF9800, highrank:0xFF69B4, resignation:0xDC3545, reinstatement:0x9C27B0, 'transfer-to-lspd':0x00BCD4, hiring:0x4CAF50, 'weapon-request':0xFF5722, leave:0x00BCD4 };
+  const c = { promotion:0x4CAF50, transfer:0x2196F3, report:0xFF9800, highrank:0xFF69B4, resignation:0xDC3545, reinstatement:0x9C27B0, 'transfer-to-lspd':0x00BCD4, hiring:0x4CAF50, 'weapon-request':0xFF5722, premium:0xFFD700, leave:0x00BCD4 };
   return c[type] || 0x5865F2;
 }
 
@@ -203,6 +207,33 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
     { name: '👤 Отправитель', value: `<@${userId}>`, inline: true },
     { name: '🆔 Discord ID', value: userId, inline: true }
   ];
+
+  if (type === 'premium') {
+    const lines = (data.participants || '').split('\n').filter(line => line.trim());
+    const rows = lines.map(line => {
+      const parts = line.split('|').map(part => part.trim());
+      return { name: parts[0] || '-', rank: parts[1] || '-', static: parts[2] || '-', weeks: parts[3] || '-' };
+    });
+
+    const col1Max = Math.max(4, ...rows.map(r => r.name.length));
+    const col2Max = Math.max(4, ...rows.map(r => r.rank.length));
+    const col3Max = Math.max(6, ...rows.map(r => r.static.length));
+    const col4Max = Math.max(6, ...rows.map(r => r.weeks.length));
+
+    const border = `┌${'─'.repeat(col1Max + 2)}┬${'─'.repeat(col2Max + 2)}┬${'─'.repeat(col3Max + 2)}┬${'─'.repeat(col4Max + 2)}┐`;
+    const header = `│ ${'Имя'.padEnd(col1Max)} │ ${'Ранг'.padEnd(col2Max)} │ ${'Static'.padEnd(col3Max)} │ ${'Недель'.padEnd(col4Max)} │`;
+    const separator = `├${'─'.repeat(col1Max + 2)}┼${'─'.repeat(col2Max + 2)}┼${'─'.repeat(col3Max + 2)}┼${'─'.repeat(col4Max + 2)}┤`;
+    const bottom = `└${'─'.repeat(col1Max + 2)}┴${'─'.repeat(col2Max + 2)}┴${'─'.repeat(col3Max + 2)}┴${'─'.repeat(col4Max + 2)}┘`;
+
+    const tableRows = rows.map(r => `│ ${r.name.padEnd(col1Max)} │ ${r.rank.padEnd(col2Max)} │ ${r.static.padEnd(col3Max)} │ ${r.weeks.padEnd(col4Max)} │`);
+    const table = [border, header, separator, ...tableRows, bottom].join('\n');
+
+    return [
+      { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
+      { name: '📋 Таблица', value: `\`\`\`\n${table}\n\`\`\``, inline: false },
+      ...base
+    ];
+  }
 
   if (type === 'leave') {
     const d = DEPARTMENTS[department];
