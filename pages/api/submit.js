@@ -224,10 +224,10 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
 
     return [
       { name: '🏢 Отдел', value: dept ? `${dept.emoji} ${dept.name}` : 'Не указан', inline: false },
-      { name: '👤 Имена', value: `\`\`\`\n${names}\n\`\`\``, inline: false },
-      { name: '⭐ Ранги', value: `\`\`\`\n${ranks}\n\`\`\``, inline: false },
-      { name: '🆔 Static ID', value: `\`\`\`\n${statics}\n\`\`\``, inline: false },
-      { name: '📅 Недели', value: `\`\`\`\n${weeks}\n\`\`\``, inline: false },
+      { name: '👤 Имена', value: `\`\`\`\n${names}\n\`\`\``, inline: true },
+      { name: '⭐ Ранги', value: `\`\`\`\n${ranks}\n\`\`\``, inline: true },
+      { name: '🆔 Static ID', value: `\`\`\`\n${statics}\n\`\`\``, inline: true },
+      { name: '📅 Недели', value: `\`\`\`\n${weeks}\n\`\`\``, inline: true },
       { name: '📝 Заполнил', value: `<@${userId}>`, inline: false },
       ...base
     ];
