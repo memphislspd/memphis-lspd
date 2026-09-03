@@ -30,6 +30,7 @@ const RANKS = [
 
 const WEAPONS = [
   { value: 'drone', label: '🚁 Дрон', requiresDept: ['k9', 'db'] },
+  { value: 'defik', label: '🛡️ Дефибриллятор', requiresDept: null },
   { value: 'combat-mg', label: '🔫 Combat MG', requiresDept: null },
   { value: 'combat-mg-mk2', label: '🔫 Combat MG Mk2', requiresDept: null },
   { value: 'marksman-rifle-mk2', label: '🎯 Marksman Rifle Mk2', requiresDept: null },
