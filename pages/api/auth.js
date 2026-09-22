@@ -1,10 +1,12 @@
 import { getDiscordToken, getDiscordUser, createToken, isAccountOldEnough } from '../../lib/discord';
 
 export default async function handler(req, res) {
-  const { code, error } = req.query;
+  const { code, error, state } = req.query;
   
-  if (error) return res.redirect('/?error=access_denied');
-  if (!code) return res.redirect('/?error=no_code');
+  const redirectTo = state || '/dashboard';
+  
+  if (error) return res.redirect(`/?error=access_denied`);
+  if (!code) return res.redirect(`/?error=no_code`);
 
   try {
     const tokenData = await getDiscordToken(code);
@@ -19,7 +21,7 @@ export default async function handler(req, res) {
     const jwtToken = createToken(user);
     
     res.setHeader('Set-Cookie', `token=${jwtToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400; Secure`);
-    res.redirect('/dashboard');
+    res.redirect(redirectTo);
   } catch (error) {
     console.error('Auth error:', error);
     res.redirect('/?error=auth_failed');
