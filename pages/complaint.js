@@ -19,7 +19,7 @@ export default function ComplaintForm() {
     fetch('/api/me')
       .then(res => res.json())
       .then(data => {
-        if (!data.user) { router.push('/'); return; }
+        if (!data.user) { router.push('/?redirect=/complaint'); return; }
         setUser(data.user);
         setLoading(false);
       });
