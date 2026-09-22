@@ -26,7 +26,8 @@ export default function Home() {
       .then(res => res.json())
       .then(data => {
         if (data.user) {
-          router.push('/dashboard');
+          const redirect = router.query.redirect || '/dashboard';
+          router.push(redirect);
         }
         setLoading(false);
       })
@@ -34,12 +35,14 @@ export default function Home() {
   }, [router.query]);
 
   const handleDiscordLogin = () => {
+    const redirect = router.query.redirect || '/dashboard';
     const params = new URLSearchParams({
       client_id: DISCORD_CLIENT_ID,
       redirect_uri: DISCORD_REDIRECT_URI,
       response_type: 'code',
       scope: 'identify',
-      prompt: 'none'
+      prompt: 'none',
+      state: redirect
     });
     
     window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
