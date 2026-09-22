@@ -42,7 +42,9 @@ const webhooks = {
   hiring: process.env.WEBHOOK_HIRING,
   'weapon-request': process.env.WEBHOOK_WEAPON_REQUEST,
   leave: process.env.WEBHOOK_LEAVE,
-  premium: process.env.WEBHOOK_PREMIUM
+  premium: process.env.WEBHOOK_PREMIUM,
+  complaintPublic: process.env.WEBHOOK_COMPLAINT_PUBLIC,
+  complaintPrivate: process.env.WEBHOOK_COMPLAINT_PRIVATE
 };
 
 async function sendToDiscord(webhookUrl, data, retries = 3) {
@@ -103,7 +105,8 @@ export default async function handler(req, res) {
       stateFractionsProof: 'Скрин одобрения', rankAtDismissal: 'Ранг при увольнении',
       dbWhatIs: 'Что такое DB', dbExperience: 'Опыт в DB', dbExamples: 'Примеры работ',
       dbServers: 'Серверы с DB', dbKnowledge: 'Знания DB', dbLawKnowledge: 'Знания законки',
-      participants: 'Участники'
+      participants: 'Участники', complainantName: 'Имя заявителя', targetName: 'На кого жалоба',
+      description: 'Описание', evidence: 'Доказательства', incidentDate: 'Дата инцидента'
     };
 
     let fieldName = 'заявке';
@@ -118,6 +121,23 @@ export default async function handler(req, res) {
     return res.status(400).json({ 
       error: `❌ В поле "${fieldName}" найдено запрещённое слово: "${foundWord}". Форма не отправлена.` 
     });
+  }
+
+  // Проверка ссылок для жалоб
+  if (type === 'complaint' && formData.evidence) {
+    const allowedHosts = ['imgur.com', 'yapx.ru', 'youtube.com', 'youtu.be', 'medal.tv', 'streamable.com', 'discord.com', 'cdn.discordapp.com', 'ibb.co', 'prnt.sc'];
+    const links = formData.evidence.match(/https?:\/\/[^\s]+/g) || [];
+    
+    if (links.length === 0) {
+      return res.status(400).json({ error: '❌ В доказательствах должна быть хотя бы одна ссылка' });
+    }
+    
+    for (const link of links) {
+      const isAllowed = allowedHosts.some(host => link.includes(host));
+      if (!isAllowed) {
+        return res.status(400).json({ error: `❌ Ссылка не разрешена. Используйте: imgur, yapx, youtube, medal, streamable, discord, ibb` });
+      }
+    }
   }
 
   let webhookUrl, roleMentions = '', threadId = null;
@@ -140,6 +160,7 @@ export default async function handler(req, res) {
   else if (type === 'hiring') { webhookUrl = webhooks.hiring; roleMentions = '<@&1514608894666735724> <@&1514608894679191598> <@&1541129110623879249>'; }
   else if (type === 'weapon-request') { webhookUrl = webhooks['weapon-request']; roleMentions = '<@&1514690313233371226> <@&1514608894700159142>'; }
   else if (type === 'premium') { webhookUrl = webhooks.premium; roleMentions = ''; }
+  else if (type === 'complaint') { webhookUrl = webhooks.complaintPrivate; roleMentions = '<@&1514608894679191592>'; }
   else if (type === 'leave') {
     webhookUrl = webhooks.leave;
     const di = DEPARTMENTS[department];
@@ -162,6 +183,27 @@ export default async function handler(req, res) {
     footer: { text: 'LSPD Forms • ' + new Date().toLocaleDateString('ru-RU') },
     timestamp: new Date().toISOString()
   };
+
+  // Для жалоб — сначала отправляем в публичный канал (краткая версия)
+  if (type === 'complaint') {
+    const publicEmbed = {
+      title: '🚨 ЖАЛОБА НА СОТРУДНИКА',
+      color: 0xFF0000,
+      fields: [
+        { name: '👤 На кого', value: formData.targetName || '-', inline: false },
+        { name: '📅 Когда', value: formData.incidentDate || '-', inline: false },
+        { name: '📝 Описание', value: (formData.description || '-').slice(0, 1024), inline: false }
+      ],
+      footer: { text: 'LSPD Forms • ' + new Date().toLocaleDateString('ru-RU') },
+      timestamp: new Date().toISOString()
+    };
+
+    await sendToDiscord(webhooks.complaintPublic, {
+      embeds: [publicEmbed],
+      username: 'LSPD Forms',
+      avatar_url: 'https://i.imgur.com/AfFp7pu.png'
+    });
+  }
 
   const result = await sendToDiscord(webhookUrl, { 
     content: roleMentions.trim() || undefined, 
@@ -193,12 +235,13 @@ function getFormTitle(type, department, targetDepartment, leaveType) {
   if (type === 'hiring') return '📝 Трудоустройство в LSPD';
   if (type === 'weapon-request') return '🔫 Запрос на спец вооружение';
   if (type === 'premium') return '🎯 Премия';
+  if (type === 'complaint') return '🚨 ЖАЛОБА НА СОТРУДНИКА';
   if (type === 'leave') return `🏖️ ${leaveType === 'ooc' ? 'OOC' : 'IC'} Отпуск`;
   return '📈 Запрос на повышение';
 }
 
 function getFormColor(type) {
-  const c = { promotion:0x4CAF50, transfer:0x2196F3, report:0xFF9800, highrank:0xFF69B4, resignation:0xDC3545, reinstatement:0x9C27B0, 'transfer-to-lspd':0x00BCD4, hiring:0x4CAF50, 'weapon-request':0xFF5722, premium:0xFFD700, leave:0x00BCD4 };
+  const c = { promotion:0x4CAF50, transfer:0x2196F3, report:0xFF9800, highrank:0xFF69B4, resignation:0xDC3545, reinstatement:0x9C27B0, 'transfer-to-lspd':0x00BCD4, hiring:0x4CAF50, 'weapon-request':0xFF5722, premium:0xFFD700, complaint:0xFF0000, leave:0x00BCD4 };
   return c[type] || 0x5865F2;
 }
 
@@ -207,6 +250,17 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
     { name: '👤 Отправитель', value: `<@${userId}>`, inline: true },
     { name: '🆔 Discord ID', value: userId, inline: true }
   ];
+
+  if (type === 'complaint') {
+    return [
+      { name: '👤 На кого жалоба', value: data.targetName || '-', inline: false },
+      { name: '📅 Дата инцидента', value: data.incidentDate || '-', inline: false },
+      { name: '📝 Описание', value: (data.description || '-').slice(0, 1024), inline: false },
+      { name: '📸 Доказательства', value: (data.evidence || '-').slice(0, 1024), inline: false },
+      { name: '👤 Заявитель', value: data.complainantName || '-', inline: false },
+      { name: '🆔 ID заявителя', value: userId, inline: false }
+    ];
+  }
 
   if (type === 'premium') {
     const lines = (data.participants || '').split('\n').filter(line => line.trim());
