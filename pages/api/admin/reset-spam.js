@@ -1,17 +1,15 @@
 import { verifyToken } from '../../../lib/discord';
+import { isAdmin } from '../../../lib/admins';
 import { resetSpam } from '../../../lib/antispam';
-
-const ADMINS = ['200102286473691139'];
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const token = req.cookies.token;
-  const user = verifyToken(token);
+  const user = verifyToken(req.cookies.token);
   
-  if (!user || !ADMINS.includes(user.id)) {
+  if (!user || !isAdmin(user.id)) {
     return res.status(403).json({ error: 'Нет доступа' });
   }
 

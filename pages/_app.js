@@ -5,6 +5,21 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [toasts, setToasts] = useState([]);
+
+  useEffect(() => {
+    window.toast = (message, type = 'info') => {
+      const id = Date.now() + Math.random();
+      setToasts(prev => [...prev, { id, message, type }]);
+      setTimeout(() => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+      }, 4000);
+    };
+
+    window.toast.success = (msg) => window.toast(msg, 'success');
+    window.toast.error = (msg) => window.toast(msg, 'error');
+    window.toast.info = (msg) => window.toast(msg, 'info');
+  }, []);
 
   useEffect(() => {
     let interval;
@@ -41,6 +56,12 @@ export default function App({ Component, pageProps }) {
     };
   }, [router]);
 
+  const getToastColor = (type) => {
+    if (type === 'success') return { bg: 'rgba(76,175,80,0.15)', border: '#4CAF50', icon: '✓' };
+    if (type === 'error') return { bg: 'rgba(244,67,54,0.15)', border: '#F44336', icon: '✕' };
+    return { bg: 'rgba(88,101,242,0.15)', border: '#5865F2', icon: 'ℹ' };
+  };
+
   return (
     <>
       {loading && (
@@ -49,7 +70,6 @@ export default function App({ Component, pageProps }) {
           background: 'rgba(10,10,26,0.97)', zIndex: 99999,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
         }}>
-          {/* Крутящийся куб */}
           <div style={{ perspective: '800px', marginBottom: '40px' }}>
             <div style={{
               width: '70px', height: '70px',
@@ -61,11 +81,7 @@ export default function App({ Component, pageProps }) {
                   from { transform: rotateX(0deg) rotateY(0deg); }
                   to { transform: rotateX(360deg) rotateY(360deg); }
                 }
-                @keyframes spin {
-                  to { transform: rotate(360deg); }
-                }
               `}</style>
-              {/* 6 граней куба */}
               <div style={{ position:'absolute',width:'100%',height:'100%',border:'2px solid #5865F2',background:'rgba(88,101,242,0.15)',transform:'rotateY(0deg) translateZ(35px)' }} />
               <div style={{ position:'absolute',width:'100%',height:'100%',border:'2px solid #4CAF50',background:'rgba(76,175,80,0.15)',transform:'rotateY(90deg) translateZ(35px)' }} />
               <div style={{ position:'absolute',width:'100%',height:'100%',border:'2px solid #FF9800',background:'rgba(255,152,0,0.15)',transform:'rotateY(180deg) translateZ(35px)' }} />
@@ -75,12 +91,10 @@ export default function App({ Component, pageProps }) {
             </div>
           </div>
 
-          {/* Название */}
           <div style={{ color: 'white', fontSize: '20px', fontWeight: 700, marginBottom: '20px', letterSpacing: '2px' }}>
-            MEMPHIS LSPD FORMS
+            LSPD FORMS
           </div>
 
-          {/* Прогресс-бар */}
           <div style={{ width: '250px', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
             <div style={{
               width: `${Math.min(progress, 100)}%`, height: '100%',
@@ -93,15 +107,112 @@ export default function App({ Component, pageProps }) {
           </div>
         </div>
       )}
+
+      <div style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 100000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        pointerEvents: 'none'
+      }}>
+        {toasts.map(toast => {
+          const colors = getToastColor(toast.type);
+          return (
+            <div
+              key={toast.id}
+              style={{
+                background: colors.bg,
+                backdropFilter: 'blur(20px)',
+                border: `1px solid ${colors.border}`,
+                borderRadius: '12px',
+                padding: '16px 20px',
+                color: 'white',
+                fontSize: '14px',
+                fontWeight: 500,
+                maxWidth: '380px',
+                minWidth: '280px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                animation: 'slideIn 0.3s ease',
+                pointerEvents: 'auto'
+              }}
+            >
+              <div style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: colors.border,
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 700,
+                flexShrink: 0
+              }}>
+                {colors.icon}
+              </div>
+              <div style={{ flex: 1, lineHeight: 1.4 }}>{toast.message}</div>
+            </div>
+          );
+        })}
+      </div>
+
       <style jsx global>{`
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-          background: #0a0a1a; color: white;
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(100px); }
+          to { opacity: 1; transform: translateX(0); }
         }
-        input, textarea, button { font-family: inherit; }
-        a, button, input, textarea, select, [onclick], .card, .back-btn, .submit-btn, .logout-btn, .copy-btn { cursor: pointer; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+          font-size: 16px;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background: #0a0a1a;
+          color: white;
+          font-feature-settings: 'cv11', 'ss01';
+          line-height: 1.5;
+        }
+
+        input, textarea, button, select { font-family: inherit; }
+
+        code, .mono, [data-mono] {
+          font-family: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+        }
+
+        a, button, input, textarea, select, [onclick], .card, .back-btn, .submit-btn, .logout-btn, .copy-btn {
+          cursor: pointer;
+        }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        ::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 5px;
+          border: 2px solid transparent;
+          background-clip: content-box;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.2);
+          background-clip: content-box;
+        }
+
         select option { background: #1a1a3e; color: white; }
+        ::selection { background: rgba(88, 101, 242, 0.4); }
+        button { transition: all 0.2s ease; }
+        button:active:not(:disabled) { transform: scale(0.98); }
+        input:focus, textarea:focus, select:focus { outline: none; }
       `}</style>
       <Component {...pageProps} />
     </>

@@ -3,35 +3,14 @@ import { isBlacklisted, addToBlacklist } from '../../lib/blacklist';
 import { containsBadWords, findBadWord, findAllBadWords } from '../../lib/badwords';
 import { checkSpam } from '../../lib/antispam';
 import { kv } from '@vercel/kv';
+import { 
+  getDepartment, 
+  getReportWebhook, 
+  getTransferWebhook, 
+  getRoleMentions 
+} from '../../lib/departments';
 
 const WHITELIST = ['200102286473691139'];
-
-const DEPARTMENTS = {
-  'af': { name: 'AF', emoji: '✈️', roleId: '1514695692520525834', roleId2: '1541128485089837136', webhook: process.env.WEBHOOK_REPORT_AF },
-  'iad': { name: 'IAD', emoji: '⚖️', roleId: '1514608894700159139', roleId2: '1541128640140550194', webhook: process.env.WEBHOOK_REPORT_IAD },
-  'swat': { name: 'SWAT', emoji: '🛡️', roleId: '1514608894679191601', roleId2: '1535279144102006784', webhook: process.env.WEBHOOK_REPORT_SWAT },
-  'pai': { name: 'PAI', emoji: '🎓', roleId: '1514608894679191598', roleId2: '1541129110623879249', webhook: process.env.WEBHOOK_REPORT_PAI },
-  'dvd': { name: 'DVD', emoji: '🚗', roleId: '1514608894679191600', roleId2: '1541104206184845372', webhook: process.env.WEBHOOK_REPORT_DVD },
-  'db': { name: 'DB', emoji: '🕵️', roleId: '1514608894679191599', roleId2: '1541129158095020074', webhook: process.env.WEBHOOK_REPORT_DB },
-  'k9': { name: 'K9', emoji: '🐕', roleId: '1514695474362450093', roleId2: '1541105887408820224', webhook: process.env.WEBHOOK_REPORT_K9 },
-  'pa': { name: 'PA', emoji: '🎓', roleId: '1514608894679191598', roleId2: '1541129110623879249', webhook: process.env.WEBHOOK_REPORT_PA },
-  'cpd': { name: 'CPD', emoji: '🚔', roleId: '1514695305633992706', roleId2: '1541104610935177406', webhook: process.env.WEBHOOK_REPORT_CPD },
-  'halt': { name: 'HALT', emoji: '🚁', roleId: '1514695733146554558', roleId2: '1541129314257346630', webhook: process.env.WEBHOOK_REPORT_HALT },
-  'ted': { name: 'TED', emoji: '🔫', roleId: '1541117825169752175', roleId2: '1541166789822648354', webhook: process.env.WEBHOOK_REPORT_TED },
-  'srt': { name: 'SRT', emoji: '🛡️', roleId: '1541638981865705502', roleId2: '1541638846242881606', webhook: process.env.WEBHOOK_REPORT_SRT },
-  'nred': { name: 'NRED', emoji: '🚨', roleId: '1541135772864880730', roleId2: '1541137871379898451', webhook: process.env.WEBHOOK_REPORT_NRED },
-  'med': { name: 'MED', emoji: '🏥', roleId: '1541133627772117032', roleId2: '1541110783885443092', webhook: process.env.WEBHOOK_REPORT_MED }
-};
-
-const TRANSFER_WEBHOOKS = {
-  'af': process.env.WEBHOOK_TRANSFER_AF, 'iad': process.env.WEBHOOK_TRANSFER_IAD,
-  'swat': process.env.WEBHOOK_TRANSFER_SWAT, 'pai': process.env.WEBHOOK_TRANSFER_PAI,
-  'dvd': process.env.WEBHOOK_TRANSFER_DVD, 'db': process.env.WEBHOOK_TRANSFER_DB,
-  'k9': process.env.WEBHOOK_TRANSFER_K9, 'cpd': process.env.WEBHOOK_TRANSFER_CPD,
-  'halt': process.env.WEBHOOK_TRANSFER_HALT, 'ted': process.env.WEBHOOK_TRANSFER_TED,
-  'srt': process.env.WEBHOOK_TRANSFER_SRT, 'nred': process.env.WEBHOOK_TRANSFER_NRED,
-  'med': process.env.WEBHOOK_TRANSFER_MED
-};
 
 const webhooks = {
   promotion: process.env.WEBHOOK_PROMOTION,
@@ -143,16 +122,15 @@ export default async function handler(req, res) {
   let webhookUrl, roleMentions = '', threadId = null;
 
   if (type === 'report') {
-    const dept = DEPARTMENTS[department];
+    const dept = getDepartment(department);
     if (!dept) return res.status(400).json({ error: 'Выберите отдел' });
-    webhookUrl = dept.webhook; if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
-    if (dept.roleId) roleMentions += `<@&${dept.roleId}> `;
-    if (dept.roleId2) roleMentions += `<@&${dept.roleId2}> `;
+    webhookUrl = getReportWebhook(department);
+    if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
+    roleMentions = getRoleMentions(department);
   } else if (type === 'transfer') {
-    webhookUrl = TRANSFER_WEBHOOKS[targetDepartment]; if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
-    const di = DEPARTMENTS[targetDepartment];
-    if (di?.roleId) roleMentions += `<@&${di.roleId}> `;
-    if (di?.roleId2) roleMentions += `<@&${di.roleId2}> `;
+    webhookUrl = getTransferWebhook(targetDepartment);
+    if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
+    roleMentions = getRoleMentions(targetDepartment);
   } else if (type === 'highrank') { webhookUrl = webhooks.highrank; roleMentions = '<@&1514608894700159142> <@&1514690313233371226>'; }
   else if (type === 'resignation') { webhookUrl = webhooks.resignation; roleMentions = '<@&1514608894679191597>'; }
   else if (type === 'reinstatement') { webhookUrl = webhooks.reinstatement; roleMentions = '<@&1514690313233371226> <@&1514608894679191598>'; }
@@ -163,9 +141,7 @@ export default async function handler(req, res) {
   else if (type === 'complaint') { webhookUrl = webhooks.complaintPrivate; roleMentions = '<@&1514608894679191592>'; }
   else if (type === 'leave') {
     webhookUrl = webhooks.leave;
-    const di = DEPARTMENTS[department];
-    if (di?.roleId) roleMentions += `<@&${di.roleId}> `;
-    if (di?.roleId2) roleMentions += `<@&${di.roleId2}> `;
+    roleMentions = getRoleMentions(department);
     threadId = leaveType === 'ooc' ? '1541113530743390288' : '1541113565505781891';
   } else { webhookUrl = webhooks.promotion; roleMentions = '<@&1514608894679191597>'; }
   if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
@@ -226,8 +202,8 @@ export default async function handler(req, res) {
 }
 
 function getFormTitle(type, department, targetDepartment, leaveType) {
-  if (type === 'report') { const d = DEPARTMENTS[department]; return `📋 Отчёт о повышении • ${d ? d.emoji + ' ' + d.name : 'Отдел'}`; }
-  if (type === 'transfer') { const n = { af:'AF',iad:'IAD',swat:'SWAT',pai:'PAI',dvd:'DVD',db:'DB',k9:'K9',cpd:'CPD',halt:'HALT',ted:'TED',srt:'SRT',nred:'NRED',med:'MED' }; return `🔄 Запрос на перевод в ${n[targetDepartment]||'Отдел'}`; }
+  if (type === 'report') { const d = getDepartment(department); return `📋 Отчёт о повышении • ${d ? d.emoji + ' ' + d.name : 'Отдел'}`; }
+  if (type === 'transfer') { const d = getDepartment(targetDepartment); return `🔄 Запрос на перевод в ${d ? d.name : 'Отдел'}`; }
   if (type === 'highrank') return '🌟 Отчёт на повышение (Хай Ранги)';
   if (type === 'resignation') return '🚪 Заявление на увольнение';
   if (type === 'reinstatement') return '🔄 Восстановление в LSPD';
@@ -274,7 +250,7 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
     const statics = rows.map(r => r.static).join('\n');
     const weeks = rows.map(r => r.weeks).join('\n');
 
-    const dept = DEPARTMENTS[data.department];
+    const dept = getDepartment(data.department);
 
     return [
       { name: '🏢 Отдел', value: dept ? `${dept.emoji} ${dept.name}` : 'Не указан', inline: false },
@@ -288,7 +264,7 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
   }
 
   if (type === 'leave') {
-    const d = DEPARTMENTS[department];
+    const d = getDepartment(department);
     return [
       { name: '📋 Тип отпуска', value: leaveType === 'ooc' ? '🌍 OOC' : '🎮 IC', inline: false },
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
@@ -301,7 +277,7 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
   }
 
   if (type === 'report') {
-    const d = DEPARTMENTS[department];
+    const d = getDepartment(department);
     return [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '🏢 Отдел', value: d ? d.emoji + ' ' + d.name : 'Не указан', inline: false },
@@ -360,20 +336,25 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
     ...base
   ];
 
-  if (type === 'weapon-request') return [
-    { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
-    { name: '🏢 Отдел', value: data.department || 'Не указан', inline: false },
-    { name: '📌 Ранг', value: data.rank || 'Не указан', inline: false },
-    { name: '🔫 Запрашиваемое оружие', value: data.weapon || 'Не указано', inline: false },
-    ...base
-  ];
+  if (type === 'weapon-request') {
+    const d = getDepartment(data.department);
+    return [
+      { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
+      { name: '🏢 Отдел', value: d ? d.emoji + ' ' + d.name : (data.department || 'Не указан'), inline: false },
+      { name: '📌 Ранг', value: data.rank || 'Не указан', inline: false },
+      { name: '🔫 Запрашиваемое оружие', value: data.weapon || 'Не указано', inline: false },
+      ...base
+    ];
+  }
 
   if (type === 'transfer') {
+    const currentDept = getDepartment(data.currentDepartment);
+    const targetDept = getDepartment(targetDepartment);
     const f = [
       { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
       { name: '📌 Ваш ранг', value: data.rank || 'Не указан', inline: false },
-      { name: '🏢 Текущий отдел', value: data.currentDepartment || 'Не указано', inline: false },
-      { name: '🎯 Желаемый отдел', value: targetDepartment || 'Не указано', inline: false },
+      { name: '🏢 Текущий отдел', value: currentDept ? currentDept.emoji + ' ' + currentDept.name : (data.currentDepartment || 'Не указано'), inline: false },
+      { name: '🎯 Желаемый отдел', value: targetDept ? targetDept.emoji + ' ' + targetDept.name : (targetDepartment || 'Не указано'), inline: false },
       { name: '📝 Причина перевода', value: data.reason || 'Не указано', inline: false }
     ];
     if (targetDepartment === 'db') f.push(

@@ -1,13 +1,11 @@
 import { verifyToken } from '../../../lib/discord';
+import { isAdmin } from '../../../lib/admins';
 import { getBlacklist, removeFromBlacklist, addToBlacklist } from '../../../lib/blacklist';
 
-const ADMINS = ['200102286473691139'];
-
 export default async function handler(req, res) {
-  const token = req.cookies.token;
-  const user = verifyToken(token);
+  const user = verifyToken(req.cookies.token);
   
-  if (!user || !ADMINS.includes(user.id)) {
+  if (!user || !isAdmin(user.id)) {
     return res.status(403).json({ error: 'Нет доступа' });
   }
 
