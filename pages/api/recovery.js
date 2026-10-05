@@ -3,6 +3,13 @@ import { kv } from '@vercel/kv';
 
 const WEBHOOK_URL = process.env.WEBHOOK_RECOVERY;
 
+const MP_LABELS = {
+  drop: 'Дроп',
+  supply: 'Поставка/крафт',
+  bank: 'Отбитие бизнеса/банка',
+  dept_mp: 'МП от отдела',
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -13,7 +20,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { warn, rank, method, suppliesProof, mpType, mpProof, comment } = req.body;
+  const { warn, rank, method, suppliesProof, mpList, comment } = req.body;
 
   if (!warn || !rank || !method) {
     return res.status(400).json({ error: 'Заполните обязательные поля' });
@@ -21,8 +28,15 @@ export default async function handler(req, res) {
   if (method === 'supplies' && !suppliesProof) {
     return res.status(400).json({ error: 'Нужен скриншот склада' });
   }
-  if (method === 'points' && (!mpType || !mpProof)) {
-    return res.status(400).json({ error: 'Нужны тип МП и скрины' });
+  if (method === 'points') {
+    if (!Array.isArray(mpList) || mpList.length === 0) {
+      return res.status(400).json({ error: 'Добавьте хотя бы одно МП' });
+    }
+    for (const mp of mpList) {
+      if (!mp.type || !mp.proof) {
+        return res.status(400).json({ error: 'Заполните все МП' });
+      }
+    }
   }
 
   if (!WEBHOOK_URL) {
@@ -40,14 +54,14 @@ export default async function handler(req, res) {
   if (method === 'supplies') {
     fields.push({ name: '📸 Скриншот склада', value: suppliesProof, inline: false });
   } else {
-    const mpLabel = {
-      drop: 'Дроп',
-      supply: 'Поставка/крафт',
-      bank: 'Отбитие бизнеса/банка',
-      dept_mp: 'МП от отдела',
-    }[mpType] || mpType;
-    fields.push({ name: '🎯 Тип МП', value: mpLabel, inline: false });
-    fields.push({ name: '📸 Скрины', value: mpProof, inline: false });
+    mpList.forEach((mp, i) => {
+      const label = MP_LABELS[mp.type] || mp.type;
+      fields.push({
+        name: `🎯 МП #${i + 1} — ${label}`,
+        value: mp.proof,
+        inline: false,
+      });
+    });
   }
 
   if (comment) {
@@ -83,7 +97,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: `Discord: ${errText}` });
     }
 
-    // Сохраняем в историю (опционально)
+    // Статистика и история
     const today = new Date().toISOString().split('T')[0];
     await kv.incr('lspd:stats:total');
     await kv.incr(`lspd:stats:${today}`);
