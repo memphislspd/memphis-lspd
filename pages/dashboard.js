@@ -12,16 +12,17 @@ const categories = [
       { id: 'reinstatement', title: 'Восстановление', description: 'Восстановление в LSPD', icon: '🔄' }
     ]
   },
-  {
-    title: '📋 Секретариат',
-    color: '#2196F3',
-    items: [
-      { id: 'promotion', title: 'Запрос на повышение', description: 'Подать запрос на повышение', icon: '📈' },
-      { id: 'resignation', title: 'Заявление на увольнение', description: 'Подать заявление на увольнение', icon: '🚪' },
-      { id: 'leave', title: 'Отпуск', description: 'OOC или IC отпуск', icon: '🏖️' },
-      { id: 'weapon-request', title: 'Спец вооружение', description: 'Запрос на получение спец вооружения', icon: '🔫' }
-    ]
-  },
+ {
+  title: '📋 Секретариат',
+  color: '#2196F3',
+  items: [
+    { id: 'promotion', title: 'Запрос на повышение', description: 'Подать запрос на повышение', icon: '📈' },
+    { id: 'resignation', title: 'Заявление на увольнение', description: 'Подать заявление на увольнение', icon: '🚪' },
+    { id: 'leave', title: 'Отпуск', description: 'OOC или IC отпуск', icon: '🏖️' },
+    { id: 'weapon-request', title: 'Спец вооружение', description: 'Запрос на получение спец вооружения', icon: '🔫' },
+    { id: 'recovery', title: 'Отработка взыскания', description: 'Подать заявку на отработку warn', icon: '⚖️' }
+  ]
+},
   {
     title: '🏢 Отделы',
     color: '#FF9800',
