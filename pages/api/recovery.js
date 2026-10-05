@@ -2,6 +2,7 @@ import { verifyToken } from '../../lib/discord';
 import { kv } from '@vercel/kv';
 
 const WEBHOOK_URL = process.env.WEBHOOK_RECOVERY;
+const ROLE_PING = '1514608894679191592';
 
 const MP_LABELS = {
   drop: 'Дроп',
@@ -85,7 +86,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        content: `<@${user.id}>`,
+        content: `<@&${ROLE_PING}> <@${user.id}>`,
         embeds: [embed],
         username: 'LSPD Forms',
         avatar_url: 'https://i.imgur.com/AfFp7pu.png',
@@ -97,7 +98,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: `Discord: ${errText}` });
     }
 
-    // Статистика и история
     const today = new Date().toISOString().split('T')[0];
     await kv.incr('lspd:stats:total');
     await kv.incr(`lspd:stats:${today}`);
