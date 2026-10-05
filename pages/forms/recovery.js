@@ -9,7 +9,7 @@ const WARN_OPTIONS = [
 
 const RANK_OPTIONS = [
   { value: 'cadet', label: 'Кадет (1–2 ранг)' },
-  { value: 'regular', label: 'Обычный сотрудник (3+ ранг)' },
+  { value: 'regular', label: 'Обычный сотрудник' },
 ];
 
 const METHOD_OPTIONS = [
@@ -23,6 +23,53 @@ const MP_TYPES = [
   { value: 'bank', label: 'Отбитие бизнеса/банка' },
   { value: 'dept_mp', label: 'МП от отдела' },
 ];
+
+// Описание допустимых мероприятий для баллов
+const MP_ACTIVITIES = [
+  {
+    name: 'Дроп',
+    hint: 'Скрин в зоне дропа с нажатой E, состоя в группе.',
+  },
+  {
+    name: 'Поставка / крафт',
+    hint: '2 скрина с перерывом более 5 минут в машине, которая едет в колонне (желательно с маткой).',
+  },
+  {
+    name: 'Отбитие бизнеса / банка',
+    hint: 'Скрин отбитого банка — видна опасная зона, оружие в руке, мёртвые грабители.',
+  },
+  {
+    name: 'МП от отдела',
+    hint: 'Скрин в составе группы во время самого МП либо отписанное МП в соответствующий канал.',
+  },
+];
+
+// Возвращает требования под выбранный варн + ранг + способ
+function getRequirement(warn, rank, method) {
+  if (!warn || !rank || !method) return null;
+
+  const isCadet = rank === 'cadet';
+  const table = {
+    cadet: {
+      '1/3': { supplies: '300 бинтов на склад', points: 2 },
+      '2/3': { supplies: '400 бинтов на склад', points: 4 },
+    },
+    regular: {
+      '1/3': { supplies: '500 бинтов + 10 капсул восстановления на склад', points: 3 },
+      '2/3': { supplies: '1000 бинтов + 15 капсул восстановления на склад', points: 5 },
+    },
+  };
+
+  const key = isCadet ? 'cadet' : 'regular';
+  const entry = table[key][warn];
+
+  return {
+    method,
+    suppliesText: entry.supplies,
+    pointsCount: entry.points,
+    activities: MP_ACTIVITIES,
+  };
+}
 
 export default function RecoveryForm() {
   const router = useRouter();
@@ -38,7 +85,6 @@ export default function RecoveryForm() {
     comment: '',
   });
 
-  // Список МП для способа "Баллы"
   const [mpList, setMpList] = useState([{ type: '', proof: '' }]);
 
   useEffect(() => {
@@ -54,7 +100,6 @@ export default function RecoveryForm() {
       });
   }, []);
 
-  // --- Работа с МП ---
   const addMp = () => {
     setMpList([...mpList, { type: '', proof: '' }]);
   };
@@ -135,6 +180,8 @@ export default function RecoveryForm() {
     fontWeight: 500,
   };
 
+  const requirement = getRequirement(formData.warn, formData.rank, formData.method);
+
   return (
     <FormShell title="Отработка взыскания" icon="⚖️" accent="#F44336">
       <form onSubmit={handleSubmit}>
@@ -192,6 +239,134 @@ export default function RecoveryForm() {
           </select>
         </div>
 
+        {/* Плашка с требованиями — появляется после всех трёх выборов */}
+        {requirement && (
+          <div
+            style={{
+              background:
+                requirement.method === 'supplies'
+                  ? 'linear-gradient(135deg, rgba(33,150,243,0.10), rgba(88,101,242,0.10))'
+                  : 'linear-gradient(135deg, rgba(255,152,0,0.10), rgba(244,67,54,0.10))',
+              border:
+                requirement.method === 'supplies'
+                  ? '1px solid rgba(33,150,243,0.3)'
+                  : '1px solid rgba(255,152,0,0.3)',
+              borderRadius: '12px',
+              padding: '20px',
+              marginBottom: '24px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '4px',
+                height: '100%',
+                background:
+                  requirement.method === 'supplies'
+                    ? 'linear-gradient(180deg, #2196F3, #5865F2)'
+                    : 'linear-gradient(180deg, #FF9800, #F44336)',
+              }}
+            />
+
+            {/* Заголовок плашки */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '22px' }}>
+                {requirement.method === 'supplies' ? '💊' : '🎯'}
+              </span>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'white' }}>
+                  Что нужно для отработки {formData.warn}
+                </h3>
+                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#8b8ba7' }}>
+                  {formData.rank === 'cadet' ? 'Кадет (1–2 ранг)' : 'Обычный сотрудник'}
+                  {' • '}
+                  {requirement.method === 'supplies' ? 'Способ: Бинты+Капсулы' : 'Способ: Баллы (МП)'}
+                </p>
+              </div>
+            </div>
+
+            {/* Если способ — Бинты+Капсулы */}
+            {requirement.method === 'supplies' && (
+              <>
+                <div style={{ fontSize: '15px', color: 'white', lineHeight: 1.5, fontWeight: 500, marginBottom: '12px' }}>
+                  {requirement.suppliesText}
+                </div>
+                <div
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    fontSize: '12px',
+                    color: '#b8b8c8',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <strong style={{ color: 'white' }}>📸 Доказательство:</strong> скрин с планшета (планшет → LSPD → склад), на котором видно, что ты положил бинты и капсулы восстановления на склад.
+                </div>
+              </>
+            )}
+
+            {/* Если способ — Баллы */}
+            {requirement.method === 'points' && (
+              <>
+                <div style={{ fontSize: '15px', color: 'white', lineHeight: 1.5, fontWeight: 500, marginBottom: '12px' }}>
+                  Нужно участие в <strong style={{ color: '#FF9800' }}>{requirement.pointsCount} МП</strong>
+                </div>
+
+                <div
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    padding: '14px',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', color: '#b8b8c8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                    Подходящие мероприятия:
+                  </div>
+                  {requirement.activities.map((act, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        paddingBottom: i < requirement.activities.length - 1 ? '10px' : 0,
+                        marginBottom: i < requirement.activities.length - 1 ? '10px' : 0,
+                        borderBottom: i < requirement.activities.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                      }}
+                    >
+                      <div style={{ fontSize: '13px', color: 'white', fontWeight: 600, marginBottom: '4px' }}>
+                        • {act.name}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#8b8ba7', lineHeight: 1.5, paddingLeft: '12px' }}>
+                        {act.hint}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div
+                  style={{
+                    background: 'rgba(255,152,0,0.08)',
+                    border: '1px solid rgba(255,152,0,0.2)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    fontSize: '12px',
+                    color: '#b8b8c8',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <strong style={{ color: 'white' }}>📸 Все скрины</strong> должны быть с включённой бодикамерой и подтверждать, что ты полноценный участник мероприятия.
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Поля для Бинты+Капсулы */}
         {formData.method === 'supplies' && (
           <div style={{ marginBottom: '20px' }}>
@@ -207,7 +382,7 @@ export default function RecoveryForm() {
           </div>
         )}
 
-        {/* Список МП для способа "Баллы" */}
+        {/* Список МП */}
         {formData.method === 'points' && (
           <div style={{ marginBottom: '20px' }}>
             <label style={lbl}>Список мероприятий * (можно добавить несколько)</label>
@@ -224,7 +399,6 @@ export default function RecoveryForm() {
                   position: 'relative',
                 }}
               >
-                {/* Номер МП + кнопка удаления */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#8b8ba7' }}>
                     МП #{index + 1}
@@ -249,7 +423,6 @@ export default function RecoveryForm() {
                   )}
                 </div>
 
-                {/* Тип МП */}
                 <div style={{ marginBottom: '12px' }}>
                   <label style={lbl}>Тип мероприятия *</label>
                   <select
@@ -265,7 +438,6 @@ export default function RecoveryForm() {
                   </select>
                 </div>
 
-                {/* Скрины для этого МП */}
                 <div>
                   <label style={lbl}>Скрины * (каждый с новой строки, с бодикамерой)</label>
                   <textarea
@@ -280,7 +452,6 @@ export default function RecoveryForm() {
               </div>
             ))}
 
-            {/* Кнопка добавить МП */}
             <button
               type="button"
               onClick={addMp}
