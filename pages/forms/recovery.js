@@ -9,7 +9,7 @@ const WARN_OPTIONS = [
 
 const RANK_OPTIONS = [
   { value: 'cadet', label: 'Кадет (1–2 ранг)' },
-  { value: 'regular', label: 'Обычный сотрудник' },
+  { value: 'regular', label: 'Обычный сотрудник (3+ ранг)' },
 ];
 
 const METHOD_OPTIONS = [
@@ -29,18 +29,17 @@ export default function RecoveryForm() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     warn: '',
     rank: '',
     method: '',
-    // Для бинтов
     suppliesProof: '',
-    // Для баллов
-    mpType: '',
-    mpProof: '',
-    // Общее
     comment: '',
   });
+
+  // Список МП для способа "Баллы"
+  const [mpList, setMpList] = useState([{ type: '', proof: '' }]);
 
   useEffect(() => {
     fetch('/api/me')
@@ -55,10 +54,28 @@ export default function RecoveryForm() {
       });
   }, []);
 
+  // --- Работа с МП ---
+  const addMp = () => {
+    setMpList([...mpList, { type: '', proof: '' }]);
+  };
+
+  const removeMp = (index) => {
+    setMpList(mpList.filter((_, i) => i !== index));
+  };
+
+  const updateMp = (index, field, value) => {
+    setMpList(mpList.map((mp, i) => (i === index ? { ...mp, [field]: value } : mp)));
+  };
+
   const isFormValid = () => {
     if (!formData.warn || !formData.rank || !formData.method) return false;
     if (formData.method === 'supplies' && !formData.suppliesProof.trim()) return false;
-    if (formData.method === 'points' && (!formData.mpType || !formData.mpProof.trim())) return false;
+    if (formData.method === 'points') {
+      if (mpList.length === 0) return false;
+      for (const mp of mpList) {
+        if (!mp.type || !mp.proof.trim()) return false;
+      }
+    }
     return true;
   };
 
@@ -73,7 +90,10 @@ export default function RecoveryForm() {
       const res = await fetch('/api/recovery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, user: user }),
+        body: JSON.stringify({
+          ...formData,
+          mpList: formData.method === 'points' ? mpList : [],
+        }),
       });
       if (res.ok) {
         window.toast.success('Заявка на отработку отправлена!');
@@ -129,9 +149,7 @@ export default function RecoveryForm() {
           >
             <option value="">-- Выберите --</option>
             {WARN_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
         </div>
@@ -147,9 +165,7 @@ export default function RecoveryForm() {
           >
             <option value="">-- Выберите --</option>
             {RANK_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
         </div>
@@ -165,17 +181,13 @@ export default function RecoveryForm() {
                 ...formData,
                 method: e.target.value,
                 suppliesProof: '',
-                mpType: '',
-                mpProof: '',
               })
             }
             style={{ ...s, appearance: 'none', cursor: 'pointer' }}
           >
             <option value="">-- Выберите --</option>
             {METHOD_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
         </div>
@@ -195,37 +207,103 @@ export default function RecoveryForm() {
           </div>
         )}
 
-        {/* Поля для Баллов */}
+        {/* Список МП для способа "Баллы" */}
         {formData.method === 'points' && (
-          <>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={lbl}>Тип мероприятия *</label>
-              <select
-                required
-                value={formData.mpType}
-                onChange={(e) => setFormData({ ...formData, mpType: e.target.value })}
-                style={{ ...s, appearance: 'none', cursor: 'pointer' }}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={lbl}>Список мероприятий * (можно добавить несколько)</label>
+
+            {mpList.map((mp, index) => (
+              <div
+                key={index}
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  marginBottom: '12px',
+                  position: 'relative',
+                }}
               >
-                <option value="">-- Выберите --</option>
-                {MP_TYPES.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={lbl}>Ссылки на скрины * (каждый с новой строки, с бодикамерой)</label>
-              <textarea
-                required
-                value={formData.mpProof}
-                onChange={(e) => setFormData({ ...formData, mpProof: e.target.value })}
-                placeholder="Вставьте ссылки на скрины..."
-                rows="5"
-                style={{ ...s, resize: 'vertical', minHeight: '120px' }}
-              />
-            </div>
-          </>
+                {/* Номер МП + кнопка удаления */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#8b8ba7' }}>
+                    МП #{index + 1}
+                  </div>
+                  {mpList.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeMp(index)}
+                      style={{
+                        background: 'rgba(244,67,54,0.15)',
+                        color: '#ff6b6b',
+                        border: '1px solid rgba(244,67,54,0.3)',
+                        borderRadius: '6px',
+                        padding: '4px 10px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                      }}
+                    >
+                      ✕ Удалить
+                    </button>
+                  )}
+                </div>
+
+                {/* Тип МП */}
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={lbl}>Тип мероприятия *</label>
+                  <select
+                    required
+                    value={mp.type}
+                    onChange={(e) => updateMp(index, 'type', e.target.value)}
+                    style={{ ...s, appearance: 'none', cursor: 'pointer' }}
+                  >
+                    <option value="">-- Выберите --</option>
+                    {MP_TYPES.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Скрины для этого МП */}
+                <div>
+                  <label style={lbl}>Скрины * (каждый с новой строки, с бодикамерой)</label>
+                  <textarea
+                    required
+                    value={mp.proof}
+                    onChange={(e) => updateMp(index, 'proof', e.target.value)}
+                    placeholder="Вставьте ссылки на скрины..."
+                    rows="3"
+                    style={{ ...s, resize: 'vertical', minHeight: '80px' }}
+                  />
+                </div>
+              </div>
+            ))}
+
+            {/* Кнопка добавить МП */}
+            <button
+              type="button"
+              onClick={addMp}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'rgba(33,150,243,0.15)',
+                color: '#64b5f6',
+                border: '1px dashed rgba(33,150,243,0.4)',
+                borderRadius: '10px',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              <span style={{ fontSize: '18px', lineHeight: 1 }}>+</span>
+              Добавить ещё МП
+            </button>
+          </div>
         )}
 
         {/* Комментарий */}
