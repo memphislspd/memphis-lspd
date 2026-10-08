@@ -12,7 +12,7 @@ const categories = [
       { id: 'reinstatement', title: 'Восстановление', description: 'Восстановление в LSPD', icon: '🔄' }
     ]
   },
- {
+{
   title: '📋 Секретариат',
   color: '#2196F3',
   items: [
@@ -20,7 +20,8 @@ const categories = [
     { id: 'resignation', title: 'Заявление на увольнение', description: 'Подать заявление на увольнение', icon: '🚪' },
     { id: 'leave', title: 'Отпуск', description: 'OOC или IC отпуск', icon: '🏖️' },
     { id: 'weapon-request', title: 'Спец вооружение', description: 'Запрос на получение спец вооружения', icon: '🔫' },
-    { id: 'recovery', title: 'Отработка взыскания', description: 'Подать заявку на отработку warn', icon: '⚖️' }
+    { id: 'recovery', title: 'Отработка взыскания', description: 'Подать заявку на отработку warn', icon: '⚖️' },
+    { id: 'appeal', title: 'Обжалование наказания', description: 'Обжаловать выговор при присутствии на МП', icon: '📜' }
   ]
 },
   {
