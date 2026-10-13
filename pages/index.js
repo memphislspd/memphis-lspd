@@ -13,8 +13,8 @@ export default function Home() {
     if (router.query.error) {
       if (router.query.error === 'new_account') {
         const days = router.query.days || '0';
-        const min = router.query.min || '90';
-        setError(`❌ Ваш Discord аккаунт создан ${days} дней назад. Требуется минимум 14 дней.`);
+        const min = router.query.min || '5';
+        setError(`❌ Ваш Discord аккаунт создан ${days} дней назад. Требуется минимум ${min} дней.`);
       } else if (router.query.error === 'access_denied') {
         setError('Вы отклонили авторизацию.');
       } else {
@@ -40,9 +40,9 @@ export default function Home() {
       client_id: DISCORD_CLIENT_ID,
       redirect_uri: DISCORD_REDIRECT_URI,
       response_type: 'code',
-      scope: 'identify',
-      prompt: 'none',
-      state: redirect
+      scope: 'identify guilds.members.read', // ← добавлен новый scope
+      state: redirect,
+      // prompt: 'none' — убрали, чтобы Discord выдал новый scope
     });
     
     window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
@@ -50,8 +50,8 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', justifyContent: 'center', alignItems: 'center', 
+      <div style={{
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
         minHeight: '100vh', background: '#0a0a1a', color: 'white', fontSize: '20px'
       }}>
         Загрузка...
@@ -72,7 +72,7 @@ export default function Home() {
       }}>
         <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔰</div>
         <h1 style={{ color: 'white', fontSize: '32px', marginBottom: '10px', fontWeight: 700 }}>
-          Majestic LSPD 
+          Majestic LSPD
         </h1>
         <p style={{ color: '#8b8ba7', marginBottom: '35px', fontSize: '16px' }}>
           Система подачи заявок LSPD
