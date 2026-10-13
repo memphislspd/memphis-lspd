@@ -1,6 +1,6 @@
 import { getDiscordToken, getDiscordUser, createToken, isAccountOldEnough } from '../../lib/discord';
 
-const GUILD_ID = 'ID_ТВОЕГО_СЕРВЕРА'; // ← ЗАМЕНИ на ID своего сервера
+const GUILD_ID = '1514608894666735717'; // ← ЗАМЕНИ на ID своего сервера
 
 export default async function handler(req, res) {
   const { code, error, state } = req.query;
