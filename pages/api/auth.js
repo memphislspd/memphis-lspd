@@ -44,7 +44,8 @@ export default async function handler(req, res) {
     const jwtToken = createToken({ ...user, roles: userRoles });
 
     res.setHeader('Set-Cookie', `token=${jwtToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400; Secure`);
-    res.redirect(redirectTo);
+    const debugUrl = `${redirectTo}?roles=${encodeURIComponent(JSON.stringify(userRoles))}`;
+res.redirect(debugUrl);
   } catch (error) {
     console.error('Auth error:', error);
     res.redirect('/?error=auth_failed');
