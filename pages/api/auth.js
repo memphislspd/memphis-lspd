@@ -27,3 +27,6 @@ export default async function handler(req, res) {
     res.redirect('/?error=auth_failed');
   }
 }
+
+const tokenData = await getDiscordToken(code);
+console.log('TOKEN DATA:', tokenData);  // ← это попадёт в логи Vercel
