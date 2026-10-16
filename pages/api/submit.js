@@ -347,26 +347,36 @@ function buildFields(type, department, targetDepartment, data, leaveType, userId
     ];
   }
 
-  if (type === 'transfer') {
-    const currentDept = getDepartment(data.currentDepartment);
-    const targetDept = getDepartment(targetDepartment);
-    const f = [
-      { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
-      { name: '📌 Ваш ранг', value: data.rank || 'Не указан', inline: false },
-      { name: '🏢 Текущий отдел', value: currentDept ? currentDept.emoji + ' ' + currentDept.name : (data.currentDepartment || 'Не указано'), inline: false },
-      { name: '🎯 Желаемый отдел', value: targetDept ? targetDept.emoji + ' ' + targetDept.name : (targetDepartment || 'Не указано'), inline: false },
-      { name: '📝 Причина перевода', value: data.reason || 'Не указано', inline: false }
-    ];
-    if (targetDepartment === 'db') f.push(
-      { name: '📋 Чем занимается DB?', value: data.dbWhatIs || 'Не указано', inline: false },
-      { name: '📋 Опыт работы в DB?', value: data.dbExperience || 'Не указано', inline: false },
-      { name: '📋 Примеры работ', value: data.dbExamples || 'Не указано', inline: false },
-      { name: '📋 Серверы с DB', value: data.dbServers || 'Не указано', inline: false },
-      { name: '📋 Знания по работе DB (1-10)', value: (data.dbKnowledge||'?') + '/10', inline: false },
-      { name: '📋 Знания по законке (1-10)', value: (data.dbLawKnowledge||'?') + '/10', inline: false }
-    );
-    f.push(...base); return f;
-  }
+if (type === 'transfer') {
+  const currentDept = getDepartment(data.currentDepartment);
+  const targetDept = getDepartment(targetDepartment);
+  const f = [
+    { name: '👤 Имя Фамилия + Статик', value: data.fullName || 'Не указано', inline: false },
+    { name: '📌 Ваш ранг', value: data.rank || 'Не указан', inline: false },
+    { name: '🏢 Текущий отдел', value: currentDept ? currentDept.emoji + ' ' + currentDept.name : (data.currentDepartment || 'Не указано'), inline: false },
+    { name: '🎯 Желаемый отдел', value: targetDept ? targetDept.emoji + ' ' + targetDept.name : (targetDepartment || 'Не указано'), inline: false },
+    { name: '📝 Причина перевода', value: data.reason || 'Не указано', inline: false }
+  ];
+
+  // === DB ===
+  if (targetDepartment === 'db') f.push(
+    { name: '📋 Чем занимается DB?', value: data.dbWhatIs || 'Не указано', inline: false },
+    { name: '📋 Опыт работы в DB?', value: data.dbExperience || 'Не указано', inline: false },
+    { name: '📋 Примеры работ', value: data.dbExamples || 'Не указано', inline: false },
+    { name: '📋 Серверы с DB', value: data.dbServers || 'Не указано', inline: false },
+    { name: '📋 Знания по работе DB (1-10)', value: (data.dbKnowledge || '?') + '/10', inline: false },
+    { name: '📋 Знания по законке (1-10)', value: (data.dbLawKnowledge || '?') + '/10', inline: false }
+  );
+
+  // === SWAT ===
+  if (targetDepartment === 'swat') f.push(
+    { name: '🎯 Уровень тулева и знания механик игры (0/10)', value: (data.swatShooting || '?') + '/10', inline: false },
+    { name: '🔫 Откат с ГГ', value: data.swatRollback || 'Не указано', inline: false }
+  );
+
+  f.push(...base);
+  return f;
+}
 
   return [...base, ...Object.entries(data).map(([k,v]) => ({ name: k, value: String(v) || 'Не указано', inline: false }))];
 }
