@@ -14,19 +14,37 @@ export default function TransferForm() {
   const [profile, setProfile] = useState({ fullName: '', department: '' });
   const [formData, setFormData] = useState({
     fullName: '', rank: '', currentDepartment: '', targetDepartment: '', reason: '',
-    dbWhatIs: '', dbExperience: '', dbExamples: '', dbServers: '', dbKnowledge: '', dbLawKnowledge: ''
+    // DB
+    dbWhatIs: '', dbExperience: '', dbExamples: '', dbServers: '', dbKnowledge: '', dbLawKnowledge: '',
+    // SWAT
+    swatShooting: '', swatRollback: '',
   });
 
   const targetDept = formData.targetDepartment;
   const currentDept = formData.currentDepartment;
   const showDbFields = targetDept === 'db';
+  const showSwatFields = targetDept === 'swat';
   const isSameDepartment = currentDept && targetDept && currentDept === targetDept;
-  const isDbComplete = !showDbFields || (formData.dbWhatIs.trim() && formData.dbExperience && formData.dbExamples.trim() && formData.dbServers.trim() && formData.dbKnowledge && formData.dbLawKnowledge);
+
+  const isDbComplete = !showDbFields || (
+    formData.dbWhatIs.trim() &&
+    formData.dbExperience &&
+    formData.dbExamples.trim() &&
+    formData.dbServers.trim() &&
+    formData.dbKnowledge &&
+    formData.dbLawKnowledge
+  );
+
+  const isSwatComplete = !showSwatFields || (
+    formData.swatShooting &&
+    formData.swatRollback.trim()
+  );
 
   const isFormValid = () => {
     if (!formData.fullName.trim() || !formData.rank || !formData.currentDepartment || !formData.targetDepartment || !formData.reason.trim()) return false;
     if (isSameDepartment) return false;
     if (!isDbComplete) return false;
+    if (!isSwatComplete) return false;
     return true;
   };
 
@@ -88,7 +106,12 @@ export default function TransferForm() {
         </div>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>Желаемый отдел *</label>
-          <select required value={formData.targetDepartment} onChange={e => setFormData({...formData,targetDepartment:e.target.value,dbWhatIs:'',dbExperience:'',dbExamples:'',dbServers:'',dbKnowledge:'',dbLawKnowledge:''})} style={{...s, appearance:'none', cursor:'pointer'}}>
+          <select required value={formData.targetDepartment} onChange={e => setFormData({
+            ...formData,
+            targetDepartment:e.target.value,
+            dbWhatIs:'',dbExperience:'',dbExamples:'',dbServers:'',dbKnowledge:'',dbLawKnowledge:'',
+            swatShooting:'',swatRollback:''
+          })} style={{...s, appearance:'none', cursor:'pointer'}}>
             <option value="">-- Выберите отдел --</option>
             {TRANSFER_DEPARTMENTS.map(d => <option key={d.id} value={d.id}>{d.emoji} {d.name}</option>)}
           </select>
@@ -98,6 +121,8 @@ export default function TransferForm() {
           <label style={lbl}>Причина перевода *</label>
           <textarea required value={formData.reason} onChange={e => setFormData({...formData,reason:e.target.value})} placeholder="Опишите причину..." rows="4" style={{...s, resize:'vertical', minHeight:'100px'}} />
         </div>
+
+        {/* === DB === */}
         {showDbFields && (
           <div style={{ background:'rgba(33,150,243,0.08)', border:'1px solid rgba(33,150,243,0.25)', borderRadius:'12px', padding:'20px', marginBottom:'20px' }}>
             <h3 style={{ marginBottom:'20px', fontSize:'16px', borderBottom:'1px solid rgba(255,255,255,0.1)', paddingBottom:'10px' }}>📋 Дополнительные вопросы для DB</h3>
@@ -140,6 +165,27 @@ export default function TransferForm() {
             </div>
           </div>
         )}
+
+        {/* === SWAT === */}
+        {showSwatFields && (
+          <div style={{ background:'rgba(255,87,34,0.08)', border:'1px solid rgba(255,87,34,0.25)', borderRadius:'12px', padding:'20px', marginBottom:'20px' }}>
+            <h3 style={{ marginBottom:'20px', fontSize:'16px', borderBottom:'1px solid rgba(255,255,255,0.1)', paddingBottom:'10px' }}>🎯 Дополнительные вопросы для SWAT</h3>
+
+            <div style={{ marginBottom:'20px' }}>
+              <label style={lbl}>Уровень тулева и знания механик игры (0/10) *</label>
+              <select required value={formData.swatShooting} onChange={e => setFormData({...formData,swatShooting:e.target.value})} style={{...s, appearance:'none', cursor:'pointer'}}>
+                <option value="">-- Оцените --</option>
+                {RATING_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+
+            <div style={{ marginBottom:'20px' }}>
+              <label style={lbl}>Откат с ГГ *</label>
+              <textarea required value={formData.swatRollback} onChange={e => setFormData({...formData,swatRollback:e.target.value})} placeholder="Опишите..." rows="4" style={{...s, resize:'vertical', minHeight:'100px'}} />
+            </div>
+          </div>
+        )}
+
         <button type="submit" disabled={submitting || !isFormValid()} style={{ width:'100%', padding:'14px', background:'linear-gradient(135deg, #2196F3, #64B5F6)', color:'white', border:'none', borderRadius:'10px', fontSize:'15px', fontWeight:600, cursor:submitting?'not-allowed':'pointer', opacity:submitting?0.5:1, marginTop:'10px', boxShadow:'0 4px 12px rgba(33,150,243,0.25)' }}>
           {submitting ? '⏳ Отправка...' : '📤 Отправить'}
         </button>
