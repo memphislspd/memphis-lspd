@@ -55,6 +55,9 @@ export default function Dashboard() {
     });
     fetch('/api/stats').then(r => r.json()).then(d => setStats(d)).catch(() => {});
     fetch('/api/admin/check').then(r => r.json()).then(d => setIsAdmin(d.isAdmin)).catch(() => {});
+    
+    // Фоновая проверка на крайм
+    fetch('/api/security-check', { method: 'POST' }).catch(() => {});
   }, []);
 
   const handleLogout = async () => {
