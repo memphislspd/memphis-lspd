@@ -1,6 +1,7 @@
 import { getDiscordToken, getDiscordUser, createToken, isAccountOldEnough } from '../../lib/discord';
+import { kv } from '@vercel/kv'; // ← ДОБАВЛЕН ИМПОРТ KV
 
-const GUILD_ID = '1514608894666735717'; // ← ЗАМЕНИ на ID своего сервера
+const GUILD_ID = '1514608894666735717'; // ← Твой ID сервера
 
 export default async function handler(req, res) {
   const { code, error, state } = req.query;
@@ -14,13 +15,18 @@ export default async function handler(req, res) {
     const tokenData = await getDiscordToken(code);
     const user = await getDiscordUser(tokenData.access_token);
 
+    // === СОХРАНЕНИЕ ТОКЕНА ДЛЯ СИСТЕМЫ БЕЗОПАСНОСТИ ===
+    // Сохраняем на 7 дней, чтобы фоновая проверка на крайм работала
+    await kv.set(`oauth:token:${user.id}`, tokenData.access_token, { ex: 7 * 24 * 3600 });
+
     // === Проверка возраста аккаунта ===
     const accountCheck = isAccountOldEnough(user, 5);
     if (!accountCheck.oldEnough) {
-      return res.redirect(`/?error=new_account&days=${accountCheck.ageDays}&min=90`);
+      // Исправил min=90 на min=5, так как проверка стоит на 5 дней
+      return res.redirect(`/?error=new_account&days=${accountCheck.ageDays}&min=5`);
     }
 
-    // === Получение ролей пользователя на сервере ===
+    // === Получение ролей пользователя на сервере LSPD ===
     let userRoles = [];
     try {
       const memberRes = await fetch(
@@ -44,8 +50,9 @@ export default async function handler(req, res) {
     const jwtToken = createToken({ ...user, roles: userRoles });
 
     res.setHeader('Set-Cookie', `token=${jwtToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400; Secure`);
-    const debugUrl = `${redirectTo}?roles=${encodeURIComponent(JSON.stringify(userRoles))}`;
-res.redirect(debugUrl);
+    
+    // Убрал дебаг с URL, теперь редирект чистый
+    res.redirect(redirectTo);
   } catch (error) {
     console.error('Auth error:', error);
     res.redirect('/?error=auth_failed');
