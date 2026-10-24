@@ -1,146 +1,65 @@
-// ============================================
-// СПИСОК КРАЙМ-ГИЛЬДИЙ И ИХ РОЛЕЙ
-// ============================================
+// pages/api/auth.js
+import { getDiscordToken, getDiscordUser, createToken, isAccountOldEnough } from '../../lib/discord';
+import { kv } from '@vercel/kv';
 
-export const CRIM_GUILDS = [
-  {
-    id: '1087019411052961842', // Сервер Скримз
-    name: 'Скримз',
-    roles: [
-      { id: '1087034549835415604', name: 'Скримзы' },
-      { id: '1389947183834468402', name: 'Скримзы' },
-    ]
-  },
-  {
-    id: '1164353685132951603', // Сервер Кортез
-    name: 'Кортез',
-    roles: [
-      { id: '1393333346523938958', name: 'Кортезы' },
-      { id: '1389687041066926190', name: 'Кортезы' },
-    ]
-  },
-  {
-    id: '1258546253558710333', // Сервер Корпсес
-    name: 'Корпсес',
-    roles: [
-      { id: '1258547890020683836', name: 'Корпсесы' },
-      { id: '1258548800868585522', name: 'Корпсесы' },
-    ]
-  },
-  {
-    id: '788056890533740574', // Сервер АГ
-    name: 'АГ',
-    roles: [
-      { id: '1280960634611306618', name: 'Аллегри' },
-      { id: '836647378819088384', name: 'Аллегри' },
-      { id: '940506118109683742', name: 'Аллегри' },
-      { id: '1548290961426350242', name: 'Аллегри' },
-      { id: '1262374026400108645', name: 'Аллегри' },
-    ]
-  },
-  {
-    id: '561991307480924160', // Сервер БХ
-    name: 'БХ',
-    roles: [
-      { id: '1513866991289630750', name: 'Банхаммеры' },
-      { id: '691363966722637874', name: 'Банхаммеры' },
-      { id: '1550484421210021888', name: 'Банхаммеры' },
-      { id: '1558131725354406078', name: 'Банхаммеры' },
-      { id: '1513866211056681090', name: 'Банхаммеры' },
-    ]
-  },
-  {
-    id: '1218022995025592330', // Сервер Гучи
-    name: 'Гучи',
-    roles: [
-      { id: '1218150691176972380', name: 'Гучи' },
-      { id: '1433577958546604063', name: 'Гучи' },
-      { id: '1240670015863128135', name: 'Гучи' },
-      { id: '1218150689172357334', name: 'Гучи' },
-      { id: '1218150686856839209', name: 'Гучи' },
-    ]
-  },
-  {
-    id: '922630047129567312', // Сервер Узи
-    name: 'Узи',
-    roles: [
-      { id: '1266087195060600854', name: 'Узи' },
-      { id: '957772318812295228', name: 'Узи' },
-      { id: '1419356621389434890', name: 'Узи' },
-      { id: '1204470144622141450', name: 'Узи' },
-    ]
-  },
-  {
-    id: '1282692203839225977', // Сервер Альянсы
-    name: 'Альянсы',
-    roles: [
-      { id: '1282692203839225980', name: 'Альянсы' },
-      { id: '1522343905809666149', name: 'Альянсы' },
-    ]
-  },
-  {
-    id: '1229839837008494702', // Сервер Сайзы
-    name: 'Сайзы',
-    roles: [] 
-  },
-  {
-    id: '1514608894666735717', // Тестовый сервер LSPD
-    name: 'LSPD (Тест)',
-    roles: [
-      { id: '1514665211980939314', name: 'Тестовая роль' },
-    ]
-  }
-];
+const GUILD_ID = '1514608894666735717'; // Твой сервер LSPD
 
-// Функция проверки (принимает токен и МАССИВ ID серверов пользователя)
-export async function checkCriminalActivity(accessToken, userGuildIds) {
-  const alerts = [];
+export default async function handler(req, res) {
+  const { code, error, state } = req.query;
+  const redirectTo = state || '/dashboard';
 
-  // Оставляем только те сервера из нашего списка, в которых СОСТОИТ пользователь
-  const relevantGuilds = CRIM_GUILDS.filter(guild => 
-    userGuildIds.includes(guild.id) && guild.roles.length > 0
-  );
+  if (error) return res.redirect(`/?error=access_denied`);
+  if (!code) return res.redirect(`/?error=no_code`);
 
-  // Если он не состоит ни в одной фамке — выходим, не делая лишних запросов
-  if (relevantGuilds.length === 0) return alerts;
+  try {
+    const tokenData = await getDiscordToken(code);
+    const user = await getDiscordUser(tokenData.access_token);
 
-  console.log(`[КРАЙМ] Найдено пересечений с фамками: ${relevantGuilds.length}. Проверяем роли...`);
-
-  // Проверяем только те сервера, где он реально есть
-  for (const guild of relevantGuilds) {
-    try {
-      const res = await fetch(
-        `https://discord.com/api/users/@me/guilds/${guild.id}/member`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-
-      if (res.status === 429) {
-        const data = await res.json().catch(() => ({ retry_after: 1 }));
-        await new Promise(r => setTimeout(r, (data.retry_after || 1) * 1000));
-        continue; 
-      }
-
-      if (!res.ok) continue;
-
-      const member = await res.json();
-      const userRoles = member.roles || [];
-      const matchedRoles = guild.roles.filter(r => userRoles.includes(r.id));
-
-      if (matchedRoles.length > 0) {
-        const uniqueRoles = [...new Set(matchedRoles.map(r => r.name))];
-        alerts.push({
-          guildName: guild.name,
-          guildId: guild.id,
-          matchedRoles: uniqueRoles,
-        });
-      }
-      
-      // Небольшая пауза, так как запросов теперь мало
-      await new Promise(r => setTimeout(r, 300));
-    } catch (e) {
-      console.error(`[КРАЙМ] Ошибка на ${guild.name}:`, e.message);
+    const accountCheck = isAccountOldEnough(user, 5);
+    if (!accountCheck.oldEnough) {
+      return res.redirect(`/?error=new_account&days=${accountCheck.ageDays}&min=5`);
     }
-  }
 
-  return alerts;
+    // 1. ПОЛУЧАЕМ СПИСОК ВСЕХ СЕРВЕРОВ ПОЛЬЗОВАТЕЛЯ (1 запрос)
+    let userGuildIds = [];
+    try {
+      const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` }
+      });
+      if (guildsRes.ok) {
+        const guilds = await guildsRes.json();
+        userGuildIds = guilds.map(g => g.id);
+      }
+    } catch (e) {
+      console.error('Ошибка получения серверов:', e.message);
+    }
+
+    // 2. Сохраняем токен и список серверов в KV для фоновой проверки
+    await kv.set(`oauth:token:${user.id}`, tokenData.access_token, { ex: 7 * 24 * 3600 });
+    await kv.set(`user:guilds:${user.id}`, userGuildIds, { ex: 7 * 24 * 3600 });
+
+    // 3. Получаем роли в LSPD (для админки)
+    let userRoles = [];
+    try {
+      const memberRes = await fetch(
+        `https://discord.com/api/users/@me/guilds/${GUILD_ID}/member`,
+        { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
+      );
+      if (memberRes.ok) {
+        const member = await memberRes.json();
+        userRoles = member.roles || [];
+      }
+    } catch (e) {
+      console.error('Ошибка ролей LSPD:', e.message);
+    }
+
+    // 4. Создаем JWT и редиректим
+    const jwtToken = createToken({ ...user, roles: userRoles });
+    res.setHeader('Set-Cookie', `token=${jwtToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400; Secure`);
+    res.redirect(redirectTo);
+
+  } catch (error) {
+    console.error('Auth error:', error);
+    res.redirect('/?error=auth_failed');
+  }
 }
