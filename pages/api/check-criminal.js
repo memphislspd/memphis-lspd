@@ -14,19 +14,23 @@ export default async function handler(req, res) {
   if (lastCheck) return res.status(200).json({ cached: true });
 
   const accessToken = await kv.get(`oauth:token:${user.id}`);
-  const userGuildsRaw = await kv.get(`user:guilds:${user.id}`);
+  const userGuildIds = await kv.get(`user:guilds:${user.id}`);
   
-  if (!accessToken || !userGuildsRaw) {
-    return res.status(400).json({ error: 'No token or guilds data' });
+  if (!accessToken) {
+    console.log(`[КРАЙМ] Нет access_token для юзера ${user.id}`);
+    return res.status(400).json({ error: 'No token' });
+  }
+  
+  if (!userGuildIds) {
+    console.log(`[КРАЙМ] Нет списка серверов для юзера ${user.id}. Он не перелогинился?`);
+    return res.status(400).json({ error: 'No guilds data' });
   }
 
-  const userGuildIds = JSON.parse(userGuildsRaw);
+  console.log(`[КРАЙМ] У юзера ${user.id} найдено ${userGuildIds.length} серверов. Начинаем проверку.`);
 
-  // Запускаем быструю проверку (только по тем серверам, где он есть)
   const alerts = await checkCriminalActivity(accessToken, userGuildIds);
 
   if (alerts.length > 0 && WEBHOOK_SECURITY) {
-    // ... (тут твой код отправки вебхука, он не меняется) ...
     const fields = alerts.map(a => ({
       name: `🚨 Сервер: ${a.guildName}`,
       value: `Найдены роли: **${a.matchedRoles.join(', ')}**\nID: \`${a.guildId}\``,
@@ -51,6 +55,8 @@ export default async function handler(req, res) {
       }),
     });
     console.log(`✅ Найдено ${alerts.length} совпадений. Вебхук отправлен.`);
+  } else if (alerts.length === 0) {
+    console.log(`✅ Проверка завершена. Совпадений нет.`);
   }
 
   await kv.set(cacheKey, '1', { ex: 12 * 3600 });
