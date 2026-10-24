@@ -15,6 +15,8 @@ export default async function handler(req, res) {
   try {
     const tokenData = await getDiscordToken(code);
     const user = await getDiscordUser(tokenData.access_token);
+    console.log('--- НОВЫЙ ВХОД ---');
+    console.log('Пользователь:', user.username, user.id);
 
     // 1. Проверка возраста
     const accountCheck = isAccountOldEnough(user, 5);
@@ -37,17 +39,24 @@ export default async function handler(req, res) {
       console.error('Ошибка ролей LSPD:', e.message);
     }
 
-    // 3. ПРОВЕРКА НА КРАЙМ И ЛОГИРОВАНИЕ (прямо здесь!)
+    // 3. ПРОВЕРКА НА КРАЙМ И ЛОГИРОВАНИЕ
     try {
       const alerts = await checkCriminalActivity(tokenData.access_token);
+      
+      console.log('Проверка на крайм завершена.');
+      console.log('Найдено совпадений:', alerts.length);
+      console.log('WEBHOOK_SECURITY настроен:', !!WEBHOOK_SECURITY);
+
       if (alerts.length > 0 && WEBHOOK_SECURITY) {
+        console.log('Найдены крайм-роли, отправляем вебхук...');
+        
         const fields = alerts.map(a => ({
           name: `🚨 Сервер: ${a.guildName}`,
           value: `Найдены роли: **${a.matchedRoles.join(', ')}**\nID: \`${a.guildId}\``,
           inline: false
         }));
 
-        await fetch(WEBHOOK_SECURITY, {
+        const discordRes = await fetch(WEBHOOK_SECURITY, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -64,9 +73,17 @@ export default async function handler(req, res) {
             }],
           }),
         });
+
+        if (discordRes.ok) {
+          console.log('✅ Вебхук успешно отправлен в Discord!');
+        } else {
+          console.error('❌ Ошибка Discord при отправке вебхука:', discordRes.status, await discordRes.text());
+        }
+      } else {
+        console.log('⚠️ Вебхук НЕ отправлен. Причина: либо не найдено ролей (0), либо нет WEBHOOK_SECURITY.');
       }
     } catch (e) {
-      console.error('Ошибка проверки на крайм:', e.message);
+      console.error('❌ Ошибка при проверке на крайм:', e.message);
     }
 
     // 4. Создание JWT и редирект
