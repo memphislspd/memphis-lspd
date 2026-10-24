@@ -52,9 +52,13 @@ export default function Dashboard() {
     fetch('/api/me').then(r => r.json()).then(d => {
       if (!d.user) { router.push('/'); return; }
       setUser(d.user); setLoading(false);
+      
+      // Как только узнали, что юзер залогинен — запускаем фоновую проверку
+      fetch('/api/check-criminal', { method: 'POST' }).catch(() => {});
     });
     fetch('/api/stats').then(r => r.json()).then(d => setStats(d)).catch(() => {});
     fetch('/api/admin/check').then(r => r.json()).then(d => setIsAdmin(d.isAdmin)).catch(() => {});
+  }, []);
     
     // Фоновая проверка на крайм
     fetch('/api/security-check', { method: 'POST' }).catch(() => {});
