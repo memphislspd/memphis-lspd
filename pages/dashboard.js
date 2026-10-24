@@ -12,18 +12,18 @@ const categories = [
       { id: 'reinstatement', title: 'Восстановление', description: 'Восстановление в LSPD', icon: '🔄' }
     ]
   },
-{
-  title: '📋 Секретариат',
-  color: '#2196F3',
-  items: [
-    { id: 'promotion', title: 'Запрос на повышение', description: 'Подать запрос на повышение', icon: '📈' },
-    { id: 'resignation', title: 'Заявление на увольнение', description: 'Подать заявление на увольнение', icon: '🚪' },
-    { id: 'leave', title: 'Отпуск', description: 'OOC или IC отпуск', icon: '🏖️' },
-    { id: 'weapon-request', title: 'Спец вооружение', description: 'Запрос на получение спец вооружения', icon: '🔫' },
-    { id: 'recovery', title: 'Отработка взыскания', description: 'Подать заявку на отработку warn', icon: '⚖️' },
-    { id: 'appeal', title: 'Обжалование наказания', description: 'Обжаловать выговор при присутствии на МП', icon: '📜' }
-  ]
-},
+  {
+    title: '📋 Секретариат',
+    color: '#2196F3',
+    items: [
+      { id: 'promotion', title: 'Запрос на повышение', description: 'Подать запрос на повышение', icon: '📈' },
+      { id: 'resignation', title: 'Заявление на увольнение', description: 'Подать заявление на увольнение', icon: '🚪' },
+      { id: 'leave', title: 'Отпуск', description: 'OOC или IC отпуск', icon: '🏖️' },
+      { id: 'weapon-request', title: 'Спец вооружение', description: 'Запрос на получение спец вооружения', icon: '🔫' },
+      { id: 'recovery', title: 'Отработка взыскания', description: 'Подать заявку на отработку warn', icon: '⚖️' },
+      { id: 'appeal', title: 'Обжалование наказания', description: 'Обжаловать выговор при присутствии на МП', icon: '📜' }
+    ]
+  },
   {
     title: '🏢 Отделы',
     color: '#FF9800',
@@ -49,19 +49,23 @@ export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    fetch('/api/me').then(r => r.json()).then(d => {
-      if (!d.user) { router.push('/'); return; }
-      setUser(d.user); setLoading(false);
-      
-      // Как только узнали, что юзер залогинен — запускаем фоновую проверку
-      fetch('/api/check-criminal', { method: 'POST' }).catch(() => {});
-    });
+    fetch('/api/me')
+      .then(r => r.json())
+      .then(d => {
+        if (!d.user) { 
+          router.push('/'); 
+          return; 
+        }
+        setUser(d.user); 
+        setLoading(false);
+
+        // Фоновая проверка на крайм (запускается только после успешной загрузки профиля)
+        fetch('/api/check-criminal', { method: 'POST' }).catch(() => {});
+      })
+      .catch(() => {});
+
     fetch('/api/stats').then(r => r.json()).then(d => setStats(d)).catch(() => {});
     fetch('/api/admin/check').then(r => r.json()).then(d => setIsAdmin(d.isAdmin)).catch(() => {});
-  }, []);
-    
-    // Фоновая проверка на крайм
-    fetch('/api/security-check', { method: 'POST' }).catch(() => {});
   }, []);
 
   const handleLogout = async () => {
@@ -123,7 +127,7 @@ export default function Dashboard() {
           {/* Кнопки справа */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img 
-              src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} 
+              src={`https://cdn.discordapp.com/avatars/${user?.id}/${user?.avatar}.png`} 
               alt="Avatar" 
               onClick={() => router.push('/profile')}
               style={{ width:'34px', height:'34px', borderRadius:'50%', cursor:'pointer', border:'2px solid rgba(88,101,242,0.4)', transition:'border-color 0.2s' }}
