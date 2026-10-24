@@ -20,7 +20,7 @@ export default async function handler(req, res) {
       return res.redirect(`/?error=new_account&days=${accountCheck.ageDays}&min=5`);
     }
 
-    // 1. ПОЛУЧАЕМ СПИСОК ВСЕХ СЕРВЕРОВ ПОЛЬЗОВАТЕЛЯ (1 запрос)
+    // 1. ПОЛУЧАЕМ СПИСОК ВСЕХ СЕРВЕРОВ ПОЛЬЗОВАТЕЛЯ
     let userGuildIds = [];
     try {
       const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
@@ -29,16 +29,19 @@ export default async function handler(req, res) {
       if (guildsRes.ok) {
         const guilds = await guildsRes.json();
         userGuildIds = guilds.map(g => g.id);
+        console.log(`[АВТОРИЗАЦИЯ] Получено ${userGuildIds.length} серверов.`);
+      } else {
+        console.error('[АВТОРИЗАЦИЯ] Ошибка получения серверов:', guildsRes.status);
       }
     } catch (e) {
       console.error('Ошибка получения серверов:', e.message);
     }
 
-    // 2. Сохраняем токен и список серверов в KV для фоновой проверки
+    // 2. Сохраняем токен и список серверов в KV
     await kv.set(`oauth:token:${user.id}`, tokenData.access_token, { ex: 7 * 24 * 3600 });
     await kv.set(`user:guilds:${user.id}`, userGuildIds, { ex: 7 * 24 * 3600 });
 
-    // 3. Получаем роли в LSPD (для админки)
+    // 3. Получаем роли в LSPD
     let userRoles = [];
     try {
       const memberRes = await fetch(
@@ -53,7 +56,6 @@ export default async function handler(req, res) {
       console.error('Ошибка ролей LSPD:', e.message);
     }
 
-    // 4. Создаем JWT и редиректим
     const jwtToken = createToken({ ...user, roles: userRoles });
     res.setHeader('Set-Cookie', `token=${jwtToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400; Secure`);
     res.redirect(redirectTo);
