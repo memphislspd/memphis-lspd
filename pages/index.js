@@ -40,7 +40,7 @@ export default function Home() {
       client_id: DISCORD_CLIENT_ID,
       redirect_uri: DISCORD_REDIRECT_URI,
       response_type: 'code',
-      scope: 'identify guilds.members.read', // ← добавлен новый scope
+      scope: 'identify guilds guilds.members.read', // добавили guilds
       state: redirect,
       // prompt: 'none' — убрали, чтобы Discord выдал новый scope
     });
