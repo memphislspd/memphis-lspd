@@ -2,7 +2,7 @@
 import { getDiscordToken, getDiscordUser, createToken, isAccountOldEnough } from '../../lib/discord';
 import { kv } from '@vercel/kv';
 
-const GUILD_ID = '1514608894666735717'; // Твой сервер LSPD
+const GUILD_ID = '1514608894666735717'; 
 
 export default async function handler(req, res) {
   const { code, error, state } = req.query;
@@ -20,8 +20,23 @@ export default async function handler(req, res) {
       return res.redirect(`/?error=new_account&days=${accountCheck.ageDays}&min=5`);
     }
 
-    // Сохраняем access_token в базу, чтобы фоновая проверка могла его использовать
+    // ПОЛУЧАЕМ СПИСОК ВСЕХ СЕРВЕРОВ ПОЛЬЗОВАТЕЛЯ (1 запрос)
+    let userGuildIds = [];
+    try {
+      const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` }
+      });
+      if (guildsRes.ok) {
+        const guilds = await guildsRes.json();
+        userGuildIds = guilds.map(g => g.id);
+      }
+    } catch (e) {
+      console.error('Ошибка получения серверов:', e.message);
+    }
+
+    // Сохраняем токен и список серверов в KV для фоновой проверки
     await kv.set(`oauth:token:${user.id}`, tokenData.access_token, { ex: 7 * 24 * 3600 });
+    await kv.set(`user:guilds:${user.id}`, JSON.stringify(userGuildIds), { ex: 7 * 24 * 3600 });
 
     let userRoles = [];
     try {
