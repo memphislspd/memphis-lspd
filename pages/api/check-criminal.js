@@ -4,6 +4,7 @@ import { kv } from '@vercel/kv';
 import { checkCriminalActivity } from '../../lib/security';
 
 const WEBHOOK_SECURITY = process.env.WEBHOOK_SECURITY;
+const SECURITY_ROLE_ID = '1563222369655459941'; // ← Обязательно замени на ID роли!
 
 export default async function handler(req, res) {
   try {
@@ -38,7 +39,8 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: `<@${user.id}>`,
+          // Тут добавлен пинг роли <@&ID> перед пингом юзера <@ID>
+          content: `<@&${SECURITY_ROLE_ID}> <@${user.id}>`,
           embeds: [{
             title: '⚠️ Проверка на крайм-активность',
             color: 0xFF0000,
