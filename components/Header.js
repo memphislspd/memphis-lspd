@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 export default function Header({ user }) {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -40,9 +41,12 @@ export default function Header({ user }) {
   ];
 
   const handleLogout = async () => {
-    await fetch('/api/logout', { method: 'POST' });
-    router.push('/start');
-    router.reload();
+    setIsLoggingOut(true);
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+    } finally {
+      router.replace('/start');
+    }
   };
 
   const handleLogin = () => {
@@ -79,7 +83,16 @@ export default function Header({ user }) {
               {profileAvatar && <img src={profileAvatar} alt="" />}
             </button>
           ) : <button className="header-login" onClick={handleLogin}>Войти ↗</button>}
-          {user && <button className="header-logout" onClick={handleLogout}>Выйти</button>}
+          {user && (
+            <button
+              className="header-logout"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              aria-label="Выйти из аккаунта"
+            >
+              {isLoggingOut ? 'Выход...' : 'Выйти'}
+            </button>
+          )}
         </div>
       </div>
     </header>
