@@ -1,7 +1,7 @@
 // pages/start.js
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Header from '../components/Header'; // Импортируем нашу новую шапку
+import PageLayout from '../components/PageLayout';
 import StaffCard from '../components/StaffCard';
 
 export default function StartPage() {
@@ -22,19 +22,10 @@ export default function StartPage() {
   if (loading) return <div style={{ minHeight: '100vh', background: '#000' }} />;
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'radial-gradient(ellipse at 50% 0%, #111827 0%, #030303 70%)', 
-      color: 'white', 
-      fontFamily: "'Montserrat', 'Inter', -apple-system, sans-serif", 
-      overflowX: 'hidden' 
-    }}>
+    <PageLayout user={user}>
       
-      {/* Вставляем единую шапку и передаем ей юзера */}
-      <Header user={user} />
-
       {/* 1. ГЛАВНЫЙ ЭКРАН */}
-      <div style={{ padding: '80px 20px 60px', textAlign: 'center' }}>
+      <div style={{ padding: '40px 20px 60px', textAlign: 'center' }}>
         
         <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 16px', fontSize: '11px', fontWeight: '700', letterSpacing: '2px', color: '#9ca3af', marginBottom: '24px', background: 'rgba(0,0,0,0.3)' }}>
           MAJESTIC ROLE PLAY — <span style={{ color: '#2563EB' }}>MEMPHIS</span>
@@ -46,7 +37,6 @@ export default function StartPage() {
           margin: '0 0 20px 0', 
           letterSpacing: '-2px', 
           lineHeight: 1.05, 
-          fontFamily: "'Montserrat', sans-serif"
         }}>
           Memphis Police<br/>Department
         </h1>
@@ -55,7 +45,6 @@ export default function StartPage() {
           Обеспечение правопорядка, защита граждан штата и поддержание закона на улицах города.
         </p>
 
-        {/* Кнопка ведет на страницу заявлений */}
         <button onClick={() => router.push('/applications')} style={{
           background: '#2563EB', color: 'white',
           border: 'none', padding: '14px 48px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', letterSpacing: '1px',
@@ -70,7 +59,6 @@ export default function StartPage() {
 
       {/* 2. БЛОК МИССИИ */}
       <div style={{ maxWidth: '850px', margin: '0 auto', padding: '60px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', marginBottom: '32px' }}>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1))' }} />
           <div style={{ color: '#ff2640', fontSize: '11px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase' }}>
@@ -90,14 +78,14 @@ export default function StartPage() {
       </div>
 
       {/* 3. БЛОК РУКОВОДСТВА */}
-      <div style={{ padding: '60px 20px 80px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8))' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
+      <div style={{ padding: '60px 20px 80px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ textAlign: 'center' }}>
           
           <div style={{ display: 'inline-block', background: '#ff2640', color: 'white', fontSize: '11px', fontWeight: 'bold', padding: '6px 16px', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>
             TOP SECRET // CLEARANCE REQUIRED
           </div>
           
-          <h2 style={{ fontSize: '44px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Montserrat', sans-serif" }}>
+          <h2 style={{ fontSize: '44px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px' }}>
             Руководство
           </h2>
           <p style={{ color: '#9ca3af', fontSize: '15px', marginBottom: '40px' }}>
@@ -116,6 +104,6 @@ export default function StartPage() {
         </div>
       </div>
 
-    </div>
+    </PageLayout>
   );
 }
