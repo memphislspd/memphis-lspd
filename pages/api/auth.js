@@ -7,7 +7,6 @@ const GUILD_ID = '1514608894666735717'; // Твой сервер LSPD
 export default async function handler(req, res) {
   const { code, error, state } = req.query;
   
-  // ИЗМЕНЕНО ТУТ: теперь по умолчанию редирект на /start
   const redirectTo = state || '/start'; 
 
   if (error) return res.redirect(`/?error=access_denied`);
@@ -58,6 +57,11 @@ export default async function handler(req, res) {
       console.error('Ошибка ролей LSPD:', e.message);
     }
 
+    // 4. НОВОЕ: Сохраняем роли и инфу в базу, чтобы работала админка проверки
+    await kv.set(`user:roles:${user.id}`, userRoles, { ex: 7 * 24 * 3600 });
+    await kv.set(`user:info:${user.id}`, { username: user.username, avatar: user.avatar }, { ex: 7 * 24 * 3600 });
+
+    // 5. Создаем JWT и редиректим
     const jwtToken = createToken({ ...user, roles: userRoles });
     res.setHeader('Set-Cookie', `token=${jwtToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400; Secure`);
     res.redirect(redirectTo);
