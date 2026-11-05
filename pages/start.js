@@ -1,6 +1,7 @@
 // pages/start.js
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Header from '../components/Header'; // Импортируем нашу новую шапку
 import StaffCard from '../components/StaffCard';
 
 export default function StartPage() {
@@ -29,53 +30,10 @@ export default function StartPage() {
       overflowX: 'hidden' 
     }}>
       
-      {/* 1. ШАПКА (Центрированная и с новым шрифтом) */}
-      <header style={{ 
-        width: '100%',
-        background: 'rgba(0,0,0,0.5)', 
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        position: 'sticky', top: 0, zIndex: 100,
-        display: 'flex', justifyContent: 'center' // Центрируем содержимое шапки
-      }}>
-        {/* Ограничиваем ширину шапки (1100px), чтобы логотип и профиль не прилипали к краям экрана */}
-        <div style={{ 
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-          width: '100%', maxWidth: '1100px', height: '80px', padding: '0 20px'
-        }}>
-          
-          {/* Логотип (ближе к центру за счет maxWidth контейнера) */}
-          <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => router.push('/start')}>
-            <div style={{ 
-              fontSize: '24px', // Увеличили размер
-              fontWeight: '800', 
-              letterSpacing: '2px', // Добавили строгости
-              fontFamily: "'Montserrat', sans-serif"
-            }}>
-              LSPD<span style={{ color: '#2563EB' }}>.</span>
-            </div>
-          </div>
-          
-          {/* Навигация */}
-          <nav style={{ display: 'flex', gap: '40px', fontSize: '14px', fontWeight: '600', letterSpacing: '0.5px', color: '#9ca3af' }}>
-            <span onClick={() => router.push('/dashboard')} style={{ cursor: 'pointer', color: 'white' }}>Заявления</span>
-            <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}>Отделы</span>
-            <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}>Для сотрудников</span>
-            <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}>Реестр пропусков</span>
-          </nav>
+      {/* Вставляем единую шапку и передаем ей юзера */}
+      <Header user={user} />
 
-          {/* Профиль (тоже ближе к центру) */}
-          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-            <span style={{ fontSize: '14px', fontWeight: '700', color: '#fff', letterSpacing: '0.5px' }}>{user.username}</span>
-            <button onClick={() => router.push('/profile')} style={{ width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', cursor: 'pointer', padding: 0 }}>
-               <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </button>
-          </div>
-          
-        </div>
-      </header>
-
-      {/* 2. ГЛАВНЫЙ ЭКРАН */}
+      {/* 1. ГЛАВНЫЙ ЭКРАН */}
       <div style={{ padding: '80px 20px 60px', textAlign: 'center' }}>
         
         <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 16px', fontSize: '11px', fontWeight: '700', letterSpacing: '2px', color: '#9ca3af', marginBottom: '24px', background: 'rgba(0,0,0,0.3)' }}>
@@ -97,7 +55,8 @@ export default function StartPage() {
           Обеспечение правопорядка, защита граждан штата и поддержание закона на улицах города.
         </p>
 
-        <button onClick={() => router.push('/dashboard')} style={{
+        {/* Кнопка ведет на страницу заявлений */}
+        <button onClick={() => router.push('/applications')} style={{
           background: '#2563EB', color: 'white',
           border: 'none', padding: '14px 48px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', letterSpacing: '1px',
           cursor: 'pointer', transition: 'all 0.2s',
@@ -109,7 +68,7 @@ export default function StartPage() {
         </button>
       </div>
 
-      {/* 3. БЛОК МИССИИ */}
+      {/* 2. БЛОК МИССИИ */}
       <div style={{ maxWidth: '850px', margin: '0 auto', padding: '60px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', marginBottom: '32px' }}>
@@ -130,7 +89,7 @@ export default function StartPage() {
         </div>
       </div>
 
-      {/* 4. БЛОК РУКОВОДСТВА */}
+      {/* 3. БЛОК РУКОВОДСТВА */}
       <div style={{ padding: '60px 20px 80px', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8))' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
           
