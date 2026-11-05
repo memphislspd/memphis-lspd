@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import StaffCard from '../components/StaffCard';
+import Header from '../components/Header';
 
 export default function Home() {
   const router = useRouter();
@@ -39,23 +40,7 @@ export default function Home() {
 
   return (
     <div className="landing-page">
-      <header className="landing-header">
-        <a className="landing-brand" href="/start" aria-label="Los Santos Police Department">
-          <span className="landing-brand__mark">⌁</span>
-          <span><strong>LOS SANTOS</strong><small>POLICE DEPARTMENT</small></span>
-        </a>
-        <nav className="landing-nav" aria-label="Основная навигация">
-          <a className="is-active" href="/start">Главная</a>
-          <a href="/applications">Заявления</a>
-          <a href="/departments">Отделы</a>
-          <a href="/hub">Для сотрудников</a>
-        </nav>
-        
-        {/* Заменили кнопку "Войти" на кнопку профиля */}
-        <button className="landing-login landing-login--small" onClick={() => router.push('/profile')}>
-          {user ? user.username : 'Профиль'} <span>↗</span>
-        </button>
-      </header>
+      <Header user={user} />
 
       <main>
         <section className="landing-hero">

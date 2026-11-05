@@ -27,6 +27,11 @@ export default function Header({ user }) {
     };
   }, [user]);
 
+  const profileName = user?.global_name || user?.username || 'Профиль';
+  const profileAvatar = user?.avatar_url || (user?.avatar && user?.id
+    ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
+    : null);
+
   const navItems = [
     { label: 'Заявления', path: '/applications' },
     { label: 'Отделы', path: '/departments' },
@@ -64,8 +69,8 @@ export default function Header({ user }) {
           {isAdmin && <button className="admin-link" onClick={() => router.push('/admin')}>Админка</button>}
           {user ? (
             <button className="profile-chip" onClick={() => router.push('/profile')} aria-label="Открыть профиль">
-              <span>{user.username}</span>
-              <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} alt="" />
+              <span>{profileName}</span>
+              {profileAvatar && <img src={profileAvatar} alt="" />}
             </button>
           ) : <button className="header-login" onClick={handleLogin}>Войти ↗</button>}
         </div>
