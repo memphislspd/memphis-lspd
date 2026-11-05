@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../components/PageLayout';
 
-const REQUIRED_ROLE_ID = '1552313180041121802';
-
 const internalForms = [
   { id: 'promotion', title: 'Запрос на повышение', description: 'Подать запрос на повышение', icon: '📈' },
   { id: 'report', title: 'Отчёт о повышении', description: 'Отчёт для своего отдела', icon: '📋' },
@@ -20,32 +18,19 @@ const internalForms = [
 export default function HubPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [hasAccess, setHasAccess] = useState(false);
 
   useEffect(() => {
     fetch('/api/me').then(r => r.json()).then(d => {
-      if (!d.user) { router.push('/'); return; }
-      setUser(d.user);
-      if (d.user.roles && d.user.roles.includes(REQUIRED_ROLE_ID)) {
-        setHasAccess(true);
+      // Если не авторизован — на главную
+      if (!d.user) { 
+        router.push('/'); 
+        return; 
       }
+      setUser(d.user);
     });
   }, []);
 
   if (!user) return null;
-
-  if (!hasAccess) {
-    return (
-      <PageLayout user={user}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
-          <div style={{ background: 'rgba(255, 38, 64, 0.05)', border: '1px solid #ff2640', padding: '50px', borderRadius: '12px', textAlign: 'center', maxWidth: '500px' }}>
-            <h1 style={{ color: '#ff2640', fontSize: '36px', margin: '0 0 16px 0', fontWeight: '900', letterSpacing: '2px' }}>ACCESS DENIED</h1>
-            <p style={{ color: '#9ca3af', margin: 0, fontSize: '15px' }}>У вас недостаточно прав для доступа к этому разделу. Требуется роль сотрудника LSPD.</p>
-          </div>
-        </div>
-      </PageLayout>
-    );
-  }
 
   return (
     <PageLayout user={user}>
