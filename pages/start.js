@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import StaffCard from '../components/StaffCard';
 
 const DISCORD_CLIENT_ID = '1533765326213222491';
 const DISCORD_REDIRECT_URI = 'https://memphis-lspd.vercel.app/api/auth';
@@ -7,6 +8,7 @@ const DISCORD_REDIRECT_URI = 'https://memphis-lspd.vercel.app/api/auth';
 export default function Home() {
   const router = useRouter();
   const [error, setError] = useState(null);
+  const [staff, setStaff] = useState([]);
 
   useEffect(() => {
     if (!router.isReady) return undefined;
@@ -37,6 +39,17 @@ export default function Home() {
       controller.abort();
     };
   }, [router.isReady, router.query.error, router.query.days, router.query.min, router.query.redirect]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch('/api/staff', { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data) => setStaff(Array.isArray(data) ? data : []))
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, []);
 
   const handleDiscordLogin = () => {
     const redirect = router.query.redirect || '/dashboard';
@@ -96,6 +109,18 @@ export default function Home() {
           <a href="/applications"><span>01</span><strong>Подать заявление</strong><small>Вступление и переводы</small><b>↗</b></a>
           <a href="/departments"><span>02</span><strong>Наши отделы</strong><small>Структура департамента</small><b>↗</b></a>
           <a href="/staff"><span>03</span><strong>Состав LSPD</strong><small>Команда и руководство</small><b>↗</b></a>
+        </section>
+
+        <section className="landing-command" aria-labelledby="landing-command-title">
+          <div className="landing-command__eyebrow">TOP SECRET // CLEARANCE REQUIRED</div>
+          <div className="landing-section-label"><span>03</span> РУКОВОДСТВО</div>
+          <h2 id="landing-command-title">Командование департамента</h2>
+          <p>Высшее руководство Los Santos Police Department</p>
+          <div className="landing-command__grid">
+            {staff.map((member) => (
+              <StaffCard key={member.id} member={member} isAdminView={false} />
+            ))}
+          </div>
         </section>
       </main>
       <footer className="landing-footer"><span>LSPD SYSTEM / MEMPHIS</span><span>SECURE ACCESS · 2026</span></footer>
