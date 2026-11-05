@@ -169,69 +169,54 @@ export default function App({ Component, pageProps }) {
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); background-clip: content-box; }
         ::selection { background: rgba(37, 99, 235, 0.4); }
 
-        /* ==================================================== */
-        /* ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ ФОРМ */
-        /* ==================================================== */
-        
-        /* Поля ввода */
+        /* Unified form and content rhythm */
         input, textarea, select {
-          width: 100% !important; /* <--- ВОТ ЭТОЙ СТРОКИ НЕ ХВАТАЛО */
+          width: 100% !important;
           box-sizing: border-box !important;
-          background-color: #0a0a0a !important; 
-          border: 1px solid #2a2a2a !important;
-          color: white !important;
-          border-radius: 8px !important;
-          padding: 14px 16px !important;
-          font-size: 15px !important;
-          transition: all 0.2s ease !important;
+          min-height: 46px;
+          background: rgba(4, 7, 12, .72) !important;
+          border: 1px solid var(--line) !important;
+          color: var(--text) !important;
+          border-radius: 4px !important;
+          padding: 12px 14px !important;
+          font: 400 14px/1.45 Inter, sans-serif !important;
+          transition: border-color .2s ease, box-shadow .2s ease, background .2s ease !important;
         }
-
-        /* Фокус на полях (синее свечение) */
+        textarea { min-height: 110px; resize: vertical; }
+        input::placeholder, textarea::placeholder { color: #596578 !important; opacity: 1; }
         input:focus, textarea:focus, select:focus {
           outline: none !important;
-          border-color: #2563EB !important;
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important;
+          border-color: var(--blue) !important;
+          background: rgba(8, 14, 24, .94) !important;
+          box-shadow: 0 0 0 3px var(--blue-soft) !important;
         }
-
-        /* Кнопки отправки */
+        input:disabled, select:disabled, textarea:disabled { cursor: not-allowed; opacity: .56; }
         button[type="submit"] {
           width: 100% !important;
-          background: #2563EB !important;
+          min-height: 46px;
+          background: var(--blue) !important;
           color: white !important;
-          border: none !important;
-          border-radius: 8px !important;
-          padding: 16px !important;
-          font-size: 15px !important;
-          font-weight: 700 !important;
-          letter-spacing: 0.5px !important;
-          transition: all 0.2s ease !important;
-          box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3) !important;
-          text-transform: uppercase !important;
+          border: 0 !important;
+          border-radius: 4px !important;
+          padding: 12px 16px !important;
+          font: 600 13px/1.2 Inter, sans-serif !important;
+          letter-spacing: 0 !important;
+          text-transform: none !important;
           cursor: pointer !important;
+          transition: background .2s ease, transform .2s ease, box-shadow .2s ease !important;
+          box-shadow: 0 12px 32px rgba(63, 131, 248, .24) !important;
         }
-
-        button[type="submit"]:hover:not(:disabled) {
-          background: #3B82F6 !important;
-          transform: translateY(-2px) !important;
-          box-shadow: 0 15px 40px rgba(37, 99, 235, 0.5) !important;
-        }
-
-        button[type="submit"]:disabled {
-          background: #1a1a1a !important;
-          color: #666 !important;
-          cursor: not-allowed !important;
-          box-shadow: none !important;
-          transform: none !important;
-        }
-
-        select option { background: #121212 !important; color: white !important; }
+        button[type="submit"]:hover:not(:disabled) { background: #5b96ff !important; transform: translateY(-1px) !important; }
+        button[type="submit"]:disabled { background: #1a2330 !important; color: #657187 !important; cursor: not-allowed !important; box-shadow: none !important; transform: none !important; }
+        select option { background: #0b0f16 !important; color: var(--text) !important; }
         .page-container h1, .page-container h2, .page-container h3 { font-family: 'Space Grotesk', sans-serif !important; letter-spacing: -.04em !important; }
-        .page-container p { font-family: 'Inter', sans-serif; }
+        .page-container p { font-family: Inter, sans-serif; }
         .page-container div[style*='rgba(255,255,255,0.02)'] { background: rgba(11,15,22,.72) !important; border: 1px solid var(--line) !important; border-radius: 0 !important; }
         .page-container div[style*='rgba(255,255,255,0.02)']:hover { border-color: rgba(63,131,248,.55) !important; }
         .page-container div[style*='rgba(255,255,255,0.05)'] { border-color: var(--line) !important; }
-        .page-container [style*='borderRadius: \'12px\''], .page-container [style*='borderRadius: "12px"'] { border-radius: 0 !important; }
-        .page-container label { color: #9aa6b9 !important; font: 10px 'DM Mono', monospace !important; letter-spacing: .04em; text-transform: uppercase; }
+        .page-container label { color: #9aa6b9 !important; font: 500 11px/1.3 'DM Mono', monospace !important; letter-spacing: .07em; text-transform: uppercase; }
+        .form-card__body label { display: block; margin-bottom: 8px; }
+        .form-card__body > div { margin-bottom: 18px; }
       `}</style>
       <Component {...pageProps} />
     </>
