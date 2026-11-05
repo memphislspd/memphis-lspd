@@ -1,111 +1,78 @@
+// components/FormShell.js
 import { useRouter } from 'next/router';
+import Header from './Header';
+import { useEffect, useState } from 'react';
 
-/**
- * Универсальная обёртка для всех форм
- * 
- * @param {string} title - заголовок (например, "Запрос на повышение")
- * @param {string} icon - эмодзи (например, "📈")
- * @param {string} accent - цвет полоски и кнопок (например, "#4CAF50")
- * @param {ReactNode} children - содержимое формы
- * @param {string} backTo - куда вернуться (по умолчанию "/dashboard")
- */
-export default function FormShell({ 
-  title, 
-  icon, 
-  accent = '#5865F2', 
-  children, 
-  backTo = '/dashboard' 
-}) {
+const PUBLIC_FORMS = ['hiring', 'transfer-to-lspd', 'reinstatement'];
+
+export default function FormShell({ title, icon, accent = "#5865F2", children }) {
   const router = useRouter();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/me').then(r => r.json()).then(d => {
+      if (d.user) setUser(d.user);
+    });
+  }, []);
+
+  // Определяем, куда вести кнопку "Назад"
+  const currentFormId = router.pathname.split('/').pop();
+  const backLink = PUBLIC_FORMS.includes(currentFormId) ? '/applications' : '/hub';
 
   return (
     <div style={{ 
       minHeight: '100vh', 
-      background: 'linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 100%)', 
-      color: 'white' 
+      background: 'radial-gradient(ellipse at 50% 0%, #111827 0%, #030303 70%)', 
+      color: 'white', 
+      fontFamily: "'Montserrat', 'Inter', -apple-system, sans-serif", 
+      overflowX: 'hidden' 
     }}>
+      {user && <Header user={user} />}
 
-      {/* Sticky шапка */}
-      <div style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: 'rgba(10,10,26,0.85)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        marginBottom: '30px'
-      }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px 100px' }}>
+        
+        {/* Кнопка Назад */}
+        <button 
+          onClick={() => router.push(backLink)} 
+          style={{ 
+            background: 'transparent', color: '#9ca3af', border: 'none', fontSize: '14px', 
+            fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+            marginBottom: '24px', transition: 'color 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = 'white'}
+          onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}
+        >
+          ← Вернуться назад
+        </button>
+
+        {/* Карточка формы */}
         <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          maxWidth: '700px',
-          margin: '0 auto',
-          padding: '16px 20px',
-          gap: '16px'
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
         }}>
-          <button 
-            onClick={() => router.push(backTo)}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'white',
-              border: '1px solid rgba(255,255,255,0.1)',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12"/>
-              <polyline points="12 19 5 12 12 5"/>
-            </svg>
-            Назад
-          </button>
-
+          {/* Шапка формы */}
           <div style={{ 
-            fontSize: '15px', 
-            fontWeight: 600, 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            color: 'white'
+            padding: '30px', 
+            borderBottom: `1px solid rgba(255,255,255,0.05)`,
+            background: `linear-gradient(180deg, ${accent}15 0%, transparent 100%)`,
+            display: 'flex', alignItems: 'center', gap: '16px'
           }}>
-            <span style={{ fontSize: '18px' }}>{icon}</span>
-            {title}
+            <div style={{ fontSize: '32px', background: `${accent}20`, padding: '12px', borderRadius: '12px' }}>
+              {icon}
+            </div>
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>{title}</h1>
+              <p style={{ color: '#9ca3af', margin: '4px 0 0 0', fontSize: '13px' }}>Заполните все обязательные поля</p>
+            </div>
           </div>
 
-          <div style={{ width: '80px' }} />
-        </div>
-      </div>
-
-      {/* Контент */}
-      <div style={{ maxWidth: '700px', margin: '0 auto', padding: '0 20px 40px' }}>
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '16px',
-          padding: '28px',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Градиентная полоска сверху */}
-          <div style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            height: '3px',
-            background: `linear-gradient(90deg, ${accent}, ${accent}80, transparent)`
-          }} />
-
-          {children}
+          {/* Контент формы */}
+          <div style={{ padding: '30px' }}>
+            {children}
+          </div>
         </div>
       </div>
     </div>
