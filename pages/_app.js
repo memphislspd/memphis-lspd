@@ -224,6 +224,48 @@ export default function App({ Component, pageProps }) {
         .page-container label { color: #9aa6b9 !important; font: 500 11px/1.3 'DM Mono', monospace !important; letter-spacing: .07em; text-transform: uppercase; }
         .form-card__body label { display: block; margin-bottom: 8px; }
         .form-card__body > div { margin-bottom: 18px; }
+
+        /* Requested scale: landing content only, shared header everywhere. */
+        .landing-page .landing-hero { min-height: 640px; }
+        .landing-page .landing-hero__content { padding: 74px 26px 42px; }
+        .landing-page .landing-kicker { font-size: 13px; }
+        .landing-page .landing-hero h1 { font-size: clamp(75px, 10vw, 144px); }
+        .landing-page .landing-hero p { font-size: 19px; }
+        .landing-page .landing-orbit { width: 193px; height: 193px; }
+        .landing-page .landing-orbit strong { font-size: 37px; }
+        .landing-page .landing-mission { width: min(1010px, calc(100% - 54px)); padding: 82px 0; grid-template-columns: 187px 1fr 133px; gap: 37px; }
+        .landing-page .landing-section-label { font-size: 12px; }
+        .landing-page .landing-mission h2 { font-size: 53px; }
+        .landing-page .landing-mission p { font-size: 19px; }
+        .landing-page .landing-cards { width: min(1010px, calc(100% - 54px)); padding: 37px 0 76px; gap: 16px; }
+        .landing-page .landing-cards a { min-height: 166px; padding: 24px; }
+        .landing-page .landing-cards strong { margin-top: 24px; font-size: 20px; }
+        .landing-page .landing-cards span, .landing-page .landing-cards small { font-size: 12px; }
+        .landing-page .landing-command { width: min(1570px, calc(100% - 54px)); padding: 125px 0 143px; }
+        .landing-page .landing-command h2 { font-size: 56px; }
+        .landing-page .landing-command > p { font-size: 19px; }
+
+        .site-header__inner { width: min(1570px, calc(100% - 54px)); min-height: 114px; gap: 43px; }
+        .brand { gap: 13px; }
+        .brand__mark { width: 47px; height: 47px; font-size: 22px; }
+        .brand__text strong { font-size: 14px; }
+        .brand__text small { font-size: 9px; }
+        .site-nav { gap: 5px; padding: 5px; }
+        .site-nav button { padding: 15px 21px; font-size: 17px; }
+        .site-header__actions { gap: 18px; }
+        .admin-link { font-size: 15px; }
+        .profile-chip { gap: 13px; font-size: 16px; }
+        .profile-chip img { width: 43px; height: 43px; }
+        .header-login { padding: 16px 27px; font-size: 17px; }
+
+        .landing-header { width: min(1650px, calc(100% - 64px)); min-height: 125px; gap: 53px; }
+        .landing-brand { gap: 13px; }
+        .landing-brand__mark { width: 59px; height: 59px; font-size: 39px; }
+        .landing-brand strong { font-size: 15px; }
+        .landing-brand small { font-size: 9px; }
+        .landing-nav { gap: 4px; padding: 5px; }
+        .landing-nav a { padding: 17px 24px; font-size: 17px; }
+        .landing-login--small { min-height: 59px; padding: 15px 28px; font-size: 17px; }
       `}</style>
       <Component {...pageProps} />
     </>
