@@ -6,7 +6,9 @@ const GUILD_ID = '1514608894666735717'; // Твой сервер LSPD
 
 export default async function handler(req, res) {
   const { code, error, state } = req.query;
-  const redirectTo = state || '/dashboard';
+  
+  // ИЗМЕНЕНО ТУТ: теперь по умолчанию редирект на /start
+  const redirectTo = state || '/start'; 
 
   if (error) return res.redirect(`/?error=access_denied`);
   if (!code) return res.redirect(`/?error=no_code`);
