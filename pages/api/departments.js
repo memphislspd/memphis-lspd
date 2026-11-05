@@ -1,4 +1,3 @@
-// pages/api/departments.js
 import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
 import { isAdmin } from '../../lib/admins';
