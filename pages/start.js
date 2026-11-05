@@ -21,154 +21,122 @@ export default function StartPage() {
   if (loading) return <div style={{ minHeight: '100vh', background: '#050505' }} />;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050505', color: 'white', fontFamily: "'Inter', -apple-system, sans-serif", overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: '#050505', color: 'white', fontFamily: "'Inter', 'Montserrat', -apple-system, sans-serif", overflowX: 'hidden' }}>
       
-      {/* 1. ШАПКА (Tactical Header) */}
+      {/* 1. ШАПКА (Ближе к референсу) */}
       <header style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        padding: '0 40px', 
-        height: '80px',
-        background: 'rgba(10, 10, 10, 0.8)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+        padding: '0 40px', height: '70px',
+        background: '#000', borderBottom: '1px solid rgba(255,255,255,0.05)',
         position: 'sticky', top: 0, zIndex: 100
       }}>
         {/* Логотип */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }} onClick={() => router.push('/start')}>
-          <div style={{ width: '8px', height: '8px', background: '#ff2640', borderRadius: '50%', boxShadow: '0 0 10px #ff2640' }}></div>
-          <div style={{ fontSize: '26px', fontWeight: '900', letterSpacing: '2px', fontFamily: 'Impact, Arial Black, sans-serif' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => router.push('/start')}>
+          <div style={{ fontSize: '22px', fontWeight: '800', letterSpacing: '1px' }}>
             LSPD<span style={{ color: '#2563EB' }}>.</span>
-          </div>
-          <div style={{ color: '#555', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', marginTop: '5px' }}>
-            INTRANET
           </div>
         </div>
         
-        {/* Навигация */}
-        <div style={{ display: 'flex', gap: '40px', fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
-          <span 
-            onClick={() => router.push('/dashboard')} 
-            style={{ cursor: 'pointer', color: '#a0a3ce', transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'white'}
-            onMouseLeave={e => e.currentTarget.style.color = '#a0a3ce'}
-          >
-            Заявления
-          </span>
-          <span style={{ cursor: 'pointer', color: '#a0a3ce', transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'white'}
-            onMouseLeave={e => e.currentTarget.style.color = '#a0a3ce'}
-          >
-            Отделы
-          </span>
-          <span style={{ cursor: 'pointer', color: '#a0a3ce', transition: 'color 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'white'}
-            onMouseLeave={e => e.currentTarget.style.color = '#a0a3ce'}
-          >
-            Для сотрудников
-          </span>
+        {/* Навигация (по центру) */}
+        <div style={{ display: 'flex', gap: '30px', fontSize: '13px', fontWeight: '500', color: '#a0a3ce' }}>
+          <span onClick={() => router.push('/dashboard')} style={{ cursor: 'pointer', color: 'white' }}>Заявления</span>
+          <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = '#a0a3ce'}>Отделы</span>
+          <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = '#a0a3ce'}>Для сотрудников</span>
+          <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'white'} onMouseLeave={e => e.currentTarget.style.color = '#a0a3ce'}>Реестр пропусков</span>
         </div>
 
         {/* Профиль */}
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'white' }}>{user.username}</span>
-            <span style={{ fontSize: '11px', color: '#555' }}>Officer</span>
-          </div>
-          <button onClick={() => router.push('/profile')} style={{ width: '42px', height: '42px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #2563EB', cursor: 'pointer', padding: 0, boxShadow: '0 0 15px rgba(37, 99, 235, 0.4)' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{user.username}</div>
+          <button onClick={() => router.push('/profile')} style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #333', cursor: 'pointer', padding: 0 }}>
              <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </button>
         </div>
       </header>
 
-      {/* 2. ГЛАВНЫЙ ЭКРАН (Без машин, только текст) */}
-      <div style={{ 
-        position: 'relative', 
-        padding: '140px 20px 120px', 
-        textAlign: 'center',
-        background: 'radial-gradient(ellipse at top, rgba(37, 99, 235, 0.15) 0%, transparent 70%)'
-      }}>
-        <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.1)', padding: '8px 20px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', letterSpacing: '3px', color: '#a0a3ce', marginBottom: '40px', background: 'rgba(0,0,0,0.5)' }}>
-          MAJESTIC ROLE PLAY — MEMPHIS
+      {/* 2. ГЛАВНЫЙ ЭКРАН */}
+      <div style={{ padding: '120px 20px 100px', textAlign: 'center' }}>
+        
+        {/* Верхняя плашка */}
+        <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 16px', fontSize: '11px', fontWeight: '600', letterSpacing: '2px', color: '#a0a3ce', marginBottom: '40px', textTransform: 'uppercase' }}>
+          MAJESTIC ROLE PLAY — <span style={{ color: '#2563EB' }}>MEMPHIS</span>
         </div>
         
+        {/* Заголовок (Сплошной, огромный, без обводок) */}
         <h1 style={{ 
-          fontSize: 'clamp(50px, 8vw, 100px)', 
+          fontSize: 'clamp(50px, 7vw, 90px)', 
           fontWeight: '900', 
           margin: '0 0 24px 0', 
-          letterSpacing: '-2px', 
-          lineHeight: 0.9, 
-          fontFamily: 'Impact, Arial Black, sans-serif',
-          textShadow: '0 20px 40px rgba(0,0,0,0.8)'
+          letterSpacing: '-1.5px', 
+          lineHeight: 1.05, 
+          fontFamily: "'Inter', sans-serif",
         }}>
-          MEMPHIS POLICE<br/>
-          <span style={{ color: 'transparent', WebkitTextStroke: '2px white' }}>DEPARTMENT</span>
+          Memphis Police<br/>Department
         </h1>
         
-        <p style={{ color: '#a0a3ce', fontSize: '18px', maxWidth: '600px', margin: '0 auto 50px auto', lineHeight: 1.6 }}>
+        <p style={{ color: '#a0a3ce', fontSize: '18px', maxWidth: '600px', margin: '0 auto 40px auto', lineHeight: 1.6, fontWeight: '400' }}>
           Обеспечение правопорядка, защита граждан штата и поддержание закона на улицах города.
         </p>
+
+        {/* Дата (как на референсе) */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginBottom: '50px' }}>
+          <div style={{ width: '40px', height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ fontSize: '11px', color: '#666', letterSpacing: '2px', fontWeight: '600' }}>EST. 19 DECEMBER 2025</div>
+          <div style={{ width: '40px', height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+        </div>
         
+        {/* Кнопка (Сделал как на референсе, но с твоим цветом) */}
         <button onClick={() => router.push('/dashboard')} style={{
           background: '#2563EB', color: 'white',
-          border: 'none', padding: '18px 50px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase',
-          cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 10px 30px rgba(37, 99, 235, 0.4)'
+          border: 'none', padding: '14px 40px', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
+          cursor: 'pointer', transition: 'all 0.2s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.background = '#3B82F6'; e.currentTarget.style.boxShadow = '0 15px 40px rgba(37, 99, 235, 0.6)'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = '#2563EB'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(37, 99, 235, 0.4)'; }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#3B82F6'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#2563EB'; e.currentTarget.style.transform = 'translateY(0)'; }}
         >
           Подать заявление
         </button>
       </div>
 
-      {/* 3. БЛОК МИССИИ (Красивый текст) */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '80px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,38,64,0.5))' }} />
-          <div style={{ color: '#ff2640', fontSize: '12px', fontWeight: 'bold', letterSpacing: '4px', textTransform: 'uppercase' }}>
-            Наша миссия
+      {/* 3. БЛОК МИССИИ (Убрал карточку и выровнял по левому краю) */}
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '80px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginBottom: '40px' }}>
+          <div style={{ color: '#2563EB', fontSize: '11px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase' }}>
+            НАША МИССИЯ
           </div>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(255,38,64,0.5), transparent)' }} />
         </div>
         
-        {/* Карточка с текстом */}
-        <div style={{ 
-          background: 'rgba(255,255,255,0.02)', 
-          borderLeft: '3px solid #2563EB', 
-          padding: '30px 40px', 
-          borderRadius: '0 12px 12px 0',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
-        }}>
-          <p style={{ color: '#d1d5db', fontSize: '17px', lineHeight: 1.8, margin: '0 0 20px 0', fontWeight: '300' }}>
+        {/* Просто текст, без фона */}
+        <div>
+          <p style={{ color: '#d1d5db', fontSize: '16px', lineHeight: 1.8, margin: '0 0 20px 0', textAlign: 'left' }}>
             Memphis Police Department стремится защищать американский народ и отстаивать Конституцию штата. Мы работаем над предотвращением преступности, борьбой с организованными крайм-структурами и коррупцией на всех уровнях.
           </p>
-          <p style={{ color: '#9ca3af', fontSize: '15px', lineHeight: 1.8, margin: 0 }}>
+          <p style={{ color: '#d1d5db', fontSize: '16px', lineHeight: 1.8, margin: 0, textAlign: 'left' }}>
             Наши офицеры обладают высочайшей квалификацией и готовы служить закону в любое время суток, обеспечивая безопасность граждан штата San Andreas.
           </p>
         </div>
       </div>
 
-      {/* 4. БЛОК РУКОВОДСТВА (Без изменений) */}
+      {/* 4. БЛОК РУКОВОДСТВА (Заголовки сделал крупнее) */}
       <div style={{ padding: '80px 20px 120px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
           
-          <div style={{ display: 'inline-block', background: '#ff2640', color: 'white', fontSize: '11px', fontWeight: 'bold', padding: '8px 24px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '24px', boxShadow: '0 0 20px rgba(255,38,64,0.4)' }}>
+          <div style={{ display: 'inline-block', background: '#ff2640', color: 'white', fontSize: '11px', fontWeight: 'bold', padding: '6px 16px', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px' }}>
             TOP SECRET // CLEARANCE REQUIRED
           </div>
           
-          <h2 style={{ fontSize: '48px', fontWeight: '900', margin: '0 0 15px 0', letterSpacing: '-1px', fontFamily: 'Impact, Arial Black, sans-serif' }}>
+          <h2 style={{ fontSize: '48px', fontWeight: '800', margin: '0 0 15px 0', letterSpacing: '-1px', fontFamily: "'Inter', sans-serif" }}>
             Руководство
           </h2>
           <p style={{ color: '#a0a3ce', fontSize: '15px', marginBottom: '60px' }}>
             Высшее командование Memphis Police Department
           </p>
 
-          <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {staff.length > 0 ? (
               staff.map(member => <StaffCard key={member.id} member={member} isAdminView={false} />)
             ) : (
-              <div style={{ color: '#8b8ba7', padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px dashed #333' }}>
+              <div style={{ color: '#8b8ba7', padding: '40px' }}>
                 Информация о руководстве засекречена.
               </div>
             )}
