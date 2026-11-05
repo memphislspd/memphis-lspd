@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DeptCard from '../../components/DeptCard';
-import { Plus, Trash2 } from 'lucide-react'; // Если у тебя нет lucide-react, можно просто текст
 
 export default function AdminDepartmentsPage() {
   const router = useRouter();
