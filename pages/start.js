@@ -14,10 +14,11 @@ function DiscordIcon() {
 
 export default function Home() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!router.isReady) return undefined;
+
     if (router.query.error === 'new_account') {
       setError(`Ваш Discord аккаунт создан ${router.query.days || '0'} дней назад. Требуется минимум ${router.query.min || '5'} дней.`);
     } else if (router.query.error === 'access_denied') {
@@ -26,14 +27,24 @@ export default function Home() {
       setError('Ошибка авторизации. Попробуйте снова.');
     }
 
-    fetch('/api/me')
-      .then((res) => res.json())
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 5000);
+
+    fetch('/api/me', { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data.user) router.replace(router.query.redirect || '/dashboard');
-        setLoading(false);
+        if (data?.user) router.replace(router.query.redirect || '/dashboard');
       })
-      .catch(() => setLoading(false));
-  }, [router.query]);
+      .catch(() => {})
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+      });
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [router.isReady, router.query.error, router.query.days, router.query.min, router.query.redirect]);
 
   const handleDiscordLogin = () => {
     const redirect = router.query.redirect || '/dashboard';
@@ -46,8 +57,6 @@ export default function Home() {
     });
     window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
   };
-
-  if (loading) return <div className="landing-loading">Загрузка системы<span>...</span></div>;
 
   return (
     <div className="landing-page">
