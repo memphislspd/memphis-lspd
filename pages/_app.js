@@ -116,6 +116,9 @@ export default function App({ Component, pageProps }) {
         .profile-chip { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; }
         .profile-chip img { width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 50%; object-fit: cover; }
         .header-login { padding: 12px 20px; border-radius: 5px; background: var(--blue); color: white; font-size: 13px; font-weight: 600; }
+  .header-logout { padding: 10px 15px; border: 1px solid rgba(148, 163, 184, .18); border-radius: 5px; background: rgba(11, 15, 22, .72); color: var(--muted); font-size: 12px; cursor: pointer; transition: .2s ease; }
+  .header-logout:hover { border-color: rgba(248, 113, 113, .46); background: rgba(127, 29, 29, .22); color: #fca5a5; }
+  .header-logout:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
         .page-container { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 100px; }
         .login-shell { min-height: 100vh; display: grid; place-items: center; padding: 28px; background: radial-gradient(circle at 50% 20%, rgba(26,47,83,.42), transparent 34rem), var(--bg); }
         .login-card { width: min(460px, 100%); padding: 44px; border: 1px solid var(--line); background: rgba(11,15,22,.74); box-shadow: 0 30px 100px rgba(0,0,0,.4); text-align: center; }
@@ -257,6 +260,7 @@ export default function App({ Component, pageProps }) {
         .profile-chip { gap: 13px; font-size: 16px; }
         .profile-chip img { width: 43px; height: 43px; }
         .header-login { padding: 16px 27px; font-size: 17px; }
+  .header-logout { padding: 13px 20px; font-size: 16px; }
 
         .landing-header { width: min(1650px, calc(100% - 64px)); min-height: 125px; gap: 53px; }
         .landing-brand { gap: 13px; }

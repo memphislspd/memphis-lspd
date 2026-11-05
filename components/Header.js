@@ -39,6 +39,12 @@ export default function Header({ user }) {
     { label: 'Пропуска', path: '/passes' },
   ];
 
+  const handleLogout = async () => {
+    await fetch('/api/logout', { method: 'POST' });
+    router.push('/start');
+    router.reload();
+  };
+
   const handleLogin = () => {
     const params = new URLSearchParams({
       client_id: '1533765326213222491',
@@ -73,6 +79,7 @@ export default function Header({ user }) {
               {profileAvatar && <img src={profileAvatar} alt="" />}
             </button>
           ) : <button className="header-login" onClick={handleLogin}>Войти ↗</button>}
+          {user && <button className="header-logout" onClick={handleLogout}>Выйти</button>}
         </div>
       </div>
     </header>
