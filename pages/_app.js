@@ -104,11 +104,13 @@ export default function App({ Component, pageProps }) {
         ::selection { background: rgba(37, 99, 235, 0.4); }
 
         /* ==================================================== */
-        /* ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ ФОРМ (ПЕРЕБИВАЕТ ИНЛАЙН) */
+        /* ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ ФОРМ */
         /* ==================================================== */
         
         /* Поля ввода */
         input, textarea, select {
+          width: 100% !important; /* <--- ВОТ ЭТОЙ СТРОКИ НЕ ХВАТАЛО */
+          box-sizing: border-box !important;
           background-color: #0a0a0a !important; 
           border: 1px solid #2a2a2a !important;
           color: white !important;
@@ -125,8 +127,9 @@ export default function App({ Component, pageProps }) {
           box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important;
         }
 
-        /* Кнопки отправки (все кнопки с type="submit") */
+        /* Кнопки отправки */
         button[type="submit"] {
+          width: 100% !important;
           background: #2563EB !important;
           color: white !important;
           border: none !important;
@@ -138,6 +141,7 @@ export default function App({ Component, pageProps }) {
           transition: all 0.2s ease !important;
           box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3) !important;
           text-transform: uppercase !important;
+          cursor: pointer !important;
         }
 
         button[type="submit"]:hover:not(:disabled) {
@@ -154,7 +158,6 @@ export default function App({ Component, pageProps }) {
           transform: none !important;
         }
 
-        /* Выпадающие списки */
         select option { background: #121212 !important; color: white !important; }
       `}</style>
       <Component {...pageProps} />
