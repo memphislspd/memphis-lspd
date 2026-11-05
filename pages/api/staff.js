@@ -3,10 +3,7 @@ import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
 
 export default async function handler(req, res) {
-  const user = verifyToken(req.cookies.token);
-  if (!user) return res.status(401).json({ error: 'Unauthorized' });
-
-  // GET: Получить список всего руководства
+  // GET используется публичной секцией руководства на стартовой странице.
   if (req.method === 'GET') {
     try {
       const staff = await kv.get('lspd:staff_roster') || [];
@@ -15,6 +12,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Ошибка БД' });
     }
   }
+
+  const user = verifyToken(req.cookies.token);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
   // POST: Добавить нового человека (только для админов)
   if (req.method === 'POST') {
