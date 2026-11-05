@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 const PUBLIC_FORMS = ['hiring', 'transfer-to-lspd', 'reinstatement'];
 
-export default function FormShell({ title, icon, accent = "#5865F2", children }) {
+export default function FormShell({ title, icon, children }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
 
@@ -22,6 +22,7 @@ export default function FormShell({ title, icon, accent = "#5865F2", children })
   return (
     <div style={{ 
       minHeight: '100vh', 
+      // Тот же фон, что и на главной странице
       background: 'radial-gradient(ellipse at 50% 0%, #111827 0%, #030303 70%)', 
       color: 'white', 
       fontFamily: "'Montserrat', 'Inter', -apple-system, sans-serif", 
@@ -37,7 +38,7 @@ export default function FormShell({ title, icon, accent = "#5865F2", children })
           style={{ 
             background: 'transparent', color: '#9ca3af', border: 'none', fontSize: '14px', 
             fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-            marginBottom: '24px', transition: 'color 0.2s'
+            marginBottom: '24px', transition: 'color 0.2s', padding: 0
           }}
           onMouseEnter={e => e.currentTarget.style.color = 'white'}
           onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}
@@ -45,7 +46,7 @@ export default function FormShell({ title, icon, accent = "#5865F2", children })
           ← Вернуться назад
         </button>
 
-        {/* Карточка формы */}
+        {/* Карточка формы (в стиле главной страницы) */}
         <div style={{
           background: 'rgba(255,255,255,0.02)',
           border: '1px solid rgba(255,255,255,0.05)',
@@ -57,10 +58,10 @@ export default function FormShell({ title, icon, accent = "#5865F2", children })
           <div style={{ 
             padding: '30px', 
             borderBottom: `1px solid rgba(255,255,255,0.05)`,
-            background: `linear-gradient(180deg, ${accent}15 0%, transparent 100%)`,
+            background: `rgba(255,255,255,0.01)`,
             display: 'flex', alignItems: 'center', gap: '16px'
           }}>
-            <div style={{ fontSize: '32px', background: `${accent}20`, padding: '12px', borderRadius: '12px' }}>
+            <div style={{ fontSize: '32px' }}>
               {icon}
             </div>
             <div>
