@@ -23,7 +23,15 @@ export default function Home() {
 
     fetch('/api/me')
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data?.user || null))
+      .then((data) => {
+        setUser(data?.user || null);
+        
+        // ФОНОВАЯ ПРОВЕРКА НА КРАЙМ:
+        // Запускается только если пользователь авторизован
+        if (data?.user) {
+          fetch('/api/check-criminal', { method: 'POST' }).catch(() => {});
+        }
+      })
       .catch(() => setUser(null));
   }, [router.isReady, router.query.error, router.query.days, router.query.min, router.query.redirect]);
 
