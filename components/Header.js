@@ -20,6 +20,17 @@ export default function Header({ user }) {
     { label: 'Пропуска', path: '/passes' },
   ];
 
+  const handleLogin = () => {
+    const params = new URLSearchParams({
+      client_id: '1533765326213222491',
+      redirect_uri: 'https://memphis-lspd.vercel.app/api/auth',
+      response_type: 'code',
+      scope: 'identify guilds guilds.members.read',
+      state: router.asPath || '/dashboard',
+    });
+    window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
+  };
+
   return (
     <header className="site-header">
       <div className="site-header__inner">
