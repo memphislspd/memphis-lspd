@@ -1,109 +1,107 @@
-// pages/start.js
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import PageLayout from '../components/PageLayout';
-import StaffCard from '../components/StaffCard';
 
-export default function StartPage() {
+const DISCORD_CLIENT_ID = '1533765326213222491';
+const DISCORD_REDIRECT_URI = 'https://memphis-lspd.vercel.app/api/auth';
+
+function DiscordIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.33-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.31.61.67 1.19 1.07 1.74.02.02.06.03.07.02 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" fill="currentColor" />
+    </svg>
+  );
+}
+
+export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('/api/me').then(r => r.json()).then(d => {
-      if (!d.user) { router.push('/'); return; }
-      setUser(d.user);
-      setLoading(false);
-    });
-    fetch('/api/staff').then(r => r.json()).then(d => setStaff(d)).catch(() => {});
-  }, []);
+    if (router.query.error === 'new_account') {
+      setError(`Ваш Discord аккаунт создан ${router.query.days || '0'} дней назад. Требуется минимум ${router.query.min || '5'} дней.`);
+    } else if (router.query.error === 'access_denied') {
+      setError('Вы отклонили авторизацию.');
+    } else if (router.query.error) {
+      setError('Ошибка авторизации. Попробуйте снова.');
+    }
 
-  if (loading) return <div style={{ minHeight: '100vh', background: '#000' }} />;
+    fetch('/api/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) router.replace(router.query.redirect || '/dashboard');
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [router.query]);
+
+  const handleDiscordLogin = () => {
+    const redirect = router.query.redirect || '/dashboard';
+    const params = new URLSearchParams({
+      client_id: DISCORD_CLIENT_ID,
+      redirect_uri: DISCORD_REDIRECT_URI,
+      response_type: 'code',
+      scope: 'identify guilds guilds.members.read',
+      state: redirect,
+    });
+    window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
+  };
+
+  if (loading) return <div className="landing-loading">Загрузка системы<span>...</span></div>;
 
   return (
-    <PageLayout user={user}>
-      
-      {/* 1. ГЛАВНЫЙ ЭКРАН */}
-      <div style={{ padding: '40px 20px 60px', textAlign: 'center' }}>
-        
-        <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 16px', fontSize: '11px', fontWeight: '700', letterSpacing: '2px', color: '#9ca3af', marginBottom: '24px', background: 'rgba(0,0,0,0.3)' }}>
-          MAJESTIC ROLE PLAY — <span style={{ color: '#2563EB' }}>MEMPHIS</span>
-        </div>
-        
-        <h1 style={{ 
-          fontSize: 'clamp(50px, 7vw, 85px)', 
-          fontWeight: '900', 
-          margin: '0 0 20px 0', 
-          letterSpacing: '-2px', 
-          lineHeight: 1.05, 
-        }}>
-          Memphis Police<br/>Department
-        </h1>
-        
-        <p style={{ color: '#9ca3af', fontSize: '18px', maxWidth: '600px', margin: '0 auto 32px auto', lineHeight: 1.5 }}>
-          Обеспечение правопорядка, защита граждан штата и поддержание закона на улицах города.
-        </p>
+    <div className="landing-page">
+      <header className="landing-header">
+        <a className="landing-brand" href="/start" aria-label="Los Santos Police Department">
+          <span className="landing-brand__mark">⌁</span>
+          <span><strong>LOS SANTOS</strong><small>POLICE DEPARTMENT</small></span>
+        </a>
+        <nav className="landing-nav" aria-label="Основная навигация">
+          <a className="is-active" href="/">Главная</a>
+          <a href="/applications">Заявления</a>
+          <a href="/departments">Отделы</a>
+          <a href="/staff">Для сотрудников</a>
+        </nav>
+        <button className="landing-login landing-login--small" onClick={handleDiscordLogin}>Войти <span>↗</span></button>
+      </header>
 
-        <button onClick={() => router.push('/applications')} style={{
-          background: '#2563EB', color: 'white',
-          border: 'none', padding: '14px 48px', borderRadius: '6px', fontSize: '14px', fontWeight: '600', letterSpacing: '1px',
-          cursor: 'pointer', transition: 'all 0.2s',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#3B82F6'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = '#2563EB'; }}
-        >
-          ПОДАТЬ ЗАЯВЛЕНИЕ
-        </button>
-      </div>
-
-      {/* 2. БЛОК МИССИИ */}
-      <div style={{ maxWidth: '850px', margin: '0 auto', padding: '60px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', marginBottom: '32px' }}>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1))' }} />
-          <div style={{ color: '#ff2640', fontSize: '11px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase' }}>
-            НАША МИССИЯ
+      <main>
+        <section className="landing-hero">
+          <div className="landing-hero__glow landing-hero__glow--red" />
+          <div className="landing-hero__glow landing-hero__glow--blue" />
+          <div className="landing-hero__content">
+            <div className="landing-kicker"><i /> MAJESTIC ROLE PLAY <b>—</b> MEMPHIS</div>
+            <h1>Закон.<br /><span>Порядок.</span><br />Los Santos.</h1>
+            <p>Los Santos Police Department — служба, которой доверяют.<br />Защищаем граждан. Работаем честно. Действуем быстро.</p>
+            {error && <div className="landing-error" role="alert">{error}</div>}
+            <div className="landing-actions">
+              <button className="landing-login" onClick={handleDiscordLogin}><DiscordIcon /> Подать заявление <span>↗</span></button>
+              <a href="/departments" className="landing-more">О департаменте <span>›</span></a>
+            </div>
           </div>
-          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(255,255,255,0.1), transparent)' }} />
-        </div>
-        
-        <div style={{ color: '#d1d5db', fontSize: '16px', lineHeight: 1.7 }}>
-          <p style={{ margin: '0 0 16px 0' }}>
-            Memphis Police Department стремится защищать американский народ и отстаивать Конституцию штата. Мы работаем над предотвращением преступности, борьбой с организованными крайм-структурами и коррупцией на всех уровнях.
-          </p>
-          <p style={{ margin: 0 }}>
-            Наши офицеры обладают высочайшей квалификацией и готовы служить закону в любое время суток, обеспечивая безопасность граждан штата San Andreas.
-          </p>
-        </div>
-      </div>
+          <div className="landing-orbit" aria-hidden="true"><strong>24</strong><small>HOURS</small></div>
+          <div className="landing-meta landing-meta--left">LSPD / 010</div>
+          <div className="landing-meta landing-meta--center">EST. 2026</div>
+          <div className="landing-meta landing-meta--right">LOS SANTOS, CA</div>
+        </section>
 
-      {/* 3. БЛОК РУКОВОДСТВА */}
-      <div style={{ padding: '60px 20px 80px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ textAlign: 'center' }}>
-          
-          <div style={{ display: 'inline-block', background: '#ff2640', color: 'white', fontSize: '11px', fontWeight: 'bold', padding: '6px 16px', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px' }}>
-            TOP SECRET // CLEARANCE REQUIRED
+        <section className="landing-mission">
+          <div className="landing-section-label"><span>01</span> НАША МИССИЯ</div>
+          <div>
+            <h2>Служить и защищать —<br /><em>это наш выбор.</em></h2>
+            <p>Мы создаём безопасный город, в котором каждый житель может чувствовать себя защищённым. Наша сила — в дисциплине, профессионализме и уважении к закону.</p>
+            <a href="/departments" className="landing-text-link">Узнать больше ↗</a>
           </div>
-          
-          <h2 style={{ fontSize: '44px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px' }}>
-            Руководство
-          </h2>
-          <p style={{ color: '#9ca3af', fontSize: '15px', marginBottom: '40px' }}>
-            Высшее командование Memphis Police Department
-          </p>
+          <div className="landing-quote">“</div>
+        </section>
 
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            {staff.length > 0 ? (
-              staff.map(member => <StaffCard key={member.id} member={member} isAdminView={false} />)
-            ) : (
-              <div style={{ color: '#8b8ba7', padding: '40px' }}>
-                Информация о руководстве засекречена.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-    </PageLayout>
+        <section className="landing-cards">
+          <a href="/applications"><span>01</span><strong>Подать заявление</strong><small>Вступление и переводы</small><b>↗</b></a>
+          <a href="/departments"><span>02</span><strong>Наши отделы</strong><small>Структура департамента</small><b>↗</b></a>
+          <a href="/staff"><span>03</span><strong>Состав LSPD</strong><small>Команда и руководство</small><b>↗</b></a>
+        </section>
+      </main>
+      <footer className="landing-footer"><span>LSPD SYSTEM / MEMPHIS</span><span>SECURE ACCESS · 2026</span></footer>
+    </div>
   );
 }
