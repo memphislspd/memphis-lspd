@@ -1,13 +1,12 @@
+// pages/start.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import StaffCard from '../components/StaffCard';
 
-const DISCORD_CLIENT_ID = '1533765326213222491';
-const DISCORD_REDIRECT_URI = 'https://memphis-lspd.vercel.app/api/auth';
-
 export default function Home() {
   const router = useRouter();
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
   const [staff, setStaff] = useState([]);
 
   useEffect(() => {
@@ -21,23 +20,10 @@ export default function Home() {
       setError('Ошибка авторизации. Попробуйте снова.');
     }
 
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 5000);
-
-    fetch('/api/me', { signal: controller.signal })
+    fetch('/api/me')
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.user) router.replace(router.query.redirect || '/dashboard');
-      })
-      .catch(() => {})
-      .finally(() => {
-        window.clearTimeout(timeoutId);
-      });
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      controller.abort();
-    };
+      .then((data) => setUser(data?.user || null))
+      .catch(() => setUser(null));
   }, [router.isReady, router.query.error, router.query.days, router.query.min, router.query.redirect]);
 
   useEffect(() => {
@@ -50,18 +36,6 @@ export default function Home() {
 
     return () => controller.abort();
   }, []);
-
-  const handleDiscordLogin = () => {
-    const redirect = router.query.redirect || '/dashboard';
-    const params = new URLSearchParams({
-      client_id: DISCORD_CLIENT_ID,
-      redirect_uri: DISCORD_REDIRECT_URI,
-      response_type: 'code',
-      scope: 'identify guilds guilds.members.read',
-      state: redirect,
-    });
-    window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
-  };
 
   return (
     <div className="landing-page">
@@ -76,7 +50,11 @@ export default function Home() {
           <a href="/departments">Отделы</a>
           <a href="/hub">Для сотрудников</a>
         </nav>
-        <button className="landing-login landing-login--small" onClick={handleDiscordLogin}>Войти <span>↗</span></button>
+        
+        {/* Заменили кнопку "Войти" на кнопку профиля */}
+        <button className="landing-login landing-login--small" onClick={() => router.push('/profile')}>
+          {user ? user.username : 'Профиль'} <span>↗</span>
+        </button>
       </header>
 
       <main>
