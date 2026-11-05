@@ -1,3 +1,4 @@
+// pages/_app.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -207,12 +208,31 @@ export default function App({ Component, pageProps }) {
           background: rgba(255, 255, 255, 0.2);
           background-clip: content-box;
         }
-
-        select option { background: #1a1a3e; color: white; }
         ::selection { background: rgba(88, 101, 242, 0.4); }
+        
         button { transition: all 0.2s ease; }
         button:active:not(:disabled) { transform: scale(0.98); }
-        input:focus, textarea:focus, select:focus { outline: none; }
+
+        /* ==================================================== */
+        /* НОВЫЕ СТИЛИ ДЛЯ ИНПУТОВ И СЕЛЕКТОВ (Добавлено) */
+        /* ==================================================== */
+        
+        input, textarea, select {
+          transition: all 0.2s ease-in-out;
+        }
+
+        input:focus, textarea:focus, select:focus { 
+          outline: none; 
+          border-color: #2563EB !important; /* Синяя рамка */
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important; /* Легкое свечение */
+          background: rgba(255,255,255,0.08) !important;
+        }
+
+        /* Темный фон для выпадающих списков, чтобы не было белых квадратов */
+        select option { 
+          background: #121212; 
+          color: white; 
+        }
       `}</style>
       <Component {...pageProps} />
     </>
