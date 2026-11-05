@@ -20,7 +20,7 @@ export default function HiringForm() {
     });
     fetch('/api/profile').then(res => res.json()).then(data => {
       setProfile(data.profile);
-      if (data.profile.fullName) setFormData(prev => ({ ...prev, fullName: data.profile.fullName }));
+      if (data.profile?.fullName) setFormData(prev => ({ ...prev, fullName: data.profile.fullName }));
       setLoading(false);
     });
   }, []);

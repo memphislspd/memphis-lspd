@@ -7,11 +7,25 @@ export default function Header({ user }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+
+    let active = true;
     fetch('/api/admin/check')
       .then(res => res.json())
-      .then(data => setIsAdmin(data.isAdmin))
-      .catch(() => {});
-  }, []);
+      .then(data => {
+        if (active) setIsAdmin(Boolean(data.isAdmin));
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   const navItems = [
     { label: 'Заявления', path: '/applications' },
@@ -19,6 +33,17 @@ export default function Header({ user }) {
     { label: 'Для сотрудников', path: '/hub' },
     { label: 'Пропуска', path: '/passes' },
   ];
+
+  const handleLogin = () => {
+    const params = new URLSearchParams({
+      client_id: '1533765326213222491',
+      redirect_uri: 'https://memphis-lspd.vercel.app/api/auth',
+      response_type: 'code',
+      scope: 'identify guilds guilds.members.read',
+      state: router.asPath || '/dashboard',
+    });
+    window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
+  };
 
   return (
     <header className="site-header">
@@ -42,7 +67,7 @@ export default function Header({ user }) {
               <span>{user.username}</span>
               <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} alt="" />
             </button>
-          ) : <button className="header-login" onClick={() => router.push('/')}>Войти ↗</button>}
+          ) : <button className="header-login" onClick={handleLogin}>Войти ↗</button>}
         </div>
       </div>
     </header>
