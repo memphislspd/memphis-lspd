@@ -60,7 +60,7 @@ export default function Profile() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-if (loading || !user) return <SkeletonProfile />;
+if (loading) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
 
   const currentDept = DEPARTMENTS.find(d => d.id === profile.department);
 
