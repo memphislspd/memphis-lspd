@@ -1,110 +1,102 @@
-// components/GlobalSearch.js
-import { useState, useEffect, useRef } from 'react';
+// components/Header.js
 import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
+import GlobalSearch from './GlobalSearch'; // <-- Импортируем поиск
 
-// Список всего, что можно найти на сайте
-const SEARCH_ITEMS = [
-  // Страницы
-  { title: 'Главная', path: '/start', category: 'Страницы', icon: '🏠' },
-  { title: 'Заявления (Трудоустройство, Перевод)', path: '/applications', category: 'Страницы', icon: '📝' },
-  { title: 'Отделы', path: '/departments', category: 'Страницы', icon: '🏢' },
-  { title: 'Для сотрудников (Внутренние формы)', path: '/hub', category: 'Страницы', icon: '🛡️' },
-  { title: 'Реестр пропусков', path: '/passes', category: 'Страницы', icon: '🪪' },
-  { title: 'Мой профиль', path: '/profile', category: 'Страницы', icon: '👤' },
-  
-  // Формы
-  { title: 'Отпуск', path: '/forms/leave', category: 'Формы', icon: '🏖️' },
-  { title: 'Запрос на повышение', path: '/forms/promotion', category: 'Формы', icon: '📈' },
-  { title: 'Отчёт о повышении', path: '/forms/report', category: 'Формы', icon: '📋' },
-  { title: 'Заявление на увольнение', path: '/forms/resignation', category: 'Формы', icon: '🚪' },
-  { title: 'Отработка взыскания', path: '/forms/recovery', category: 'Формы', icon: '⚖️' },
-  { title: 'Обжалование наказания', path: '/forms/appeal', category: 'Формы', icon: '📜' },
-  { title: 'Перевод в отдел', path: '/forms/transfer', category: 'Формы', icon: '🔄' },
-  { title: 'Спец вооружение', path: '/forms/weapon-request', category: 'Формы', icon: '🔫' },
-];
-
-export default function GlobalSearch({ isOpen, onClose }) {
+export default function Header({ user }) {
   const router = useRouter();
-  const [query, setQuery] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const inputRef = useRef(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // <-- Стейт для поиска
 
-  // Фильтруем элементы по введенному запросу
-  const filteredItems = SEARCH_ITEMS.filter(item => 
-    item.title.toLowerCase().includes(query.toLowerCase()) || 
-    item.category.toLowerCase().includes(query.toLowerCase())
-  );
-
-  // Сброс состояния при открытии
+  // Проверка на админа
   useEffect(() => {
-    if (isOpen) {
-      setQuery('');
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 100);
+    if (!user) {
+      setIsAdmin(false);
+      return;
     }
-  }, [isOpen]);
+    let active = true;
+    fetch('/api/admin/check')
+      .then(res => res.json())
+      .then(data => { if (active) setIsAdmin(Boolean(data.isAdmin)); })
+      .catch(() => { if (active) setIsAdmin(false); });
+    return () => { active = false; };
+  }, [user]);
 
-  // Обработка клавиш (стрелки вверх/вниз, Enter, Escape)
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev < filteredItems.length - 1 ? prev + 1 : prev));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (filteredItems[selectedIndex]) {
-        router.push(filteredItems[selectedIndex].path);
-        onClose();
+  // Слушатель Ctrl+K / Cmd+K
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
       }
-    } else if (e.key === 'Escape') {
-      onClose();
-    }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
+  const profileName = user?.global_name || user?.username || 'Профиль';
+  const profileAvatar = user?.avatar_url || (user?.avatar && user?.id
+    ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
+    : null);
+
+  const navItems = [
+    { label: 'Заявления', path: '/applications' },
+    { label: 'Отделы', path: '/departments' },
+    { label: 'Для сотрудников', path: '/hub' },
+    { label: 'Пропуска', path: '/passes' },
+  ];
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try { await fetch('/api/logout', { method: 'POST' }); } 
+    finally { router.replace('/start'); }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="search-overlay" onClick={onClose}>
-      <div className="search-modal" onClick={e => e.stopPropagation()}>
-        
-        <div className="search-header">
-          <span className="search-icon">🔍</span>
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Поиск страниц или форм..."
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
-            onKeyDown={handleKeyDown}
-          />
-          <button className="search-esc" onClick={onClose}>ESC</button>
-        </div>
+    <>
+      <header className="site-header">
+        <div className="site-header__inner">
+          <button className="brand" onClick={() => router.push('/start')} aria-label="LSPD — на главную">
+            <span className="brand__mark">◈</span>
+            <span className="brand__text"><strong>LOS SANTOS</strong><small>POLICE DEPARTMENT</small></span>
+          </button>
 
-        <div className="search-results">
-          {filteredItems.length === 0 ? (
-            <div className="search-empty">Ничего не найдено по запросу "{query}"</div>
-          ) : (
-            filteredItems.map((item, index) => (
-              <div 
-                key={item.path}
-                className={`search-item ${index === selectedIndex ? 'is-selected' : ''}`}
-                onClick={() => { router.push(item.path); onClose(); }}
-                onMouseEnter={() => setSelectedIndex(index)}
-              >
-                <div className="search-item__icon">{item.icon}</div>
-                <div className="search-item__info">
-                  <span className="search-item__title">{item.title}</span>
-                  <span className="search-item__category">{item.category}</span>
-                </div>
-                {index === selectedIndex && <span className="search-item__enter">↵ Enter</span>}
-              </div>
-            ))
-          )}
-        </div>
+          <nav className="site-nav" aria-label="Основная навигация">
+            <button className={router.pathname === '/start' ? 'is-active' : ''} onClick={() => router.push('/start')}>Главная</button>
+            {navItems.map(item => (
+              <button key={item.path} className={router.pathname === item.path ? 'is-active' : ''} onClick={() => router.push(item.path)}>{item.label}</button>
+            ))}
+            
+            {/* Кнопка поиска */}
+            <button className="search-trigger" onClick={() => setIsSearchOpen(true)}>
+              <span style={{ fontSize: '14px' }}>🔍</span> Поиск <kbd>Ctrl K</kbd>
+            </button>
 
-      </div>
-    </div>
+            {isAdmin && (
+              <button className={`admin-nav-btn ${router.pathname.startsWith('/admin') ? 'is-active' : ''}`} onClick={() => router.push('/admin')}>Админка</button>
+            )}
+          </nav>
+
+          <div className="site-header__actions">
+            {user ? (
+              <button className="profile-chip" onClick={() => router.push('/profile')}>
+                <span>{profileName}</span>
+                {profileAvatar && <img src={profileAvatar} alt="" />}
+              </button>
+            ) : <button className="header-login" onClick={() => router.push('/start')}>Войти ↗</button>}
+            
+            {user && (
+              <button className="header-logout" onClick={handleLogout} disabled={isLoggingOut}>
+                {isLoggingOut ? 'Выход...' : 'Выйти'}
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Рендерим модалку поиска */}
+      <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+    </>
   );
 }
