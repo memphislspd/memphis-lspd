@@ -58,7 +58,7 @@ export default function History() {
     }).catch(() => router.push('/'));
   }, []);
 
-if (loading || !user) return <SkeletonProfile />;
+if (loading) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
 
   // Уникальные типы для фильтра
   const availableTypes = ['all', ...new Set(history.map(h => h.type).filter(Boolean))];
