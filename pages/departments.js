@@ -22,7 +22,6 @@ export default function DepartmentsPage() {
     }).catch(() => setLoading(false));
   }, []);
 
-  if (loading || !user) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
 
   return (
     <PageLayout user={user}>
