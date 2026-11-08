@@ -1,4 +1,5 @@
 // pages/_app.js
+import '../styles/globals.css'; // <--- ВОТ ЭТА СТРОЧКА БЫЛА ПОТЕРЯНА
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import GlobalLoader from '../components/GlobalLoader';
