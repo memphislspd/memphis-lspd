@@ -159,8 +159,25 @@ export default async function handler(req, res) {
     const today = new Date().toISOString().split('T')[0];
     await kv.incr('lspd:stats:total');
     await kv.incr(`lspd:stats:${today}`);
+    
+    // 1. Сохраняем в историю самого пользователя
     await kv.lpush(`lspd:history:${user.id}`, JSON.stringify({ type, title: embed.title, date: new Date().toISOString(), id: Date.now().toString(36) }));
     await kv.ltrim(`lspd:history:${user.id}`, 0, 49);
+
+    // 2. НОВОЕ: Сохраняем в глобальную базу для Админки
+    const globalRequest = {
+      id: Date.now().toString(),
+      type: type || 'unknown',
+      title: embed.title,
+      username: user.username,
+      userId: user.id,
+      date: new Date().toISOString(),
+      processed: false,
+      data: formData
+    };
+    await kv.lpush('lspd:submissions:all', JSON.stringify(globalRequest));
+    await kv.ltrim('lspd:submissions:all', 0, 199); // Ограничиваем историю 200 записями
+
     res.status(200).json({ success: true });
   } else {
     res.status(500).json({ error: `Не удалось отправить: ${result.error}` });
