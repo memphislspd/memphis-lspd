@@ -15,27 +15,34 @@ export default async function handler(req, res) {
   const hasRole = (user.roles || []).some(r => ADMIN_ROLE_IDS.includes(r));
   const isAdminUser = user.id === SUPER_ADMIN_ID || hasRole;
 
-  // GET: Получить все пропуска
+  // GET
   if (req.method === 'GET') {
     const passes = await kv.get('lspd:passes') || [];
     return res.status(200).json(passes);
   }
 
-  // POST: Добавить пропуск
+  // POST
   if (req.method === 'POST') {
     if (!isAdminUser) return res.status(403).json({ error: 'Нет доступа' });
-    const { name, staticId, passNumber, issueDate } = req.body;
+    const { name, staticId, passNumber, issueDate, link } = req.body;
     
-    if (!name || !staticId || !passNumber || !issueDate) return res.status(400).json({ error: 'Заполните все поля' });
+    if (!name || !staticId || !passNumber || !issueDate) return res.status(400).json({ error: 'Заполните обязательные поля' });
     
     const passes = await kv.get('lspd:passes') || [];
-    passes.push({ id: Date.now().toString(), name, staticId, passNumber, issueDate });
+    passes.push({ 
+      id: Date.now().toString(), 
+      name, 
+      staticId, 
+      passNumber, 
+      issueDate,
+      link: link || '' // Сохраняем ссылку (если пустая - пустая строка)
+    });
     await kv.set('lspd:passes', passes);
     
     return res.status(200).json(passes);
   }
 
-  // DELETE: Удалить пропуск
+  // DELETE
   if (req.method === 'DELETE') {
     if (!isAdminUser) return res.status(403).json({ error: 'Нет доступа' });
     const { id } = req.body;
