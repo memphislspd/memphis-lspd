@@ -1,4 +1,5 @@
 // pages/hub.js
+import GlobalLoader from '../components/GlobalLoader';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../components/PageLayout';
@@ -60,7 +61,7 @@ export default function HubPage() {
     }).catch(() => setLoading(false));
   }, []);
 
-  if (!user) return null;
+  if (loading || !user) return <GlobalLoader />;
 
   if (!hasAccess) {
     return (
