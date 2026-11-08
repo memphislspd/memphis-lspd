@@ -70,9 +70,22 @@ export default function Header({ user }) {
 
         <nav className="site-nav" aria-label="Основная навигация">
           <button className={router.pathname === '/start' ? 'is-active' : ''} onClick={() => router.push('/start')}>Главная</button>
+          
           {navItems.map(item => (
-            <button key={item.path} className={router.pathname === item.path ? 'is-active' : ''} onClick={() => router.push(item.path)}>{item.label}</button>
+            <button key={item.path} className={router.pathname === item.path ? 'is-active' : ''} onClick={() => router.push(item.path)}>
+              {item.label}
+            </button>
           ))}
+
+          {/* Кнопка Админки теперь в навигации, справа от Пропусков */}
+          {isAdmin && (
+            <button 
+              className={`admin-nav-btn ${router.pathname.startsWith('/admin') ? 'is-active' : ''}`} 
+              onClick={() => router.push('/admin')}
+            >
+              Админка
+            </button>
+          )}
         </nav>
 
         <div className="site-header__actions">
@@ -93,17 +106,6 @@ export default function Header({ user }) {
               aria-label="Выйти из аккаунта"
             >
               {isLoggingOut ? 'Выход...' : 'Выйти'}
-            </button>
-          )}
-
-          {/* 3. Кнопка Админка (теперь она крайняя правая) */}
-          {isAdmin && (
-            <button 
-              className="admin-link" 
-              onClick={() => router.push('/admin')}
-              style={{ marginLeft: '5px' }} 
-            >
-              Админка
             </button>
           )}
         </div>
