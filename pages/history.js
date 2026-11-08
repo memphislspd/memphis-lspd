@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { SkeletonProfile } from '../components/Skeleton';
 
 // Иконки и цвета по типу заявки
 const TYPE_META = {
