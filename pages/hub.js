@@ -1,6 +1,9 @@
+// pages/hub.js
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../components/PageLayout';
+
+const REQUIRED_ROLE_ID = '1552313180041121802'; // Роль, дающая доступ к формам
 
 const internalForms = [
   { id: 'promotion', title: 'Запрос на повышение', description: 'Подать запрос на повышение', icon: '📈' },
@@ -17,20 +20,60 @@ const internalForms = [
 export default function HubPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/me').then(r => r.json()).then(d => {
-      // Если не авторизован — на главную
+      // Если человек не авторизован — кидаем на главную
       if (!d.user) { 
         router.push('/'); 
         return; 
       }
+      
       setUser(d.user);
+      
+      // Проверяем наличие нужной роли
+      if (d.user.roles && d.user.roles.includes(REQUIRED_ROLE_ID)) {
+        setHasAccess(true);
+      }
+      
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
     });
   }, []);
 
+  if (loading) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
   if (!user) return null;
 
+  // Экран блокировки, если роли нет
+  if (!hasAccess) {
+    return (
+      <PageLayout user={user}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div style={{ 
+            background: 'rgba(255, 38, 64, 0.05)', 
+            border: '1px solid #ff2640', 
+            padding: '50px', 
+            borderRadius: '12px', 
+            textAlign: 'center', 
+            maxWidth: '500px',
+            boxShadow: '0 10px 40px rgba(255, 38, 64, 0.1)'
+          }}>
+            <div style={{ fontSize: '64px', marginBottom: '20px' }}>⛔</div>
+            <h1 style={{ color: '#ff2640', fontSize: '36px', margin: '0 0 16px 0', fontWeight: '900', letterSpacing: '2px' }}>ACCESS DENIED</h1>
+            <p style={{ color: '#9ca3af', margin: 0, fontSize: '15px', lineHeight: 1.6 }}>
+              У вас недостаточно прав для доступа к этому разделу.<br/>
+              Требуется роль сотрудника LSPD.
+            </p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Если доступ есть — показываем формы
   return (
     <PageLayout user={user}>
       <div style={{ marginBottom: '40px' }}>
@@ -38,9 +81,8 @@ export default function HubPage() {
         <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Внутренние формы и служебные документы.</p>
       </div>
 
-      {/* Выводим в 2 колонки для удобства */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '16px' }}>
-        {internalForms.map((form, index) => (
+        {internalForms.map((form) => (
           <div 
             key={form.id} 
             onClick={() => router.push(`/forms/${form.id}`)}
