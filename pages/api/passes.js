@@ -1,4 +1,4 @@
-// pages/api/passes.js
+
 import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
 
