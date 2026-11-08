@@ -76,13 +76,15 @@ export default function Header({ user }) {
         </nav>
 
         <div className="site-header__actions">
-          {isAdmin && <button className="admin-link" onClick={() => router.push('/admin')}>Админка</button>}
+          {/* 1. Профиль */}
           {user ? (
             <button className="profile-chip" onClick={() => router.push('/profile')} aria-label="Открыть профиль">
               <span>{profileName}</span>
               {profileAvatar && <img src={profileAvatar} alt="" />}
             </button>
           ) : <button className="header-login" onClick={handleLogin}>Войти ↗</button>}
+          
+          {/* 2. Кнопка Выйти */}
           {user && (
             <button
               className="header-logout"
@@ -91,6 +93,17 @@ export default function Header({ user }) {
               aria-label="Выйти из аккаунта"
             >
               {isLoggingOut ? 'Выход...' : 'Выйти'}
+            </button>
+          )}
+
+          {/* 3. Кнопка Админка (теперь она крайняя правая) */}
+          {isAdmin && (
+            <button 
+              className="admin-link" 
+              onClick={() => router.push('/admin')}
+              style={{ marginLeft: '5px' }} 
+            >
+              Админка
             </button>
           )}
         </div>
