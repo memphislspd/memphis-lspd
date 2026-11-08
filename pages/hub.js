@@ -60,7 +60,6 @@ export default function HubPage() {
     }).catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
   if (!user) return null;
 
   if (!hasAccess) {
