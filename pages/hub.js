@@ -6,11 +6,11 @@ import PageLayout from '../components/PageLayout';
 const REQUIRED_ROLE_ID = '1552313180041121802';
 const HIGH_RANK_ROLE_ID = '1514608894679191597';
 
-// Группируем формы по категориям
+// Группируем формы по категориям с новыми названиями
 const CATEGORIES = [
   {
     id: 'personnel',
-    title: 'ЛИЧНЫЕ ОТЧЕТЫ',
+    title: 'ЛИЧНЫЙ СОСТАВ',
     items: [
       { id: 'leave', title: 'Отпуск', description: 'OOC или IC отпуск', code: 'F-05' },
       { id: 'resignation', title: 'Заявление на увольнение', description: 'Подать заявление на увольнение', code: 'F-04' },
@@ -19,7 +19,7 @@ const CATEGORIES = [
   },
   {
     id: 'reporting',
-    title: 'ОТЧЕТНОСТЬ',
+    title: 'РАПОРТЫ И ДОКУМЕНТЫ',
     items: [
       { id: 'promotion', title: 'Запрос на повышение', description: 'Подать запрос на повышение', code: 'F-01' },
       { id: 'report', title: 'Отчёт о повышении', description: 'Отчёт для своего отдела', code: 'F-02' },
@@ -30,7 +30,7 @@ const CATEGORIES = [
   },
   {
     id: 'special',
-    title: 'СПЕЦ. ЗАПРОСЫ',
+    title: 'ВООРУЖЕНИЕ И СНАБЖЕНИЕ',
     items: [
       { id: 'weapon-request', title: 'Спец вооружение', description: 'Запрос на получение спец вооружения', code: 'F-07' },
     ]
@@ -42,7 +42,6 @@ export default function HubPage() {
   const [user, setUser] = useState(null);
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('personnel'); // По умолчанию открыт "Личный состав"
 
   useEffect(() => {
     fetch('/api/me').then(r => r.json()).then(d => {
@@ -72,17 +71,14 @@ export default function HubPage() {
     );
   }
 
-  // Фильтруем формы в зависимости от ролей пользователя
+  // Фильтруем формы в зависимости от ролей
   const filteredCategories = CATEGORIES.map(category => {
     const availableItems = category.items.filter(item => {
       if (!item.requiredRole) return true;
       return user.roles && user.roles.includes(item.requiredRole);
     });
     return { ...category, items: availableItems };
-  }).filter(category => category.items.length > 0); // Скрываем пустые категории
-
-  // Находим текущую активную категорию для отображения
-  const currentCategoryData = filteredCategories.find(c => c.id === activeCategory) || filteredCategories[0];
+  }).filter(category => category.items.length > 0);
 
   return (
     <PageLayout user={user}>
@@ -91,126 +87,102 @@ export default function HubPage() {
         <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Внутренние служебные документы и формы.</p>
       </div>
 
-      {/* Двухколоночный интерфейс */}
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '30px', flexWrap: 'wrap' }}>
-        
-        {/* ЛЕВАЯ ПАНЕЛЬ (Меню) */}
-        <div style={{ 
-          flex: '0 0 250px', // Фиксированная ширина для меню
-          display: 'flex', 
-          flexDirection: 'column',
-          borderLeft: '1px solid rgba(148, 163, 184, 0.15)',
-          gap: '4px',
-          width: '100%',
-          maxWidth: '100%',
-        }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', color: '#7f8a9a', letterSpacing: '1px', marginBottom: '10px', paddingLeft: '12px' }}>
-            ОГЛАВЛЕНИЕ
-          </div>
-          {filteredCategories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              style={{
-                background: activeCategory === cat.id ? 'rgba(63, 131, 248, 0.08)' : 'transparent',
-                border: 'none',
-                borderLeft: activeCategory === cat.id ? '3px solid var(--blue)' : '3px solid transparent',
-                color: activeCategory === cat.id ? 'white' : '#9ca3af',
-                padding: '12px 16px',
-                textAlign: 'left',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: activeCategory === cat.id ? '600' : '400',
-                fontFamily: "'Space Grotesk', sans-serif",
-                letterSpacing: '0.5px',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={e => { if(activeCategory !== cat.id) e.currentTarget.style.color = 'white'; }}
-              onMouseLeave={e => { if(activeCategory !== cat.id) e.currentTarget.style.color = '#9ca3af'; }}
-            >
-              {cat.title}
-            </button>
-          ))}
-        </div>
-
-        {/* ПРАВАЯ ПАНЕЛЬ (Досье / Список документов) */}
-        <div style={{ flex: 1, minWidth: '300px' }}>
-          <div style={{ 
-            background: 'rgba(11, 15, 22, 0.4)', 
-            border: '1px solid rgba(148, 163, 184, 0.15)', 
-            borderRadius: '4px', // Строгие углы
-            overflow: 'hidden'
-          }}>
-            {/* Шапка выбранной категории */}
-            <div style={{ 
-              padding: '16px 24px', 
-              borderBottom: '1px solid rgba(148, 163, 184, 0.15)',
-              background: 'rgba(255, 255, 255, 0.02)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '12px', color: 'var(--blue)', letterSpacing: '1px' }}>
-                // {currentCategoryData.title}
-              </span>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', color: '#7f8a9a' }}>
-                ФАЙЛОВ: {currentCategoryData.items.length}
-              </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        {filteredCategories.map((category, catIndex) => (
+          <div key={category.id}>
+            
+            {/* Заголовок категории */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", color: 'var(--blue)', fontSize: '12px', letterSpacing: '2px' }}>
+                // СЕКТОР 0{catIndex + 1}
+              </div>
+              <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(63, 131, 248, 0.3), transparent)' }} />
+              <div style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#9ca3af', fontSize: '14px', fontWeight: '600', letterSpacing: '1px' }}>
+                {category.title}
+              </div>
             </div>
 
-            {/* Список документов */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {currentCategoryData.items.map((form, index) => (
+            {/* Сетка карточек */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+              {category.items.map((form) => (
                 <div 
-                  key={form.id}
+                  key={form.id} 
                   onClick={() => router.push(`/forms/${form.id}`)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '20px 24px',
-                    borderBottom: index !== currentCategoryData.items.length - 1 ? '1px solid rgba(148, 163, 184, 0.05)' : 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    background: 'transparent'
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'rgba(63, 131, 248, 0.05)';
-                    e.currentTarget.style.paddingLeft = '28px'; // Небольшой сдвиг текста вправо
-                    e.currentTarget.querySelector('.arrow').style.opacity = '1';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.paddingLeft = '24px';
-                    e.currentTarget.querySelector('.arrow').style.opacity = '0.2';
-                  }}
+                  className="tactical-card"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '12px', color: '#6b7280', minWidth: '40px' }}>
-                      {form.code}
-                    </span>
-                    <div>
-                      <h3 style={{ fontSize: '16px', margin: '0 0 4px 0', fontWeight: '600', color: 'white', fontFamily: "'Space Grotesk', sans-serif" }}>
-                        {form.title}
-                      </h3>
-                      <p style={{ color: '#9ca3af', fontSize: '13px', margin: 0 }}>
-                        {form.description}
-                      </p>
-                    </div>
+                  {/* Уголки-скобки (Прицел) */}
+                  <div className="corner top-left"></div>
+                  <div className="corner top-right"></div>
+                  <div className="corner bottom-left"></div>
+                  <div className="corner bottom-right"></div>
+
+                  {/* Крупный полупрозрачный номер (Код формы) */}
+                  <div style={{ 
+                    position: 'absolute', top: '15px', right: '15px', 
+                    fontFamily: "'DM Mono', monospace", fontSize: '48px', 
+                    fontWeight: 'bold', color: 'rgba(255, 255, 255, 0.03)', 
+                    lineHeight: 1, pointerEvents: 'none' 
+                  }}>
+                    {form.code.replace('F-', '')}
                   </div>
-                  
-                  {/* Стрелка справа */}
-                  <span 
-                    className="arrow"
-                    style={{ color: 'var(--blue)', fontSize: '18px', opacity: 0.2, transition: 'opacity 0.2s ease' }}
-                  >
-                    →
-                  </span>
+
+                  <h3 style={{ 
+                    fontSize: '18px', margin: '0 0 8px 0', fontWeight: '700', 
+                    color: 'white', fontFamily: "'Space Grotesk', sans-serif",
+                    position: 'relative', zIndex: 1
+                  }}>
+                    {form.title}
+                  </h3>
+                  <p style={{ color: '#7f8a9a', fontSize: '13px', margin: 0, lineHeight: 1.5, position: 'relative', zIndex: 1 }}>
+                    {form.description}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-
+        ))}
       </div>
+
+      {/* Стили для тактических карточек */}
+      <style jsx>{`
+        .tactical-card {
+          position: relative;
+          background: rgba(11, 15, 22, 0.6);
+          border: 1px solid rgba(148, 163, 184, 0.12);
+          padding: 28px 24px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          overflow: hidden;
+        }
+
+        .tactical-card:hover {
+          background: rgba(63, 131, 248, 0.05);
+          border-color: transparent; /* Убираем обычную рамку, оставляем только прицел */
+          box-shadow: 0 0 20px rgba(63, 131, 248, 0.1);
+        }
+
+        /* Уголки прицела */
+        .corner {
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          border-color: rgba(148, 163, 184, 0.3);
+          border-style: solid;
+          transition: all 0.2s ease;
+        }
+        
+        .top-left { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+        .top-right { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+        .bottom-left { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+        .bottom-right { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+        /* Увеличение скобок при наведении */
+        .tactical-card:hover .corner {
+          width: 14px;
+          height: 14px;
+          border-color: var(--blue);
+        }
+      `}</style>
     </PageLayout>
   );
 }
