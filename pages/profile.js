@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { DEPARTMENTS } from '../lib/departments';
-import { SkeletonProfile } from '../components/Skeleton';
 
 export default function Profile() {
   const router = useRouter();
