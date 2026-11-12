@@ -44,6 +44,22 @@ export default function handler(req, res) {
   }
 
   const returnTo = getSafeReturnTo(req.query.returnTo);
+
+  // Discord must return to the exact registered callback host. Preview aliases
+  // use the canonical OAuth host so the browser receives and returns the same
+  // host-only CSRF cookies throughout the flow.
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      const callbackHost = new URL(redirectUri).host.toLowerCase();
+      const requestHost = String(req.headers.host || '').toLowerCase();
+      if (requestHost && requestHost !== callbackHost) {
+        const params = new URLSearchParams({ returnTo });
+        return res.redirect(`https://${callbackHost}/api/auth/start?${params.toString()}`);
+      }
+    } catch {
+      return res.redirect('/?error=auth_config');
+    }
+  }
   const state = randomBytes(32).toString('hex');
   const secure = process.env.NODE_ENV === 'production' ||
     req.headers['x-forwarded-proto'] === 'https';
