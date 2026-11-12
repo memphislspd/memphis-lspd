@@ -15,8 +15,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Укажите корректный Discord ID' });
   }
 
-  const roles = await kv.get(\`user:roles:\${discordId}\`);
-  const info = await kv.get(\`user:info:\${discordId}\`);
+  const roles = await kv.get('user:roles:' + discordId);
+  const info = await kv.get('user:info:' + discordId);
 
   if (!roles) {
     return res.status(404).json({ error: 'Пользователь не заходил на сайт за последние 7 дней' });
