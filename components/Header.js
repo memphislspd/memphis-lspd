@@ -51,8 +51,10 @@ export default function Header({ user }) {
     ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
     : null);
 
+  const isApplicationsActive = router.pathname === '/applications' || router.pathname === '/complaint' || router.pathname.startsWith('/forms/');
+
   const navItems = [
-    { label: 'Заявления', path: '/applications' },
+    { label: 'Обращения', path: '/applications' },
     { label: 'Отделы', path: '/departments' },
     { label: 'Для сотрудников', path: '/hub' },
     { label: 'Пропуска', path: '/passes' },
@@ -111,9 +113,9 @@ export default function Header({ user }) {
             {navItems.map(item => (
               <button
                 key={item.path}
-                className={router.pathname === item.path ? 'is-active' : ''}
+                className={(router.pathname === item.path || (item.path === '/applications' && isApplicationsActive)) ? 'is-active' : ''}
                 onClick={() => navigate(item.path)}
-                aria-current={router.pathname === item.path ? 'page' : undefined}
+                aria-current={(router.pathname === item.path || (item.path === '/applications' && isApplicationsActive)) ? 'page' : undefined}
               >
                 {item.label}
               </button>

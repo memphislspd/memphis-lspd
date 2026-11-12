@@ -79,7 +79,7 @@ export default function Home() {
           </section>
 
           <section className="landing-cards">
-            <a href="/applications"><span>01</span><strong>Подать заявление</strong><small>Вступление и переводы</small><b>↗</b></a>
+            <a href="/applications"><span>01</span><strong>Центр обращений</strong><small>Заявления и жалобы</small><b>↗</b></a>
             <a href="/departments"><span>02</span><strong>Наши отделы</strong><small>Структура департамента</small><b>↗</b></a>
             <a href="/staff"><span>03</span><strong>Состав LSPD</strong><small>Команда и руководство</small><b>↗</b></a>
           </section>

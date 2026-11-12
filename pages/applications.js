@@ -27,8 +27,8 @@ export default function ApplicationsPage() {
   return (
     <PageLayout user={user}>
       <div style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>Заявления</h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Выберите необходимую форму для подачи заявки.</p>
+        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>Центр обращений</h1>
+        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Подавайте кадровые заявления или направляйте жалобы на действия сотрудников LSPD.</p>
       </div>
 
       {/* Терминальный контейнер */}
@@ -54,7 +54,7 @@ export default function ApplicationsPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ animation: 'blink 1s step-end infinite' }}>█</span>
-            СИСТЕМА ПРИЕМА ЗАЯВЛЕНИЙ
+            СИСТЕМА ПРИЕМА ОБРАЩЕНИЙ
           </div>
           <span style={{ color: '#7f8a9a' }}>[{publicForms.length}]</span>
         </div>
@@ -144,7 +144,125 @@ export default function ApplicationsPage() {
         </div>
       </div>
 
+      <section aria-labelledby="additional-requests-title" style={{ marginTop: '24px' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          marginBottom: '12px',
+          fontFamily: "'DM Mono', monospace",
+          fontSize: '11px',
+          letterSpacing: '1px'
+        }}>
+          <span id="additional-requests-title" style={{ color: '#9aa6b7' }}>ДОПОЛНИТЕЛЬНЫЕ ОБРАЩЕНИЯ</span>
+          <span style={{ color: '#7f8a9a' }}>01 / COMPLAINTS</span>
+        </div>
+
+        <button
+          type="button"
+          className="complaint-entry"
+          onClick={() => router.push('/complaint')}
+          aria-label="Подать жалобу на сотрудника"
+        >
+          <span className="complaint-entry__icon" aria-hidden="true">!</span>
+          <span className="complaint-entry__content">
+            <span className="complaint-entry__title">Жалоба на сотрудника</span>
+            <span className="complaint-entry__description">Сообщить о нарушении или неправомерных действиях сотрудника LSPD</span>
+          </span>
+          <span className="complaint-entry__action">[OPEN ↗]</span>
+        </button>
+      </section>
+
       <style jsx global>{`
+        .complaint-entry {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 18px 24px;
+          border: 1px solid rgba(248, 113, 113, .24);
+          border-radius: 4px;
+          background: linear-gradient(115deg, rgba(88, 28, 36, .22), rgba(11, 15, 22, .72));
+          color: white;
+          text-align: left;
+          cursor: pointer;
+          transition: border-color .18s ease, background .18s ease, transform .18s ease;
+        }
+
+        .complaint-entry:hover {
+          border-color: rgba(248, 113, 113, .52);
+          background: linear-gradient(115deg, rgba(127, 29, 43, .28), rgba(15, 19, 28, .9));
+          transform: translateY(-1px);
+        }
+
+        .complaint-entry:focus-visible {
+          outline: 2px solid #f17883;
+          outline-offset: 3px;
+        }
+
+        .complaint-entry__icon {
+          display: grid;
+          place-items: center;
+          flex: 0 0 42px;
+          width: 42px;
+          height: 42px;
+          border: 1px solid rgba(248, 113, 113, .3);
+          border-radius: 4px;
+          background: rgba(127, 29, 43, .2);
+          color: #f17883;
+          font: 700 21px 'Space Grotesk', sans-serif;
+        }
+
+        .complaint-entry__content {
+          display: flex;
+          flex: 1;
+          flex-direction: column;
+          min-width: 0;
+          gap: 4px;
+        }
+
+        .complaint-entry__title {
+          color: #fff;
+          font: 700 15px 'Space Grotesk', sans-serif;
+        }
+
+        .complaint-entry__description {
+          color: #9b8990;
+          font: 12px 'DM Mono', monospace;
+          line-height: 1.5;
+        }
+
+        .complaint-entry__action {
+          flex: 0 0 auto;
+          margin-left: auto;
+          color: #f17883;
+          font: 11px 'DM Mono', monospace;
+          white-space: nowrap;
+          transition: color .18s ease;
+        }
+
+        .complaint-entry:hover .complaint-entry__action {
+          color: #ffb0b8;
+        }
+
+        @media (max-width: 560px) {
+          .complaint-entry {
+            gap: 12px;
+            padding: 15px 14px;
+          }
+
+          .complaint-entry__icon {
+            flex-basis: 38px;
+            width: 38px;
+            height: 38px;
+          }
+
+          .complaint-entry__title { font-size: 14px; }
+          .complaint-entry__description { font-size: 11px; }
+          .complaint-entry__action { font-size: 10px; }
+        }
+
         @keyframes blink {
           50% { opacity: 0; }
         }
