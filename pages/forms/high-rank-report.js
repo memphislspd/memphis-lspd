@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import FormShell from '@/components/FormShell';
+import FormLoading from '@/components/FormLoading';
 
 const REQUIRED_ROLE_ID = '1514608894679191597'; // Роль, дающая доступ к хай-отчетам
 
@@ -29,7 +30,7 @@ export default function HighRankReportForm() {
     fetch('/api/profile').then(res => res.json()).then(data => {
       const nextProfile = data?.profile || { fullName: '' };
       setProfile(nextProfile);
-      if (nextProfile.fullName) setFormData(prev => ({ ...prev, fullName: nextProfile.fullName }));
+      if (nextProfile.fullName) setFormData(prev => ({ ...prev, fullName: prev.fullName || nextProfile.fullName }));
     }).catch(() => {
       setProfile({ fullName: '' });
       window.toast?.error('Не удалось загрузить профиль. Заполните имя вручную.');
@@ -50,7 +51,8 @@ export default function HighRankReportForm() {
     finally { setSubmitting(false); }
   };
 
-  if (loading || !user) return <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh', background:'#030303', color:'white' }}>Загрузка...</div>;
+  if (loading) return <FormLoading />;
+  if (!user) return null;
 
   // Экран, если зашли по ссылке без роли
   if (!hasAccess) {
@@ -72,8 +74,9 @@ export default function HighRankReportForm() {
     <FormShell user={user} title="Хай Ранги" icon="🌟">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom:'20px' }}>
-          <label style={lbl}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:'600' }}>(из профиля)</span>}</label>
-          <input type="text" required value={formData.fullName} onChange={e => setFormData({...formData, fullName:e.target.value})} placeholder="Sanya Suspect 270726" disabled={!!profile.fullName} style={{...s, opacity:profile.fullName?0.5:1}} />
+          <label style={lbl}>Имя Фамилия + Статик *</label>
+          <input type="text" required value={formData.fullName} onChange={e => setFormData({...formData, fullName:e.target.value})} placeholder="Sanya Suspect 270726" style={s} />
+          {profile.fullName && <p className="form-field-hint">Загружено из профиля — поле можно изменить.</p>}
         </div>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>С какого на какой ранг *</label>

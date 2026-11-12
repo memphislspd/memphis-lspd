@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import FormShell from '@/components/FormShell';
+import FormLoading from '@/components/FormLoading';
 
 export default function ComplaintForm() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function ComplaintForm() {
         const nextProfile = data?.profile || { fullName: '' };
         setProfile(nextProfile);
         if (nextProfile.fullName) {
-          setFormData(prev => ({ ...prev, complainantName: nextProfile.fullName }));
+          setFormData(prev => ({ ...prev, complainantName: prev.complainantName || nextProfile.fullName }));
         }
       })
       .catch(() => {
@@ -90,13 +91,8 @@ export default function ComplaintForm() {
     }
   };
 
-  if (loading || !user) {
-    return (
-      <div className="landing-loading" role="status" aria-live="polite">
-        Загрузка формы жалобы...
-      </div>
-    );
-  }
+  if (loading) return <FormLoading />;
+  if (!user) return null;
 
   return (
     <FormShell
@@ -117,8 +113,8 @@ export default function ComplaintForm() {
           <label>Ваше имя, фамилия и статик *</label>
           <input type="text" required maxLength={120} value={formData.complainantName}
             onChange={e => setFormData({ ...formData, complainantName: e.target.value })}
-            placeholder="Sanya Suspect 270726" disabled={!!profile.fullName} />
-          {profile.fullName && <p className="form-field-hint">Данные автоматически взяты из вашего профиля.</p>}
+            placeholder="Sanya Suspect 270726" />
+          {profile.fullName && <p className="form-field-hint">Имя подставлено из профиля — при необходимости его можно изменить.</p>}
         </div>
         <div>
           <label>Имя, фамилия и статик сотрудника *</label>

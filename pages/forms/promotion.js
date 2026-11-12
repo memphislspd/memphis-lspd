@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import FormShell from '@/components/FormShell';
+import FormLoading from '@/components/FormLoading';
 
 const RANK_OPTIONS = [
   '1-2 ранг', '2-3 ранг', '3-4 ранг', '4-5 ранг', '5-6 ранг',
@@ -28,15 +29,21 @@ export default function PromotionForm() {
       .then(data => {
         if (!data.user) { router.push('/'); return; }
         setUser(data.user);
-        setLoading(false);
-      });
+      })
+      .catch(() => router.replace('/'))
+      .finally(() => setLoading(false));
     fetch('/api/profile')
       .then(res => res.json())
       .then(data => {
-        setProfile(data.profile);
-        if (data.profile.fullName) {
-          setFormData(prev => ({ ...prev, fullName: data.profile.fullName }));
+        const nextProfile = data?.profile || { fullName: '' };
+        setProfile(nextProfile);
+        if (nextProfile.fullName) {
+          setFormData(prev => ({ ...prev, fullName: prev.fullName || nextProfile.fullName }));
         }
+      })
+      .catch(() => {
+        setProfile({ fullName: '' });
+        window.toast?.error('Не удалось загрузить профиль. Заполните имя вручную.');
       });
   }, []);
 
@@ -71,13 +78,8 @@ export default function PromotionForm() {
   };
 
   // Показываем простую загрузку, пока не получили данные профиля
-  if (loading || !user) {
-    return (
-      <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh', background:'#030303', color:'white' }}>
-        Загрузка...
-      </div>
-    );
-  }
+  if (loading) return <FormLoading />;
+  if (!user) return null;
 
   return (
     <FormShell user={user} title="Запрос на повышение" icon="📈">
@@ -86,16 +88,17 @@ export default function PromotionForm() {
         {/* Имя Фамилия */}
         <div style={{ marginBottom:'20px' }}>
           <label style={{ display:'block', marginBottom:'8px', color:'#9ca3af', fontSize:'13px', fontWeight:600 }}>
-            Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:600 }}>(из профиля)</span>}
+            Имя Фамилия + Статик *
           </label>
           <input 
             type="text" required
             value={formData.fullName}
             onChange={e => setFormData({...formData, fullName: e.target.value})}
             placeholder="Например: Sanya Suspect 270726"
-            disabled={!!profile.fullName}
-            style={{ opacity: profile.fullName ? 0.5 : 1, cursor: profile.fullName ? 'not-allowed' : 'text' }}
+           
+           
           />
+          {profile.fullName && <p className="form-field-hint">Загружено из профиля — поле можно изменить.</p>}
         </div>
 
         {/* Диапазон рангов */}

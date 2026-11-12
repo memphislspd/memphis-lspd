@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import FormShell from '../components/FormShell';
+import FormLoading from '../components/FormLoading';
 import { DEPARTMENTS } from '../lib/departments';
 
 export default function PremiumForm() {
@@ -65,7 +66,8 @@ export default function PremiumForm() {
     finally { setSubmitting(false); }
   };
 
-  if (loading || !user) return <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh', background:'#0a0a1a', color:'white' }}>Загрузка...</div>;
+  if (loading) return <FormLoading />;
+  if (!user) return null;
 
   const s = { width:'100%', padding:'12px 15px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'8px', color:'white', fontSize:'15px', boxSizing:'border-box' };
   const lbl = { display:'block', marginBottom:'8px', color:'#8b8ba7', fontSize:'13px', fontWeight:500 };
@@ -91,7 +93,7 @@ export default function PremiumForm() {
             <option value="">-- Выберите отдел --</option>
             {DEPARTMENTS.map(d => <option key={d.id} value={d.id}>{d.emoji} {d.name}</option>)}
           </select>
-          <button onClick={handleNext} style={{ width:'100%', padding:'14px', background:'linear-gradient(135deg, #FFD700, #FFEB3B)', color:'#0a0a1a', border:'none', borderRadius:'10px', fontSize:'15px', fontWeight:600, cursor:'pointer', marginTop:'20px' }}>Далее</button>
+          <button className="form-action-primary" type="button" onClick={handleNext} style={{ width:'100%', padding:'14px', background:'linear-gradient(135deg, #FFD700, #FFEB3B)', color:'#0a0a1a', border:'none', borderRadius:'10px', fontSize:'15px', fontWeight:600, cursor:'pointer', marginTop:'20px' }}>Далее</button>
         </div>
       )}
 
@@ -100,8 +102,8 @@ export default function PremiumForm() {
           <label style={lbl}>Имя Фамилия участника *</label>
           <input type="text" value={currentParticipant.name} onChange={e => setCurrentParticipant({...currentParticipant, name:e.target.value})} placeholder="Daemon Winchester" style={s} />
           <div style={{ display:'flex', gap:'10px', marginTop:'20px' }}>
-            <button onClick={handleBack} style={btnStyle('rgba(255,255,255,0.1)')}>Назад</button>
-            <button onClick={handleNext} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a' }}>Далее</button>
+            <button type="button" onClick={handleBack} style={btnStyle('rgba(255,255,255,0.1)')}>Назад</button>
+            <button className="form-action-primary" type="button" onClick={handleNext} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a' }}>Далее</button>
           </div>
         </div>
       )}
@@ -111,8 +113,8 @@ export default function PremiumForm() {
           <label style={lbl}>Ранг участника *</label>
           <input type="text" value={currentParticipant.rank} onChange={e => setCurrentParticipant({...currentParticipant, rank:e.target.value})} placeholder="11" style={s} />
           <div style={{ display:'flex', gap:'10px', marginTop:'20px' }}>
-            <button onClick={handleBack} style={btnStyle('rgba(255,255,255,0.1)')}>Назад</button>
-            <button onClick={handleNext} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a' }}>Далее</button>
+            <button type="button" onClick={handleBack} style={btnStyle('rgba(255,255,255,0.1)')}>Назад</button>
+            <button className="form-action-primary" type="button" onClick={handleNext} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a' }}>Далее</button>
           </div>
         </div>
       )}
@@ -122,8 +124,8 @@ export default function PremiumForm() {
           <label style={lbl}>Static ID участника *</label>
           <input type="text" value={currentParticipant.static} onChange={e => setCurrentParticipant({...currentParticipant, static:e.target.value})} placeholder="85761" style={s} />
           <div style={{ display:'flex', gap:'10px', marginTop:'20px' }}>
-            <button onClick={handleBack} style={btnStyle('rgba(255,255,255,0.1)')}>Назад</button>
-            <button onClick={handleNext} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a' }}>Далее</button>
+            <button type="button" onClick={handleBack} style={btnStyle('rgba(255,255,255,0.1)')}>Назад</button>
+            <button className="form-action-primary" type="button" onClick={handleNext} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a' }}>Далее</button>
           </div>
         </div>
       )}
@@ -133,8 +135,8 @@ export default function PremiumForm() {
           <label style={lbl}>Кол-во недель во фракции *</label>
           <input type="text" value={currentParticipant.weeks} onChange={e => setCurrentParticipant({...currentParticipant, weeks:e.target.value})} placeholder="1" style={s} />
           <div style={{ display:'flex', gap:'10px', marginTop:'20px' }}>
-            <button onClick={handleBack} style={btnStyle('rgba(255,255,255,0.1)')}>Назад</button>
-            <button onClick={handleNext} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a' }}>Добавить</button>
+            <button type="button" onClick={handleBack} style={btnStyle('rgba(255,255,255,0.1)')}>Назад</button>
+            <button className="form-action-primary" type="button" onClick={handleNext} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a' }}>Добавить</button>
           </div>
         </div>
       )}
@@ -144,8 +146,8 @@ export default function PremiumForm() {
           <div style={{ fontSize:'48px', marginBottom:'20px' }}>✅</div>
           <div style={{ fontSize:'16px', marginBottom:'30px' }}>Добавить ещё участника?</div>
           <div style={{ display:'flex', gap:'10px' }}>
-            <button onClick={addMore} style={btnStyle('linear-gradient(135deg, #4CAF50, #66BB6A)')}>Да</button>
-            <button onClick={handleSubmit} disabled={submitting} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a', opacity: submitting ? 0.5 : 1 }}>
+            <button className="form-action-primary" type="button" onClick={addMore} style={btnStyle('linear-gradient(135deg, #4CAF50, #66BB6A)')}>Да</button>
+            <button className="form-action-primary" type="button" onClick={handleSubmit} disabled={submitting} style={{ ...btnStyle('linear-gradient(135deg, #FFD700, #FFEB3B)'), color:'#0a0a1a', opacity: submitting ? 0.5 : 1 }}>
               {submitting ? '⏳...' : 'Отправить'}
             </button>
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import FormShell from '@/components/FormShell';
+import FormLoading from '@/components/FormLoading';
 
 const WARN_OPTIONS = [
   { value: '1/3', label: '1/3 warn' },
@@ -96,8 +97,9 @@ export default function RecoveryForm() {
           return;
         }
         setUser(d.user);
-        setLoading(false);
-      });
+      })
+      .catch(() => router.replace('/'))
+      .finally(() => setLoading(false));
   }, []);
 
   const addMp = () => {
@@ -158,13 +160,8 @@ export default function RecoveryForm() {
     }
   };
 
-  if (loading || !user) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#0a0a1a', color: 'white' }}>
-        Загрузка...
-      </div>
-    );
-  }
+  if (loading) return <FormLoading />;
+  if (!user) return null;
 
   const s = {
     width: '100%',

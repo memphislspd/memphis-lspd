@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import FormShell from '../../components/FormShell';
+import FormLoading from '../../components/FormLoading';
 import { DEPARTMENTS } from '../../lib/departments';
 
 const RANKS = Array.from({ length: 15 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }));
@@ -37,7 +38,7 @@ export default function WeaponRequestForm() {
     fetch('/api/profile').then(r => r.json()).then(d => {
       const nextProfile = d?.profile || {};
       setProfile(nextProfile);
-      setFormData(prev => ({ ...prev, fullName: nextProfile.fullName || '', department: nextProfile.department || '' }));
+      setFormData(prev => ({ ...prev, fullName: prev.fullName || nextProfile.fullName || '', department: prev.department || nextProfile.department || '' }));
     }).catch(() => window.toast?.error('Не удалось загрузить профиль. Заполните данные вручную.'));
   }, []);
 
@@ -68,7 +69,8 @@ export default function WeaponRequestForm() {
     finally { setSubmitting(false); }
   };
 
-  if (loading || !user) return <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh', background:'#0a0a1a', color:'white' }}>Загрузка...</div>;
+  if (loading) return <FormLoading />;
+  if (!user) return null;
 
   const s = { width:'100%', padding:'12px 15px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'8px', color:'white', fontSize:'15px', boxSizing:'border-box' };
   const lbl = { display:'block', marginBottom:'8px', color:'#8b8ba7', fontSize:'13px', fontWeight:500 };
@@ -77,8 +79,9 @@ export default function WeaponRequestForm() {
     <FormShell user={user} title="Спец вооружение" icon="🔫" accent="#FF5722">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom:'20px' }}>
-          <label style={lbl}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:600 }}>(из профиля)</span>}</label>
-          <input type="text" required value={formData.fullName} onChange={e => setFormData({...formData,fullName:e.target.value})} placeholder="Sanya Suspect 270726" disabled={!!profile.fullName} style={{...s, opacity:profile.fullName?0.5:1}} />
+          <label style={lbl}>Имя Фамилия + Статик *</label>
+          <input type="text" required value={formData.fullName} onChange={e => setFormData({...formData,fullName:e.target.value})} placeholder="Sanya Suspect 270726" style={s} />
+          {profile.fullName && <p className="form-field-hint">Загружено из профиля — поле можно изменить.</p>}
         </div>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>Отдел * {profile.department && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:600 }}>(из профиля)</span>}</label>

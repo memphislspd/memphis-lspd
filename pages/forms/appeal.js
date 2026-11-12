@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import FormShell from '@/components/FormShell';
+import FormLoading from '@/components/FormLoading';
 
 export default function AppealForm() {
   const router = useRouter();
@@ -27,8 +28,9 @@ export default function AppealForm() {
           return;
         }
         setUser(d.user);
-        setLoading(false);
-      });
+      })
+      .catch(() => router.replace('/'))
+      .finally(() => setLoading(false));
   }, []);
 
   const addExtra = () => {
@@ -89,13 +91,8 @@ export default function AppealForm() {
     }
   };
 
-  if (loading || !user) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#0a0a1a', color: 'white' }}>
-        Загрузка...
-      </div>
-    );
-  }
+  if (loading) return <FormLoading />;
+  if (!user) return null;
 
   const s = {
     width: '100%',
