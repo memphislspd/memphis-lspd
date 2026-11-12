@@ -50,7 +50,7 @@ export default function Header({ user }) {
   };
 
   const handleLogin = () => {
-    const returnTo = router.asPath || '/dashboard';
+    const returnTo = router.pathname === '/dashboard' ? '/start' : (router.asPath || '/start');
     window.location.href = `/api/auth/start?returnTo=${encodeURIComponent(returnTo)}`;
   };
 
