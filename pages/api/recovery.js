@@ -82,6 +82,14 @@ export default async function handler(req, res) {
     footer: { text: 'LSPD Forms • ' + new Date().toLocaleDateString('ru-RU') },
     timestamp: new Date().toISOString(),
   };
+  const embedTextLength = (embed.title || '').length +
+    (embed.footer?.text || '').length +
+    (embed.author?.name || '').length +
+    fields.reduce((total, field) => total + field.name.length + field.value.length, 0);
+  if (fields.length > 25 || fields.some(field => field.value.length > 1024) || embedTextLength > 6000) {
+    return res.status(400).json({ error: 'Слишком много текста или приложений для одного сообщения Discord. Сократите доказательства и комментарий.' });
+  }
+
 
   try {
     const response = await fetch(WEBHOOK_URL, {

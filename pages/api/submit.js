@@ -7,7 +7,8 @@ import {
   getDepartment, 
   getReportWebhook, 
   getTransferWebhook, 
-  getRoleMentions 
+  getRoleMentions,
+  TRANSFER_DEPARTMENTS
 } from '../../lib/departments';
 
 const WHITELIST = ['200102286473691139'];
@@ -25,6 +26,148 @@ const webhooks = {
   complaintPublic: process.env.WEBHOOK_COMPLAINT_PUBLIC,
   complaintPrivate: process.env.WEBHOOK_COMPLAINT_PRIVATE
 };
+
+
+const RANK_RANGE_OPTIONS = [
+  '1-2 ранг', '2-3 ранг', '3-4 ранг', '4-5 ранг', '5-6 ранг',
+  '6-7 ранг', '7-8 ранг', '8-9 ранг', '9-10 ранг', '10-11 ранг',
+  '11-12 ранг', '12-13 ранг', '13-14 ранг', '14-15 ранг'
+];
+const WEAPON_OPTIONS = [
+  { value: 'drone', label: '🚁 Дрон', departments: ['k9', 'db'] },
+  { value: 'defik', label: '🛡️ Дефибриллятор' },
+  { value: 'combat-mg', label: '🔫 Combat MG' },
+  { value: 'combat-mg-mk2', label: '🔫 Combat MG Mk2' },
+  { value: 'marksman-rifle-mk2', label: '🎯 Marksman Rifle Mk2' },
+  { value: 'sniper-rifle', label: '🎯 Sniper Rifle' },
+  { value: 'heavy-sniper', label: '🎯 Heavy Sniper' },
+  { value: 'heavy-sniper-mk2', label: '🎯 Heavy Sniper Mk2' },
+  { value: 'precision-rifle', label: '🎯 Precision Rifle' }
+];
+
+function hasText(data, key) {
+  return typeof data[key] === 'string' && data[key].trim().length > 0;
+}
+
+function validateSubmission(type, data, leaveType) {
+  const required = {
+    report: ['fullName', 'department', 'currentRank', 'targetRank', 'workLinks'],
+    transfer: ['fullName', 'rank', 'currentDepartment', 'targetDepartment', 'reason'],
+    highrank: ['fullName', 'rankRange', 'workLink'],
+    resignation: ['fullName', 'screenshot'],
+    reinstatement: ['fullName', 'rankAtDismissal', 'rankProof', 'wasWarned'],
+    'transfer-to-lspd': ['fullName', 'approvalProof', 'rankProof'],
+    hiring: ['fullName', 'age', 'experience', 'lawKnowledge', 'passport', 'militaryId', 'medical'],
+    'weapon-request': ['fullName', 'department', 'rank', 'weapon'],
+    premium: ['department', 'participants'],
+    complaint: ['complainantName', 'targetName', 'incidentDate', 'description', 'evidence'],
+    leave: ['fullName', 'department', 'reason', 'startDate', 'endDate'],
+    promotion: ['fullName', 'rankRange', 'reportLink']
+  };
+
+  for (const key of required[type] || []) {
+    if (!hasText(data, key)) return 'Заполните все обязательные поля.';
+  }
+
+  const limits = {
+    fullName: 120, complainantName: 120, targetName: 120, incidentDate: 80,
+    rank: 40, rankRange: 30, age: 10, department: 20,
+    currentDepartment: 20, targetDepartment: 20, participants: 900,
+    comment: 900, description: 1000, evidence: 1000
+  };
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value !== 'string') return 'Некорректный формат данных формы.';
+    const max = limits[key] || 1000;
+    if (value.length > max) return `Поле «${key}» слишком длинное (максимум ${max} символов).`;
+  }
+
+  const validRank = value => /^[1-9]$|^1[0-5]$/.test(value || '');
+  if (type === 'report') {
+    if (!getDepartment(data.department)) return 'Выберите существующий отдел.';
+    if (!validRank(data.currentRank) || !validRank(data.targetRank)) return 'Выберите корректный ранг.';
+    if (data.targetRank === '10' && data.isInstructor !== 'yes') {
+      return 'Для повышения на 10 ранг необходимо быть назначенным инструктором.';
+    }
+  }
+  if (type === 'transfer') {
+    if (!getDepartment(data.currentDepartment) || !getDepartment(data.targetDepartment)) return 'Выберите существующий отдел.';
+    if (data.currentDepartment === data.targetDepartment) return 'Нельзя перевестись в тот же отдел.';
+    if (!TRANSFER_DEPARTMENTS.some(dept => dept.id === data.targetDepartment)) return 'В выбранный отдел перевод недоступен.';
+    if (!validRank(data.rank)) return 'Выберите корректный ранг.';
+    if (data.targetDepartment === 'db') {
+      for (const key of ['dbWhatIs', 'dbExperience', 'dbExamples', 'dbServers', 'dbKnowledge', 'dbLawKnowledge']) {
+        if (!hasText(data, key)) return 'Заполните дополнительные вопросы для DB.';
+      }
+    }
+    if (data.targetDepartment === 'swat') {
+      if (!hasText(data, 'swatShooting') || !hasText(data, 'swatRollback')) return 'Заполните дополнительные вопросы для SWAT.';
+    }
+  }
+  if (type === 'highrank' || type === 'promotion') {
+    if (!RANK_RANGE_OPTIONS.includes(data.rankRange)) return 'Выберите корректный диапазон рангов.';
+  }
+  if (type === 'reinstatement') {
+    if (!validRank(data.rankAtDismissal)) return 'Укажите корректный ранг на момент увольнения.';
+    if (!['yes', 'no'].includes(data.wasWarned)) return 'Укажите, было ли увольнение после Ban/Warn.';
+    if (data.wasWarned === 'yes' && !hasText(data, 'stateFractionsProof')) return 'Добавьте доказательство одобрения State Fractions.';
+  }
+  if (type === 'leave') {
+    if (!['ooc', 'ic'].includes(leaveType)) return 'Выберите тип отпуска.';
+    if (!getDepartment(data.department)) return 'Выберите существующий отдел.';
+  }
+  if (type === 'weapon-request') {
+    if (!getDepartment(data.department) || !validRank(data.rank)) return 'Выберите существующий отдел и корректный ранг.';
+    const weapon = WEAPON_OPTIONS.find(item => item.value === data.weapon || item.label === data.weapon);
+    if (!weapon) return 'Выберите оружие из списка.';
+    if (weapon.departments && !weapon.departments.includes(data.department)) return 'Дрон доступен только для отделов K9 и DB.';
+  }
+  if (type === 'hiring') {
+    if (!/^(10|[1-9][0-9]|100)$/.test(data.lawKnowledge)) return 'Оценка знания законов должна быть от 1 до 10.';
+  }
+  if (type === 'premium') {
+    if (!getDepartment(data.department)) return 'Выберите существующий отдел.';
+    const rows = data.participants.split('\n').map(line => line.trim()).filter(Boolean);
+    if (!rows.length || rows.length > 10) return 'В заявке должно быть от 1 до 10 участников.';
+    for (const line of rows) {
+      const parts = line.split('|').map(part => part.trim());
+      if (parts.length !== 4 || parts.some(part => !part)) return 'Проверьте данные участников: имя, ранг, Static ID и количество недель.';
+    }
+  }
+  if (type === 'complaint') {
+    const rawLinks = data.evidence.match(/https?:\/\/[^\s<>()]+/g) || [];
+    if (!rawLinks.length) return 'В доказательствах должна быть хотя бы одна ссылка.';
+    if (rawLinks.length > 8) return 'Можно добавить не более 8 ссылок на доказательства.';
+    const allowedHosts = ['imgur.com', 'yapx.ru', 'youtube.com', 'youtu.be', 'medal.tv', 'streamable.com', 'discord.com', 'cdn.discordapp.com', 'ibb.co', 'prnt.sc'];
+    for (const raw of rawLinks) {
+      try {
+        const cleaned = raw.replace(/[),.!?;:]+$/, '');
+        const parsed = new URL(cleaned);
+        const host = parsed.hostname.toLowerCase();
+        const allowed = ['http:', 'https:'].includes(parsed.protocol) &&
+          allowedHosts.some(domain => host === domain || host.endsWith('.' + domain));
+        if (!allowed) return 'Ссылка не разрешена. Используйте imgur, yapx, YouTube, Medal, Streamable, Discord, ibb или prnt.sc.';
+      } catch {
+        return 'Одна из ссылок на доказательства имеет некорректный формат.';
+      }
+    }
+  }
+
+  return null;
+}
+
+function validateEmbed(embed) {
+  const fields = Array.isArray(embed.fields) ? embed.fields : [];
+  if (fields.length > 25) return 'Слишком много полей для отправки в Discord.';
+  let total = (embed.title || '').length + (embed.description || '').length +
+    (embed.footer?.text || '').length + (embed.author?.name || '').length;
+  for (const field of fields) {
+    if (!field.name || field.name.length > 256) return 'Название одного из полей превышает лимит Discord.';
+    if (!field.value || field.value.length > 1024) return 'Одно из полей превышает лимит Discord (1024 символа).';
+    total += field.name.length + field.value.length;
+  }
+  if (total > 6000) return 'Объём текста превышает лимит Discord для одного embed.';
+  return null;
+}
 
 async function sendToDiscord(webhookUrl, data, retries = 3) {
   let lastError = null;
@@ -50,6 +193,9 @@ export default async function handler(req, res) {
   const { type, leaveType, ...formData } = req.body || {};
   const validTypes = new Set(['report', 'transfer', 'highrank', 'resignation', 'reinstatement', 'transfer-to-lspd', 'hiring', 'weapon-request', 'premium', 'complaint', 'leave', 'promotion']);
   if (!validTypes.has(type)) return res.status(400).json({ error: 'Неизвестный тип заявления' });
+
+  const validationError = validateSubmission(type, formData, leaveType);
+  if (validationError) return res.status(400).json({ error: validationError });
 
   const employeeOnlyTypes = new Set(['report', 'transfer', 'resignation', 'weapon-request', 'leave', 'promotion']);
   const userRoles = Array.isArray(user.roles) ? user.roles : [];
@@ -81,23 +227,6 @@ export default async function handler(req, res) {
 
   const department = formData.department;
   const targetDepartment = formData.targetDepartment;
-
-  // Проверка ссылок для жалоб
-  if (type === 'complaint' && formData.evidence) {
-    const allowedHosts = ['imgur.com', 'yapx.ru', 'youtube.com', 'youtu.be', 'medal.tv', 'streamable.com', 'discord.com', 'cdn.discordapp.com', 'ibb.co', 'prnt.sc'];
-    const links = formData.evidence.match(/https?:\/\/[^\s]+/g) || [];
-    
-    if (links.length === 0) {
-      return res.status(400).json({ error: '❌ В доказательствах должна быть хотя бы одна ссылка' });
-    }
-    
-    for (const link of links) {
-      const isAllowed = allowedHosts.some(host => link.includes(host));
-      if (!isAllowed) {
-        return res.status(400).json({ error: `❌ Ссылка не разрешена. Используйте: imgur, yapx, youtube, medal, streamable, discord, ibb` });
-      }
-    }
-  }
 
   let webhookUrl, roleMentions = '', threadId = null;
 
@@ -139,46 +268,59 @@ export default async function handler(req, res) {
     footer: { text: 'LSPD Forms • ' + new Date().toLocaleDateString('ru-RU') },
     timestamp: new Date().toISOString()
   };
+  const embedError = validateEmbed(embed);
+  if (embedError) return res.status(400).json({ error: embedError });
 
-  // Для жалоб — сначала отправляем в публичный канал (краткая версия)
-  if (type === 'complaint') {
-    const publicEmbed = {
-      title: '🚨 ЖАЛОБА НА СОТРУДНИКА',
-      color: 0xFF0000,
-      fields: [
-        { name: '👤 На кого', value: formData.targetName || '-', inline: false },
-        { name: '📅 Когда', value: formData.incidentDate || '-', inline: false },
-        { name: '📝 Описание', value: (formData.description || '-').slice(0, 1024), inline: false }
-      ],
-      footer: { text: 'LSPD Forms • ' + new Date().toLocaleDateString('ru-RU') },
-      timestamp: new Date().toISOString()
-    };
-
-    await sendToDiscord(webhooks.complaintPublic, {
-      embeds: [publicEmbed],
-      username: 'LSPD Forms',
-      avatar_url: 'https://i.imgur.com/AfFp7pu.png'
-    });
-  }
-
-  const result = await sendToDiscord(webhookUrl, { 
-    content: roleMentions.trim() || undefined, 
-    embeds: [embed], 
-    username: 'LSPD Forms', 
+  // Приватная запись — каноническая копия жалобы. Публичная сводка отправляется после неё.
+  const result = await sendToDiscord(webhookUrl, {
+    content: roleMentions.trim() || undefined,
+    embeds: [embed],
+    username: 'LSPD Forms',
     avatar_url: 'https://i.imgur.com/AfFp7pu.png',
     ...(threadId ? { thread_id: threadId } : {})
   });
 
-  if (result.success) {
+  if (!result.success) {
+    return res.status(502).json({ error: `Не удалось отправить: ${result.error || 'ошибка Discord'}` });
+  }
+
+  let publicWarning = null;
+  if (type === 'complaint') {
+    if (!webhooks.complaintPublic) {
+      publicWarning = 'Жалоба доставлена в закрытый канал, но публичный вебхук не настроен.';
+    } else {
+      const publicEmbed = {
+        title: '🚨 ЖАЛОБА НА СОТРУДНИКА',
+        color: 0xFF0000,
+        fields: [
+          { name: '👤 На кого', value: formData.targetName, inline: false },
+          { name: '📅 Когда', value: formData.incidentDate, inline: false },
+          { name: '📝 Описание', value: formData.description.slice(0, 1024), inline: false }
+        ],
+        footer: { text: 'LSPD Forms • ' + new Date().toLocaleDateString('ru-RU') },
+        timestamp: new Date().toISOString()
+      };
+      const publicResult = await sendToDiscord(webhooks.complaintPublic, {
+        embeds: [publicEmbed],
+        username: 'LSPD Forms',
+        avatar_url: 'https://i.imgur.com/AfFp7pu.png'
+      });
+      if (!publicResult.success) {
+        publicWarning = 'Жалоба сохранена в закрытом канале, но публичная сводка не отправилась. Сообщите администратору.';
+      }
+    }
+  }
+
+  // После успешной отправки в Discord ошибки KV не должны провоцировать повторную отправку той же формы.
+  try {
     const today = new Date().toISOString().split('T')[0];
     await kv.incr('lspd:stats:total');
     await kv.incr(`lspd:stats:${today}`);
-    
-    // 1. Сохраняем в историю самого пользователя
-    await kv.lpush(`lspd:history:${user.id}`, JSON.stringify({ type, title: embed.title, date: new Date().toISOString(), id: Date.now().toString(36) }));
+    await kv.lpush(`lspd:history:${user.id}`, JSON.stringify({
+      type, title: embed.title, date: new Date().toISOString(), id: Date.now().toString(36)
+    }));
     await kv.ltrim(`lspd:history:${user.id}`, 0, 49);
 
-    // 2. НОВОЕ: Сохраняем в глобальную базу для Админки
     const globalRequest = {
       id: Date.now().toString(),
       type: type || 'unknown',
@@ -190,12 +332,12 @@ export default async function handler(req, res) {
       data: formData
     };
     await kv.lpush('lspd:submissions:all', JSON.stringify(globalRequest));
-    await kv.ltrim('lspd:submissions:all', 0, 199); // Ограничиваем историю 200 записями
-
-    res.status(200).json({ success: true });
-  } else {
-    res.status(500).json({ error: `Не удалось отправить: ${result.error}` });
+    await kv.ltrim('lspd:submissions:all', 0, 199);
+  } catch (storageError) {
+    console.error('Submission delivered to Discord, but history storage failed:', storageError);
   }
+
+  res.status(200).json({ success: true, ...(publicWarning ? { warning: publicWarning } : {}) });
 }
 
 function getFormTitle(type, department, targetDepartment, leaveType) {

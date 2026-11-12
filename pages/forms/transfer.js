@@ -53,11 +53,15 @@ export default function TransferForm() {
       if (!d.user) { router.push('/'); return; }
       setUser(d.user);
       setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+      router.replace('/');
     });
     fetch('/api/profile').then(r => r.json()).then(d => {
-      setProfile(d.profile);
-      setFormData(prev => ({ ...prev, fullName: d.profile.fullName || '', currentDepartment: d.profile.department || '' }));
-    });
+      const nextProfile = d?.profile || {};
+      setProfile(nextProfile);
+      setFormData(prev => ({ ...prev, fullName: nextProfile.fullName || '', currentDepartment: nextProfile.department || '' }));
+    }).catch(() => window.toast?.error('Не удалось загрузить профиль. Заполните данные вручную.'));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -84,7 +88,7 @@ export default function TransferForm() {
   const lbl = { display:'block', marginBottom:'8px', color:'#8b8ba7', fontSize:'13px', fontWeight:500 };
 
   return (
-    <FormShell title="Перевод в отдел" icon="🔄" accent="#2196F3">
+    <FormShell user={user} title="Перевод в отдел" icon="🔄" accent="#2196F3">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:600 }}>(из профиля)</span>}</label>
@@ -147,7 +151,7 @@ export default function TransferForm() {
               <label style={lbl}>На каких серверах были в DB? *</label>
               <textarea required value={formData.dbServers} onChange={e => setFormData({...formData,dbServers:e.target.value})} placeholder="Серверы..." rows="3" style={{...s, resize:'vertical', minHeight:'80px'}} />
             </div>
-            <div style={{ display:'flex', gap:'15px' }}>
+            <div className="form-row--responsive">
               <div style={{ flex:1, marginBottom:'20px' }}>
                 <label style={lbl}>Знания по работе DB *</label>
                 <select required value={formData.dbKnowledge} onChange={e => setFormData({...formData,dbKnowledge:e.target.value})} style={{...s, appearance:'none', cursor:'pointer'}}>

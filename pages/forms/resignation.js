@@ -14,12 +14,15 @@ export default function ResignationForm() {
     fetch('/api/me').then(res => res.json()).then(data => {
       if (!data.user) { router.push('/'); return; }
       setUser(data.user);
-    });
+    }).catch(() => router.replace('/'));
     fetch('/api/profile').then(res => res.json()).then(data => {
-      setProfile(data.profile);
-      if (data.profile.fullName) setFormData(prev => ({ ...prev, fullName: data.profile.fullName }));
-      setLoading(false);
-    });
+      const nextProfile = data?.profile || { fullName: '' };
+      setProfile(nextProfile);
+      if (nextProfile.fullName) setFormData(prev => ({ ...prev, fullName: nextProfile.fullName }));
+    }).catch(() => {
+      setProfile({ fullName: '' });
+      window.toast?.error('Не удалось загрузить профиль. Заполните имя вручную.');
+    }).finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -42,7 +45,7 @@ export default function ResignationForm() {
   const lbl = { display:'block', marginBottom:'8px', color:'#8b8ba7', fontSize:'13px', fontWeight:500 };
 
   return (
-    <FormShell title="Увольнение" icon="🚪" accent="#DC3545">
+    <FormShell user={user} title="Увольнение" icon="🚪" accent="#DC3545">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:600 }}>(из профиля)</span>}</label>

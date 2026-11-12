@@ -101,6 +101,10 @@ export default function RecoveryForm() {
   }, []);
 
   const addMp = () => {
+    if (mpList.length >= 18) {
+      window.toast.info('Можно добавить не более 18 мероприятий в одну заявку.');
+      return;
+    }
     setMpList([...mpList, { type: '', proof: '' }]);
   };
 
@@ -183,7 +187,7 @@ export default function RecoveryForm() {
   const requirement = getRequirement(formData.warn, formData.rank, formData.method);
 
   return (
-    <FormShell title="Отработка взыскания" icon="⚖️" accent="#F44336">
+    <FormShell user={user} title="Отработка взыскания" icon="⚖️" accent="#F44336">
       <form onSubmit={handleSubmit}>
         {/* Тип варна */}
         <div style={{ marginBottom: '20px' }}>
@@ -455,6 +459,7 @@ export default function RecoveryForm() {
             <button
               type="button"
               onClick={addMp}
+              disabled={mpList.length >= 18}
               style={{
                 width: '100%',
                 padding: '12px',

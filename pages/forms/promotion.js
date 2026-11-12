@@ -9,6 +9,7 @@ const RANK_OPTIONS = [
   '11-12 ранг', '12-13 ранг'
 ];
 
+// Shared form shell receives the already authenticated user.
 export default function PromotionForm() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -79,7 +80,7 @@ export default function PromotionForm() {
   }
 
   return (
-    <FormShell title="Запрос на повышение" icon="📈">
+    <FormShell user={user} title="Запрос на повышение" icon="📈">
       <form onSubmit={handleSubmit}>
         
         {/* Имя Фамилия */}

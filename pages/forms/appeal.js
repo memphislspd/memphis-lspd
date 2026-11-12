@@ -32,6 +32,10 @@ export default function AppealForm() {
   }, []);
 
   const addExtra = () => {
+    if (formData.extraScreenshots.length >= 16) {
+      window.toast.info('Можно добавить не более 16 дополнительных скриншотов.');
+      return;
+    }
     setFormData({ ...formData, extraScreenshots: [...formData.extraScreenshots, ''] });
   };
 
@@ -112,7 +116,7 @@ export default function AppealForm() {
   };
 
   return (
-    <FormShell title="Обжалование наказания" icon="📜" accent="#9C27B0">
+    <FormShell user={user} title="Обжалование наказания" icon="📜" accent="#9C27B0">
       <form onSubmit={handleSubmit}>
         {/* Подсказка */}
         <div
@@ -249,6 +253,7 @@ export default function AppealForm() {
         <button
           type="button"
           onClick={addExtra}
+          disabled={formData.extraScreenshots.length >= 16}
           style={{
             width: '100%',
             padding: '12px',

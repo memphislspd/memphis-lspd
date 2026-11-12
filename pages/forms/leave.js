@@ -51,7 +51,7 @@ export default function LeaveForm() {
   const lbl = { display:'block', marginBottom:'8px', color:'#8b8ba7', fontSize:'13px', fontWeight:500 };
 
   return (
-    <FormShell title="Отпуск" icon="🏖️" accent="#00BCD4">
+    <FormShell user={user} title="Отпуск" icon="🏖️" accent="#00BCD4">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>Тип отпуска *</label>
@@ -75,7 +75,7 @@ export default function LeaveForm() {
           <label style={lbl}>Причина *</label>
           <textarea required value={formData.reason} onChange={e => setFormData({...formData,reason:e.target.value})} placeholder="Опишите причину..." rows="3" style={{...s, resize:'vertical', minHeight:'80px'}} />
         </div>
-        <div style={{ display:'flex', gap:'15px', marginBottom:'20px' }}>
+        <div className="form-row--responsive" style={{ marginBottom:'20px' }}>
           <div style={{ flex:1 }}>
             <label style={lbl}>Дата начала *</label>
             <input type="text" required value={formData.startDate} onChange={e => setFormData({...formData,startDate:e.target.value})} placeholder="15.08.2024" style={s} />

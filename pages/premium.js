@@ -19,8 +19,12 @@ export default function PremiumForm() {
       if (!data.user) { router.push('/'); return; }
       setUser(data.user);
       setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+      router.replace('/');
     });
-    fetch('/api/profile').then(res => res.json()).then(data => setProfile(data.profile));
+    fetch('/api/profile').then(res => res.json()).then(data => setProfile(data?.profile || { fullName: '' }))
+      .catch(() => window.toast?.error('Не удалось загрузить профиль.'));
   }, []);
 
   const handleNext = () => {
@@ -68,7 +72,7 @@ export default function PremiumForm() {
   const btnStyle = (bg) => ({ flex:1, padding:'14px', background:bg, color:'white', border:'none', borderRadius:'10px', fontWeight:600, cursor:'pointer' });
 
   return (
-    <FormShell title="Премия" icon="🎯" accent="#FFD700">
+    <FormShell user={user} title="Премия" icon="🎯" accent="#FFD700">
       {participants.length > 0 && (
         <div style={{ marginBottom:'20px', padding:'15px', background:'rgba(255,215,0,0.05)', borderRadius:'10px', border:'1px solid rgba(255,215,0,0.2)' }}>
           <div style={{ fontSize:'13px', color:'#FFD700', marginBottom:'10px', fontWeight:600 }}>Участники ({participants.length}):</div>

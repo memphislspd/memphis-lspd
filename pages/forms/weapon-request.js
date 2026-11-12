@@ -30,11 +30,15 @@ export default function WeaponRequestForm() {
       if (!d.user) { router.push('/'); return; }
       setUser(d.user);
       setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+      router.replace('/');
     });
     fetch('/api/profile').then(r => r.json()).then(d => {
-      setProfile(d.profile);
-      setFormData(prev => ({ ...prev, fullName: d.profile.fullName || '', department: d.profile.department || '' }));
-    });
+      const nextProfile = d?.profile || {};
+      setProfile(nextProfile);
+      setFormData(prev => ({ ...prev, fullName: nextProfile.fullName || '', department: nextProfile.department || '' }));
+    }).catch(() => window.toast?.error('Не удалось загрузить профиль. Заполните данные вручную.'));
   }, []);
 
   const selectedWeapon = WEAPONS.find(w => w.value === formData.weapon);
@@ -70,7 +74,7 @@ export default function WeaponRequestForm() {
   const lbl = { display:'block', marginBottom:'8px', color:'#8b8ba7', fontSize:'13px', fontWeight:500 };
 
   return (
-    <FormShell title="Спец вооружение" icon="🔫" accent="#FF5722">
+    <FormShell user={user} title="Спец вооружение" icon="🔫" accent="#FF5722">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:600 }}>(из профиля)</span>}</label>

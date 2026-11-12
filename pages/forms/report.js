@@ -21,11 +21,15 @@ export default function ReportForm() {
       if (!d.user) { router.push('/'); return; }
       setUser(d.user);
       setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+      router.replace('/');
     });
     fetch('/api/profile').then(r => r.json()).then(d => {
-      setProfile(d.profile);
-      setFormData(prev => ({ ...prev, fullName: d.profile.fullName || '', department: d.profile.department || '' }));
-    });
+      const nextProfile = d?.profile || {};
+      setProfile(nextProfile);
+      setFormData(prev => ({ ...prev, fullName: nextProfile.fullName || '', department: nextProfile.department || '' }));
+    }).catch(() => window.toast?.error('Не удалось загрузить профиль. Заполните данные вручную.'));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -52,7 +56,7 @@ export default function ReportForm() {
   const lbl = { display:'block', marginBottom:'8px', color:'#8b8ba7', fontSize:'13px', fontWeight:500 };
 
   return (
-    <FormShell title="Отчёт о повышении" icon="📋" accent="#FF9800">
+    <FormShell user={user} title="Отчёт о повышении" icon="📋" accent="#FF9800">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:600 }}>(из профиля)</span>}</label>

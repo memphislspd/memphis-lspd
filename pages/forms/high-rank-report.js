@@ -19,20 +19,21 @@ export default function HighRankReportForm() {
 
   useEffect(() => {
     fetch('/api/me').then(res => res.json()).then(data => {
-      if (!data.user) { router.push('/'); return; }
+      if (!data.user) { router.replace('/'); return; }
       setUser(data.user);
-      
-      // Проверка на роль
       if (data.user.roles && data.user.roles.includes(REQUIRED_ROLE_ID)) {
         setHasAccess(true);
       }
-    });
+    }).catch(() => router.replace('/'));
     
     fetch('/api/profile').then(res => res.json()).then(data => {
-      setProfile(data.profile);
-      if (data.profile.fullName) setFormData(prev => ({ ...prev, fullName: data.profile.fullName }));
-      setLoading(false);
-    });
+      const nextProfile = data?.profile || { fullName: '' };
+      setProfile(nextProfile);
+      if (nextProfile.fullName) setFormData(prev => ({ ...prev, fullName: nextProfile.fullName }));
+    }).catch(() => {
+      setProfile({ fullName: '' });
+      window.toast?.error('Не удалось загрузить профиль. Заполните имя вручную.');
+    }).finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -54,7 +55,7 @@ export default function HighRankReportForm() {
   // Экран, если зашли по ссылке без роли
   if (!hasAccess) {
     return (
-      <FormShell title="Доступ запрещен" icon="⛔">
+      <FormShell user={user} title="Доступ запрещен" icon="⛔">
         <div style={{ textAlign: 'center', padding: '30px' }}>
           <h2 style={{ color: '#ff2640', marginBottom: '16px', fontSize: '24px' }}>ACCESS DENIED</h2>
           <p style={{ color: '#9ca3af', marginBottom: '24px' }}>У вас нет необходимой роли для подачи отчета на повышение (Хай Ранги).</p>
@@ -68,7 +69,7 @@ export default function HighRankReportForm() {
   const lbl = { display:'block', marginBottom:'8px', color:'#9ca3af', fontSize:'13px', fontWeight:'600' };
 
   return (
-    <FormShell title="Хай Ранги" icon="🌟">
+    <FormShell user={user} title="Хай Ранги" icon="🌟">
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom:'20px' }}>
           <label style={lbl}>Имя Фамилия + Статик * {profile.fullName && <span style={{ color:'#4CAF50', fontSize:'11px', fontWeight:'600' }}>(из профиля)</span>}</label>
