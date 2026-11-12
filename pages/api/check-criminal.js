@@ -6,57 +6,43 @@ import { checkCriminalActivity } from '../../lib/security';
 
 const WEBHOOK_SECURITY = process.env.WEBHOOK_SECURITY;
 const SECURITY_ROLE_ID = '1563222369655459941';
-
 const CACHE_TTL_SECONDS = 12 * 60 * 60;
 const LOCK_TTL_SECONDS = 6 * 60;
 
 function readCompletedCache(value) {
   let cached = value;
-
   if (typeof cached === 'string') {
-    try {
-      cached = JSON.parse(cached);
-    } catch {
-      return null;
-    }
+    try { cached = JSON.parse(cached); } catch { return null; }
   }
-
-  if (
-    !cached ||
-    cached.complete !== true ||
-    !Array.isArray(cached.alerts) ||
-    typeof cached.checkedAt !== 'string'
-  ) {
+  if (!cached || cached.complete !== true || !Array.isArray(cached.alerts) || typeof cached.checkedAt !== 'string') {
     return null;
   }
-
   return cached;
 }
 
 async function sendSecurityAlert(user, alerts) {
   const fields = alerts.map(alert => ({
-    name: \`🚨 Сервер: \${alert.guildName}\`,
-    value: \`Найдены роли: **\${alert.matchedRoles.join(', ')}**\\nID: \\\`\${alert.guildId}\\\`\`,
+    name: '🚨 Сервер: ' + alert.guildName,
+    value: 'Найдены роли: **' + alert.matchedRoles.join(', ') + '**\nID: `' + alert.guildId + '`',
     inline: false,
   }));
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
-
   try {
     const response = await fetch(WEBHOOK_SECURITY, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: controller.signal,
       body: JSON.stringify({
-        content: \`<@&\${SECURITY_ROLE_ID}> <@\${user.id}>\`,
+        content: '<@&' + SECURITY_ROLE_ID + '> <@' + user.id + '>',
         embeds: [{
           title: '⚠️ Проверка на крайм-активность',
           color: 0xFF0000,
           author: {
-            name: \`\${user.username} (\${user.id})\`,
+            name: user.username + ' (' + user.id + ')',
             icon_url: user.avatar
-              ? \`https://cdn.discordapp.com/avatars/\${user.id}/\${user.avatar}.png\`
+              ? 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png'
               : undefined,
           },
           fields,
@@ -64,10 +50,7 @@ async function sendSecurityAlert(user, alerts) {
         }],
       }),
     });
-
-    if (!response.ok) {
-      throw new Error(\`Security webhook returned HTTP \${response.status}\`);
-    }
+    if (!response.ok) throw new Error('Security webhook returned HTTP ' + response.status);
   } finally {
     clearTimeout(timeout);
   }
@@ -82,84 +65,58 @@ export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const cacheKey = \`criminal_checked:v1:\${user.id}\`;
-  const lockKey = \`criminal_check_lock:v1:\${user.id}\`;
+  const cacheKey = 'criminal_checked:v1:' + user.id;
+  const lockKey = 'criminal_check_lock:v1:' + user.id;
+  const lockToken = randomUUID();
   let lockAcquired = false;
 
   try {
-    // 1. Используем результат предыдущей полной проверки, если ему меньше 12 часов.
     try {
       const cached = readCompletedCache(await kv.get(cacheKey));
       if (cached) {
         return res.status(200).json({
-          success: true,
-          cached: true,
-          checkedAt: cached.checkedAt,
-          alerts: cached.alerts,
+          success: true, cached: true, checkedAt: cached.checkedAt, alerts: cached.alerts,
         });
       }
     } catch (error) {
-      // Если кэш временно недоступен, не выдаём ошибку вместо проверки.
       console.warn('[КРАЙМ] Не удалось прочитать кэш:', error.message);
     }
 
-    // 2. Не допускаем параллельный запуск проверки одного пользователя в нескольких вкладках.
-    // TTL замка больше максимального времени выполнения Vercel Function (300 секунд).
+    // Блокируем одновременную проверку одного пользователя в нескольких вкладках.
+    // TTL 6 минут превышает наблюдавшийся 5-минутный таймаут Vercel Function.
     try {
-      const lockResult = await kv.set(lockKey, randomUUID(), {
-        ex: LOCK_TTL_SECONDS,
-        nx: true,
-      });
-
+      const lockResult = await kv.set(lockKey, lockToken, { ex: LOCK_TTL_SECONDS, nx: true });
       lockAcquired = lockResult === 'OK';
 
       if (!lockAcquired) {
-        // Пока другой запрос проверяет пользователя, повторно Discord API не вызываем.
         const cached = readCompletedCache(await kv.get(cacheKey));
         if (cached) {
           return res.status(200).json({
-            success: true,
-            cached: true,
-            checkedAt: cached.checkedAt,
-            alerts: cached.alerts,
+            success: true, cached: true, checkedAt: cached.checkedAt, alerts: cached.alerts,
           });
         }
-
         return res.status(202).json({ success: true, checking: true });
       }
     } catch (error) {
-      // При недоступности механизма блокировки продолжаем проверку,
-      // но не считаем её закэшированной до успешной записи результата.
       console.warn('[КРАЙМ] Не удалось установить блокировку проверки:', error.message);
     }
 
-    // 3. После получения блокировки перечитываем кэш на случай гонки запросов.
     if (lockAcquired) {
       const cached = readCompletedCache(await kv.get(cacheKey));
       if (cached) {
         return res.status(200).json({
-          success: true,
-          cached: true,
-          checkedAt: cached.checkedAt,
-          alerts: cached.alerts,
+          success: true, cached: true, checkedAt: cached.checkedAt, alerts: cached.alerts,
         });
       }
     }
 
-    const accessToken = await kv.get(\`oauth:token:\${user.id}\`);
-    const userGuildIds = await kv.get(\`user:guilds:\${user.id}\`);
-
+    const accessToken = await kv.get('oauth:token:' + user.id);
+    const userGuildIds = await kv.get('user:guilds:' + user.id);
     if (!accessToken || !Array.isArray(userGuildIds)) {
-      return res.status(200).json({
-        success: true,
-        cached: false,
-        message: 'No data yet',
-      });
+      return res.status(200).json({ success: true, cached: false, message: 'No data yet' });
     }
 
-    // 4. Выполняем проверку. Частичный результат никогда не записываем в кэш.
     const checkResult = await checkCriminalActivity(accessToken, userGuildIds);
-
     if (!checkResult.complete) {
       console.warn('[КРАЙМ] Проверка завершилась не полностью:', {
         userId: user.id,
@@ -167,7 +124,6 @@ export default async function handler(req, res) {
         totalGuilds: checkResult.totalGuilds,
         failedGuilds: checkResult.failedGuilds,
       });
-
       return res.status(200).json({
         success: false,
         incomplete: true,
@@ -177,26 +133,20 @@ export default async function handler(req, res) {
       });
     }
 
-    // 5. При найденных совпадениях сначала доставляем уведомление.
-    // Если Webhook недоступен, результат не кэшируем: следующая загрузка сможет повторить отправку.
+    // Отправляем Security Webhook до записи кэша. При неудаче результат не кэшируем.
     if (checkResult.alerts.length > 0) {
       if (!WEBHOOK_SECURITY) {
         console.error('[КРАЙМ] WEBHOOK_SECURITY не настроен; результат не кэшируется.');
         return res.status(200).json({
-          success: false,
-          notificationSent: false,
-          cached: false,
-          alerts: checkResult.alerts,
+          success: false, notificationSent: false, cached: false, alerts: checkResult.alerts,
         });
       }
-
       await sendSecurityAlert(user, checkResult.alerts);
-      console.log(\`[КРАЙМ] Найдено совпадений: \${checkResult.alerts.length}. Webhook отправлен.\`);
+      console.log('[КРАЙМ] Найдено совпадений: ' + checkResult.alerts.length + '. Webhook отправлен.');
     } else {
       console.log('[КРАЙМ] Проверка завершена. Совпадений нет.');
     }
 
-    // 6. Храним только подтверждённый полный результат. Ручного обхода кэша нет.
     const completedResult = {
       complete: true,
       checkedAt: new Date().toISOString(),
@@ -226,7 +176,12 @@ export default async function handler(req, res) {
   } finally {
     if (lockAcquired) {
       try {
-        await kv.del(lockKey);
+        // Снимаем блокировку, только если она всё ещё принадлежит этому запросу.
+        await kv.eval(
+          "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+          [lockKey],
+          [lockToken]
+        );
       } catch (error) {
         console.warn('[КРАЙМ] Не удалось снять блокировку; она истечёт автоматически:', error.message);
       }
