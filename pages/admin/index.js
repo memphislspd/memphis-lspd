@@ -59,6 +59,7 @@ export default function AdminHub() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,6 +69,7 @@ export default function AdminHub() {
     });
     fetch('/api/admin/check').then(r => r.json()).then(d => {
       setIsAdmin(d.isAdmin);
+      setIsSuperAdmin(Boolean(d.isSuperAdmin));
       setLoading(false);
       if (!d.isAdmin) router.push('/start');
     });
@@ -101,7 +103,7 @@ export default function AdminHub() {
 
       {/* Сетка модулей */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-        {ADMIN_TOOLS.map((tool) => (
+        {ADMIN_TOOLS.filter(tool => !tool.isRestricted || isSuperAdmin).map((tool) => (
           <div 
             key={tool.title}
             onClick={() => router.push(tool.path)}
