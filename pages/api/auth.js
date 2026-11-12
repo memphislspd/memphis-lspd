@@ -63,6 +63,7 @@ function redirectWithClearedCookies(req, res, destination) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Referrer-Policy', 'no-referrer');
 
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
