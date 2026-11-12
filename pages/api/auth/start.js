@@ -20,7 +20,7 @@ function getSafeReturnTo(value) {
     const base = new URL('https://memphis-lspd.vercel.app');
     const target = new URL(value, base);
     if (target.origin !== base.origin) return '/start';
-    const normalizedPath = target.pathname.replace(/\\/+$/, '') || '/';
+    const normalizedPath = target.pathname === '/dashboard/' ? '/dashboard' : target.pathname;
     if (normalizedPath === '/dashboard') return '/start';
     return `${target.pathname}${target.search}${target.hash}`;
   } catch {
