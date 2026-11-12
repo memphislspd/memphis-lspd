@@ -1,7 +1,6 @@
 // pages/api/auth/start.js
 import { randomBytes } from 'crypto';
 
-const DEFAULT_REDIRECT_URI = 'https://memphis-lspd.vercel.app/api/auth';
 const OAUTH_COOKIE_PATH = '/api/auth';
 const STATE_TTL_SECONDS = 10 * 60;
 
@@ -37,7 +36,7 @@ export default function handler(req, res) {
   }
 
   const clientId = process.env.DISCORD_CLIENT_ID;
-  const redirectUri = process.env.DISCORD_REDIRECT_URI || DEFAULT_REDIRECT_URI;
+  const redirectUri = process.env.DISCORD_REDIRECT_URI;
 
   if (!clientId || !redirectUri) {
     return res.redirect('/?error=auth_config');
