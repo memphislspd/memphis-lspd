@@ -20,7 +20,7 @@ function getSafeReturnTo(value) {
     const base = new URL('https://memphis-lspd.vercel.app');
     const target = new URL(value, base);
     if (target.origin !== base.origin) return '/start';
-    const normalizedPath = target.pathname === '/dashboard/' ? '/dashboard' : target.pathname;
+    const normalizedPath = '/' + target.pathname.split('/').filter(Boolean).join('/');
     if (normalizedPath === '/dashboard') return '/start';
     return `${target.pathname}${target.search}${target.hash}`;
   } catch {
@@ -69,7 +69,7 @@ export default function handler(req, res) {
 
   res.setHeader('Set-Cookie', [
     `oauth_state=${state}; ${cookieBase}`,
-    `oauth_return_to=${encodeURIComponent(returnTo)}; ${cookieBase}`,
+    `oauth_return_to=${Buffer.from(returnTo, 'utf8').toString('base64url')}; ${cookieBase}`,
   ]);
 
   const params = new URLSearchParams({
