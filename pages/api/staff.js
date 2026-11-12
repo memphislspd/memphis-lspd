@@ -1,6 +1,7 @@
 // pages/api/staff.js
 import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
+import { isAdmin } from '../../lib/admins';
 
 export default async function handler(req, res) {
   // GET используется публичной секцией руководства на стартовой странице.
@@ -13,13 +14,20 @@ export default async function handler(req, res) {
     }
   }
 
-  const user = verifyToken(req.cookies.token);
-  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  // Изменение состава доступно только администраторам.
+  if (req.method !== 'POST' && req.method !== 'DELETE') {
+    res.setHeader('Allow', 'GET, POST, DELETE');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-  // POST: Добавить нового человека (только для админов)
+  const user = verifyToken(req.cookies.token);
+  if (!user || !isAdmin(user.id)) {
+    return res.status(403).json({ error: 'Нет доступа' });
+  }
+
+  // POST: Добавить нового человека.
   if (req.method === 'POST') {
-    // Тут можно добавить проверку на роль, но пока пустим всех, у кого есть доступ к админке
-    const { name, rank, discord, avatar } = req.body;
+    const { name, rank, discord, avatar } = req.body || {};
 
     if (!name || !rank || !discord) {
       return res.status(400).json({ error: 'Заполните все поля' });
@@ -27,13 +35,13 @@ export default async function handler(req, res) {
 
     try {
       const staff = await kv.get('lspd:staff_roster') || [];
-      
+
       const newMember = {
-        id: Date.now().toString(), // Уникальный ID
+        id: Date.now().toString(),
         name,
         rank,
         discord,
-        avatar: avatar || '', // Если аватарки нет, будет пусто
+        avatar: avatar || '',
       };
 
       staff.push(newMember);
@@ -45,9 +53,13 @@ export default async function handler(req, res) {
     }
   }
 
-  // DELETE: Удалить человека
+  // DELETE: Удалить человека.
   if (req.method === 'DELETE') {
-    const { id } = req.body;
+    const { id } = req.body || {};
+    if (typeof id !== 'string' || !id.trim()) {
+      return res.status(400).json({ error: 'Укажите ID записи' });
+    }
+
     try {
       let staff = await kv.get('lspd:staff_roster') || [];
       staff = staff.filter(s => s.id !== id);
@@ -57,6 +69,4 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Ошибка удаления' });
     }
   }
-
-  res.status(405).json({ error: 'Method not allowed' });
 }
