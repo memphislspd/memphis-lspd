@@ -7,23 +7,30 @@ const GUILD_ID = '1514608894666735717'; // Твой сервер LSPD
 const OAUTH_COOKIE_PATH = '/api/auth';
 
 function safeReturnTo(value) {
+  let decodedValue;
+
+  try {
+    decodedValue = decodeURIComponent(value);
+  } catch {
+    return '/start';
+  }
+
   if (
-    typeof value !== 'string' ||
-    value.length > 2048 ||
-    !value.startsWith('/') ||
-    value.startsWith('//') ||
-    value.includes('\\') ||
-    /[\u0000-\u001f\u007f]/.test(value)
+    typeof decodedValue !== 'string' ||
+    decodedValue.length > 2048 ||
+    !decodedValue.startsWith('/') ||
+    decodedValue.startsWith('//') ||
+    decodedValue.includes('\\') ||
+    /[\u0000-\u001f\u007f]/.test(decodedValue)
   ) {
     return '/start';
   }
 
   try {
     const base = new URL('https://memphis-lspd.vercel.app');
-    const target = new URL(value, base);
+    const target = new URL(decodedValue, base);
     if (target.origin !== base.origin) return '/start';
-    const normalizedPath = target.pathname.replace(/\\/+$/, '') || '/';
-    if (normalizedPath === '/dashboard') return '/start';
+    if (target.pathname === '/dashboard' || target.pathname === '/dashboard/') return '/start';
     return `${target.pathname}${target.search}${target.hash}`;
   } catch {
     return '/start';
