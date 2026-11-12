@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import StaffCard from '../../components/StaffCard';
+import AdminPageGuard from '../../components/AdminPageGuard';
 
 export default function AdminStaffPage() {
   const router = useRouter();
@@ -50,7 +51,8 @@ export default function AdminStaffPage() {
   if (loading) return <div style={{ color: 'white', padding: '50px', textAlign: 'center' }}>Загрузка...</div>;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', color: 'white', padding: '40px 20px' }}>
+    <AdminPageGuard>
+      <div style={{ minHeight: '100vh', background: '#0a0a0a', color: 'white', padding: '40px 20px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#8b8ba7', border: 'none', cursor: 'pointer' }}>← Назад в админку</button>
         <h1 style={{ fontSize: '24px', marginBottom: '30px' }}>Управление Старшим Составом</h1>
@@ -74,6 +76,7 @@ export default function AdminStaffPage() {
           ))}
         </div>
       </div>
-    </div>
+      </div>
+    </AdminPageGuard>
   );
 }

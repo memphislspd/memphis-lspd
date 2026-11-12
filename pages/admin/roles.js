@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
+import AdminPageGuard from '../../components/AdminPageGuard';
 
 const CHECK_ROLES = [
   { id: '1514608894700159145', name: 'Роль 1' },
@@ -37,7 +38,8 @@ export default function RoleCheckerPage() {
   if (!user) return null;
 
   return (
-    <PageLayout user={user}>
+    <AdminPageGuard>
+      <PageLayout user={user}>
       <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>← Назад в админку</button>
       
       <h1 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '10px' }}>Проверка ролей</h1>
@@ -81,6 +83,7 @@ export default function RoleCheckerPage() {
           )}
         </div>
       )}
-    </PageLayout>
+      </PageLayout>
+    </AdminPageGuard>
   );
 }

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DeptCard from '../../components/DeptCard';
 import PageLayout from '../../components/PageLayout';
+import AdminPageGuard from '../../components/AdminPageGuard';
 
 export default function AdminDepartmentsPage() {
   const router = useRouter();
@@ -92,7 +93,8 @@ export default function AdminDepartmentsPage() {
   };
 
   return (
-    <PageLayout user={user}>
+    <AdminPageGuard>
+      <PageLayout user={user}>
       <div style={{ marginBottom: '40px' }}>
         <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontFamily: "'DM Mono', monospace", fontSize: '12px' }}>
           ← НАЗАД В АДМИНКУ
@@ -166,6 +168,7 @@ export default function AdminDepartmentsPage() {
       <style jsx global>{`
         @keyframes blink { 50% { opacity: 0; } }
       `}</style>
-    </PageLayout>
+      </PageLayout>
+    </AdminPageGuard>
   );
 }

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
+import AdminPageGuard from '../../components/AdminPageGuard';
 
 export default function SuperAdminPage() {
   const router = useRouter();
@@ -48,7 +49,8 @@ export default function SuperAdminPage() {
   if (!user) return null;
 
   return (
-    <PageLayout user={user}>
+    <AdminPageGuard superAdminOnly>
+      <PageLayout user={user}>
       <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>← Назад в админку</button>
       
       <h1 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '10px' }}>Супер-Админка</h1>
@@ -71,6 +73,7 @@ export default function SuperAdminPage() {
         ))}
         {admins.length === 0 && <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af' }}>Ручных админов пока нет.</div>}
       </div>
-    </PageLayout>
+      </PageLayout>
+    </AdminPageGuard>
   );
 }

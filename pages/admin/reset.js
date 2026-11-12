@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
+import AdminPageGuard from '../../components/AdminPageGuard';
 
 export default function ResetPage() {
   const router = useRouter();
@@ -35,7 +36,8 @@ export default function ResetPage() {
   if (!user) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
 
   return (
-    <PageLayout user={user}>
+    <AdminPageGuard>
+      <PageLayout user={user}>
       <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontFamily: "'DM Mono', monospace", fontSize: '12px' }}>
         ← НАЗАД В АДМИНКУ
       </button>
@@ -70,6 +72,7 @@ export default function ResetPage() {
           </button>
         </div>
       </div>
-    </PageLayout>
+      </PageLayout>
+    </AdminPageGuard>
   );
 }
