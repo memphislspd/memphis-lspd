@@ -1,13 +1,15 @@
 import { verifyToken } from '../../../lib/discord';
-import { isAdmin } from '../../../lib/admins';
+import { hasAdminAccess } from '../../../lib/admins';
 import { kv } from '@vercel/kv';
 
 export default async function handler(req, res) {
-  const user = verifyToken(req.cookies.token);
-  
-  if (!user || !isAdmin(user.id)) {
-    return res.status(403).json({ error: 'Нет доступа' });
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const user = verifyToken(req.cookies.token);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
 
   // GET — получить список заявок
   if (req.method === 'GET') {

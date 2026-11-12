@@ -1,44 +1,26 @@
 // pages/api/admin/check.js
 import { verifyToken } from '../../../lib/discord';
-import { kv } from '@vercel/kv';
-
-// Твои роли, которые дают доступ к админке
-const ADMIN_ROLE_IDS = [
-  '1514608894700159142', // Основная роль
-  '1514608894700159145',
-  '1514608894700159143',
-  '1550848894789885962',
-  '1514665211980939314'
-];
-
-// Твой личный ID (нельзя удалить)
-const SUPER_ADMIN_ID = '200102286473691139';
+import { hasAdminAccess, isSuperAdmin } from '../../../lib/admins';
 
 export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+
   const user = verifyToken(req.cookies.token);
-  
   if (!user) {
-    return res.status(200).json({ isAdmin: false });
+    return res.status(200).json({ isAdmin: false, isSuperAdmin: false });
   }
 
-  // 1. Проверка на супер-админа (тебя)
-  if (user.id === SUPER_ADMIN_ID) {
-    return res.status(200).json({ isAdmin: true, isSuperAdmin: true, userId: user.id });
-  }
+  const roles = Array.isArray(user.roles) ? user.roles : [];
+  const admin = await hasAdminAccess(user);
 
-  // 2. Проверка ручного списка из базы
-  const manualAdmins = await kv.get('lspd:manual_admins') || [];
-  if (manualAdmins.includes(user.id)) {
-    return res.status(200).json({ isAdmin: true, isSuperAdmin: false, userId: user.id });
-  }
-
-  // 3. Проверка по ролям Discord
-  const hasAdminRole = (user.roles || []).some(roleId => ADMIN_ROLE_IDS.includes(roleId));
-  
-  res.status(200).json({ 
-    isAdmin: hasAdminRole,
-    isSuperAdmin: false,
+  return res.status(200).json({
+    isAdmin: admin,
+    isSuperAdmin: isSuperAdmin(user),
     userId: user.id,
-    roles: user.roles || []
+    roles,
   });
 }

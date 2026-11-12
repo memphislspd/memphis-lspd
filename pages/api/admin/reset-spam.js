@@ -1,5 +1,5 @@
 import { verifyToken } from '../../../lib/discord';
-import { isAdmin } from '../../../lib/admins';
+import { hasAdminAccess } from '../../../lib/admins';
 import { resetSpam } from '../../../lib/antispam';
 
 export default async function handler(req, res) {
@@ -9,9 +9,8 @@ export default async function handler(req, res) {
 
   const user = verifyToken(req.cookies.token);
   
-  if (!user || !isAdmin(user.id)) {
-    return res.status(403).json({ error: 'Нет доступа' });
-  }
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
 
   const { userId } = req.body;
   

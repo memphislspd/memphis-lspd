@@ -1,14 +1,14 @@
 import { verifyToken } from '../../../lib/discord';
-import { isAdmin } from '../../../lib/admins';
+import { hasAdminAccess } from '../../../lib/admins';
 import { kv } from '@vercel/kv';
 import { getBlacklist } from '../../../lib/blacklist';
 
 export default async function handler(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
   const user = verifyToken(req.cookies.token);
-  
-  if (!user || !isAdmin(user.id)) {
-    return res.status(403).json({ error: 'Нет доступа' });
-  }
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
 
   try {
     const today = new Date().toISOString().split('T')[0];

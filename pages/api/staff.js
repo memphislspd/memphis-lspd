@@ -1,6 +1,7 @@
 // pages/api/staff.js
 import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
+import { hasAdminAccess } from '../../lib/admins';
 
 export default async function handler(req, res) {
   // GET используется публичной секцией руководства на стартовой странице.
@@ -13,12 +14,16 @@ export default async function handler(req, res) {
     }
   }
 
+  if (req.method !== 'POST' && req.method !== 'DELETE') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const user = verifyToken(req.cookies.token);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
 
   // POST: Добавить нового человека (только для админов)
   if (req.method === 'POST') {
-    // Тут можно добавить проверку на роль, но пока пустим всех, у кого есть доступ к админке
     const { name, rank, discord, avatar } = req.body;
 
     if (!name || !rank || !discord) {

@@ -1,19 +1,11 @@
 // pages/api/departments.js
 import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
-
-const ADMIN_ROLE_IDS = [
-  '1514608894700159142', '1514608894700159145', 
-  '1514608894700159143', '1550848894789885962', '1514665211980939314'
-];
-const SUPER_ADMIN_ID = '200102286473691139';
+import { hasAdminAccess } from '../../lib/admins';
 
 export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
-
-  const hasRole = (user.roles || []).some(r => ADMIN_ROLE_IDS.includes(r));
-  const isAdminUser = user.id === SUPER_ADMIN_ID || hasRole;
 
   // GET: Получить все отделы
   if (req.method === 'GET') {
@@ -27,7 +19,7 @@ export default async function handler(req, res) {
 
   // POST: Добавить отдел
   if (req.method === 'POST') {
-    if (!isAdminUser) return res.status(403).json({ error: 'Нет доступа' });
+    if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
     const { name, icon, description, leaders } = req.body;
     if (!name || !description) return res.status(400).json({ error: 'Заполните обязательные поля' });
 

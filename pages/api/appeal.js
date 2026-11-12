@@ -3,6 +3,7 @@ import { kv } from '@vercel/kv';
 
 const WEBHOOK_URL = process.env.WEBHOOK_RECOVERY;
 const ROLE_PING = '1514608894679191592';
+const STAFF_ROLE_ID = '1552313180041121802';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,8 +11,9 @@ export default async function handler(req, res) {
   }
 
   const user = verifyToken(req.cookies.token);
-  if (!user) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  if (!Array.isArray(user.roles) || !user.roles.includes(STAFF_ROLE_ID)) {
+    return res.status(403).json({ error: 'Для подачи этой формы требуется роль сотрудника LSPD' });
   }
 
   const {

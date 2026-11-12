@@ -47,6 +47,21 @@ export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
+  const { type, leaveType, ...formData } = req.body || {};
+  const validTypes = new Set(['report', 'transfer', 'highrank', 'resignation', 'reinstatement', 'transfer-to-lspd', 'hiring', 'weapon-request', 'premium', 'complaint', 'leave', 'promotion']);
+  if (!validTypes.has(type)) return res.status(400).json({ error: 'Неизвестный тип заявления' });
+
+  const employeeOnlyTypes = new Set(['report', 'transfer', 'resignation', 'weapon-request', 'leave', 'promotion']);
+  const userRoles = Array.isArray(user.roles) ? user.roles : [];
+  const STAFF_ROLE_ID = '1552313180041121802';
+  const HIGH_RANK_ROLE_ID = '1514608894679191597';
+  if (employeeOnlyTypes.has(type) && !userRoles.includes(STAFF_ROLE_ID)) {
+    return res.status(403).json({ error: 'Для подачи этой формы требуется роль сотрудника LSPD' });
+  }
+  if (type === 'highrank' && !userRoles.includes(HIGH_RANK_ROLE_ID)) {
+    return res.status(403).json({ error: 'Для подачи отчёта требуется роль старшего состава' });
+  }
+
   const ip = req.headers['x-vercel-forwarded-for'] || req.headers['x-real-ip'] || 'unknown';
   const isWhitelisted = WHITELIST.includes(user.id);
 
@@ -64,7 +79,6 @@ export default async function handler(req, res) {
     if (spamCheck.isSpam) { if (spamCheck.ban) await addToBlacklist(user.id, user.username, spamCheck.reason, ip); return res.status(429).json({ error: spamCheck.message }); }
   }
 
-  const { type, leaveType, ...formData } = req.body;
   const department = formData.department;
   const targetDepartment = formData.targetDepartment;
 
