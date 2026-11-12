@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
   // PUT: Обновить существующий отдел
   if (req.method === 'PUT') {
-    if (!isAdminUser) return res.status(403).json({ error: 'Нет доступа' });
+    if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
     const { id, name, icon, description, leaders } = req.body;
     
     try {
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
 
   // DELETE: Удалить отдел
   if (req.method === 'DELETE') {
-    if (!isAdminUser) return res.status(403).json({ error: 'Нет доступа' });
+    if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
     const { id } = req.body;
     try {
       let departments = await kv.get('lspd:departments_roster') || [];

@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
   // DELETE
   if (req.method === 'DELETE') {
-    if (!isAdminUser) return res.status(403).json({ error: 'Нет доступа' });
+    if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
     const { id } = req.body;
     
     let passes = await kv.get('lspd:passes') || [];
