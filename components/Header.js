@@ -50,14 +50,8 @@ export default function Header({ user }) {
   };
 
   const handleLogin = () => {
-    const params = new URLSearchParams({
-      client_id: '1533765326213222491',
-      redirect_uri: 'https://memphis-lspd.vercel.app/api/auth',
-      response_type: 'code',
-      scope: 'identify guilds guilds.members.read',
-      state: router.asPath || '/dashboard',
-    });
-    window.location.href = `https://discord.com/api/oauth2/authorize?${params}`;
+    const returnTo = router.asPath || '/dashboard';
+    window.location.href = `/api/auth/start?returnTo=${encodeURIComponent(returnTo)}`;
   };
 
   return (
@@ -70,7 +64,7 @@ export default function Header({ user }) {
 
         <nav className="site-nav" aria-label="Основная навигация">
           <button className={router.pathname === '/start' ? 'is-active' : ''} onClick={() => router.push('/start')}>Главная</button>
-          
+
           {navItems.map(item => (
             <button key={item.path} className={router.pathname === item.path ? 'is-active' : ''} onClick={() => router.push(item.path)}>
               {item.label}
@@ -79,8 +73,8 @@ export default function Header({ user }) {
 
           {/* Кнопка Админки в навигации, справа от Пропусков */}
           {isAdmin && (
-            <button 
-              className={`admin-nav-btn ${router.pathname.startsWith('/admin') ? 'is-active' : ''}`} 
+            <button
+              className={`admin-nav-btn ${router.pathname.startsWith('/admin') ? 'is-active' : ''}`}
               onClick={() => router.push('/admin')}
             >
               Админка
@@ -96,7 +90,7 @@ export default function Header({ user }) {
               {profileAvatar && <img src={profileAvatar} alt="" />}
             </button>
           ) : <button className="header-login" onClick={handleLogin}>Войти ↗</button>}
-          
+
           {/* 2. Кнопка Выйти */}
           {user && (
             <button
