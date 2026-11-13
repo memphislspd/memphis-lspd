@@ -83,7 +83,6 @@ export default function Header({ user }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMenuOpen]);
 
-  const profileName = user?.global_name || user?.username || 'Профиль';
   const profileAvatar = savedProfileAvatar || user?.avatar_url || (user?.avatar && user?.id
     ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
     : null);
@@ -171,15 +170,29 @@ export default function Header({ user }) {
 
           <div className="site-header__actions">
             {user ? (
-              <button
-                className="profile-chip"
-                onClick={() => navigate('/profile')}
-                aria-label="Открыть профиль"
-                title={profileName}
-              >
-                <span>{profileName}</span>
-                {profileAvatar && <img src={profileAvatar} alt="" />}
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="profile-link"
+                  onClick={() => navigate('/profile')}
+                  aria-current={router.pathname === '/profile' ? 'page' : undefined}
+                >
+                  Профиль
+                </button>
+                <button
+                  type="button"
+                  className="profile-avatar-button"
+                  onClick={() => navigate('/profile')}
+                  aria-label="Открыть профиль"
+                  title="Открыть профиль"
+                >
+                  {profileAvatar ? (
+                    <img src={profileAvatar} alt="" />
+                  ) : (
+                    <span aria-hidden="true">◉</span>
+                  )}
+                </button>
+              </>
             ) : (
               <button className="header-login" onClick={handleLogin}>Войти <span aria-hidden="true">↗</span></button>
             )}
@@ -237,7 +250,8 @@ export default function Header({ user }) {
 
         .brand,
         .site-nav button,
-        .profile-chip,
+        .profile-link,
+        .profile-avatar-button,
         .header-login,
         .header-logout,
         .mobile-menu-toggle {
@@ -367,34 +381,56 @@ export default function Header({ user }) {
           min-width: 0;
         }
 
-        .profile-chip {
-          display: flex;
+        .profile-link {
+          display: inline-flex;
           align-items: center;
-          gap: 10px;
-          max-width: 180px;
-          min-width: 0;
-          padding: 0;
-          color: #a6b3c5;
+          justify-content: center;
+          min-height: 36px;
+          padding: 0 14px;
+          border: 1px solid rgba(91, 151, 235, .38);
+          border-radius: 6px;
+          background: rgba(63, 131, 248, .1);
+          color: #b8d4fa;
           font-size: 12px;
-          transition: color .18s ease;
+          font-weight: 600;
+          text-decoration: none;
+          transition: background .18s ease, border-color .18s ease, color .18s ease;
         }
 
-        .profile-chip:hover {
+        .profile-link:hover,
+        .profile-link[aria-current="page"] {
+          border-color: rgba(104, 166, 255, .72);
+          background: rgba(63, 131, 248, .19);
           color: #fff;
         }
 
-        .profile-chip span {
+        .profile-avatar-button {
+          display: grid;
+          place-items: center;
+          flex: 0 0 38px;
+          width: 38px;
+          height: 38px;
+          padding: 0;
           overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+          border: 1px solid rgba(92, 150, 231, .52);
+          border-radius: 50%;
+          background: rgba(63, 131, 248, .12);
+          color: #a9caff;
+          cursor: pointer;
+          font-size: 19px;
+          transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
         }
 
-        .profile-chip img {
-          flex: 0 0 34px;
-          width: 34px;
-          height: 34px;
-          border: 1px solid rgba(92, 150, 231, .42);
-          border-radius: 50%;
+        .profile-avatar-button:hover {
+          border-color: #75afff;
+          box-shadow: 0 0 0 3px rgba(63, 131, 248, .13), 0 0 20px rgba(63, 131, 248, .16);
+          transform: translateY(-1px);
+        }
+
+        .profile-avatar-button img {
+          display: block;
+          width: 100%;
+          height: 100%;
           object-fit: cover;
         }
 
@@ -485,7 +521,8 @@ export default function Header({ user }) {
 
         .site-nav button:focus-visible,
         .brand:focus-visible,
-        .profile-chip:focus-visible,
+        .profile-link:focus-visible,
+        .profile-avatar-button:focus-visible,
         .header-login:focus-visible,
         .header-logout:focus-visible,
         .mobile-menu-toggle:focus-visible {
@@ -586,19 +623,16 @@ export default function Header({ user }) {
             gap: 9px;
           }
 
-          .profile-chip {
-            max-width: 36px;
-            gap: 0;
+          .profile-link {
+            min-height: 34px;
+            padding: 0 12px;
+            font-size: 11px;
           }
 
-          .site-header__actions .profile-chip span {
-            display: none;
-          }
-
-          .profile-chip img {
-            flex-basis: 32px;
-            width: 32px;
-            height: 32px;
+          .profile-avatar-button {
+            flex-basis: 34px;
+            width: 34px;
+            height: 34px;
           }
 
           .header-login {
