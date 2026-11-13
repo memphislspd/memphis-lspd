@@ -3,6 +3,23 @@ import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
 
+const actionButtonStyle = {
+  WebkitAppearance: 'none',
+  appearance: 'none',
+  background: 'rgba(30, 41, 59, 0.72)',
+  color: '#cbd5e1',
+  border: '1px solid rgba(148, 163, 184, 0.28)',
+  borderRadius: '8px',
+  padding: '10px 16px',
+  fontSize: '13px',
+  fontWeight: '600',
+  letterSpacing: '0.04em',
+  lineHeight: 1.4,
+  cursor: 'pointer',
+  touchAction: 'manipulation',
+  transition: 'background 150ms ease, border-color 150ms ease, opacity 150ms ease',
+};
+
 function formatDate(value) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 'Неизвестная дата' : date.toLocaleString('ru-RU');
@@ -47,10 +64,10 @@ export default function AdminAuditLogsPage() {
   return (
     <AdminPageGuard superAdminOnly>
       <PageLayout user={user}>
-        <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>← Назад в админку</button>
+        <button type="button" onClick={() => router.push('/admin')} style={{ WebkitAppearance: 'none', appearance: 'none', marginBottom: '20px', padding: '6px 0', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>← Назад в админку</button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '10px' }}>
           <h1 style={{ fontSize: '36px', fontWeight: '800' }}>Журнал действий</h1>
-          <button onClick={() => loadLogs(offset)} disabled={loading} style={{ padding: '10px 16px' }}>ОБНОВИТЬ</button>
+          <button type="button" onClick={() => loadLogs(offset)} disabled={loading} style={{ ...actionButtonStyle, opacity: loading ? 0.45 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>ОБНОВИТЬ</button>
         </div>
         <p style={{ color: '#9ca3af', marginBottom: '24px' }}>История административных изменений. Доступна только владельцу супер-админки.</p>
         <div style={{ border: '1px solid rgba(148,163,184,0.15)', borderRadius: '8px', overflow: 'hidden', background: 'rgba(11,15,22,0.6)' }}>
@@ -75,8 +92,8 @@ export default function AdminAuditLogsPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '18px' }}>
           <span style={{ color: '#64748b', fontSize: '12px' }}>Показано: {logs.length} · Страница {Math.floor(offset / 50) + 1}</span>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={() => loadLogs(Math.max(0, offset - 50))} disabled={loading || offset === 0}>НАЗАД</button>
-            <button onClick={() => loadLogs(offset + 50)} disabled={loading || !hasMore}>ДАЛЕЕ</button>
+            <button type="button" onClick={() => loadLogs(Math.max(0, offset - 50))} disabled={loading || offset === 0} style={{ ...actionButtonStyle, opacity: loading || offset === 0 ? 0.4 : 1, cursor: loading || offset === 0 ? 'not-allowed' : 'pointer' }}>НАЗАД</button>
+            <button type="button" onClick={() => loadLogs(offset + 50)} disabled={loading || !hasMore} style={{ ...actionButtonStyle, opacity: loading || !hasMore ? 0.4 : 1, cursor: loading || !hasMore ? 'not-allowed' : 'pointer' }}>ДАЛЕЕ</button>
           </div>
         </div>
       </PageLayout>
