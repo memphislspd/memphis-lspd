@@ -1,10 +1,9 @@
 // pages/staff.js
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import Header from '../components/Header';
 import StaffCard from '../components/StaffCard';
 
 export default function StaffPage() {
-  const router = useRouter();
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,42 +16,37 @@ export default function StaffPage() {
       });
   }, []);
 
-  if (loading) return <div style={{ minHeight: '100vh', background: '#0a0a0a' }} />;
+  if (loading) {
+    return (
+      <div className="site-page-shell staff-page">
+        <Header user={null} />
+        <main className="staff-page__loading">
+          <span className="form-loading__spinner" />
+          <span>ЗАГРУЗКА СОСТАВА</span>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#0a0a0a', // Темный фон в стиле FIB
-      backgroundImage: 'radial-gradient(circle at 50% 0%, #1a1a3e 0%, transparent 50%)', // Легкий синий отблик сверху
-      color: 'white',
-      padding: '80px 20px'
-    }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
-        
-        <button onClick={() => router.push('/dashboard')} style={{ marginBottom: '40px', background: 'transparent', color: '#8b8ba7', border: 'none', cursor: 'pointer', fontSize: '14px' }}>← Вернуться на главную</button>
-
-        {/* Заголовок как на референсе */}
-        <div style={{ display: 'inline-block', background: '#ff2640', color: 'white', fontSize: '12px', fontWeight: 'bold', padding: '6px 16px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px' }}>
-          TOP SECRET // CLEARANCE REQUIRED
+    <div className="site-page-shell staff-page">
+      <Header user={null} />
+      <main className="staff-page__content">
+        <div className="staff-heading">
+          <span className="staff-heading__eyebrow">MEMPHIS POLICE DEPARTMENT / LEADERSHIP</span>
+          <h1>Руководство</h1>
+          <p>Высшее командование Memphis Police Department.</p>
         </div>
-        
-        <h1 style={{ fontSize: '48px', fontWeight: '900', margin: '0 0 10px 0', letterSpacing: '1px' }}>Руководство</h1>
-        <p style={{ color: '#8b8ba7', fontSize: '16px', marginBottom: '60px' }}>Высшее командование Memphis Police Department</p>
-
-        {/* Сетка карточек */}
-        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div className="staff-grid">
           {staff.length > 0 ? (
             staff.map(member => (
               <StaffCard key={member.id} member={member} isAdminView={false} />
             ))
           ) : (
-            <div style={{ color: '#8b8ba7', padding: '40px', background: '#121212', borderRadius: '16px', border: '1px dashed #333' }}>
-              Состав пока пуст. Добавь людей через админку.
-            </div>
+            <div className="staff-empty">Состав руководства пока не опубликован.</div>
           )}
         </div>
-
-      </div>
+      </main>
     </div>
   );
 }

@@ -31,12 +31,7 @@ export default function DepartmentsPage() {
       </div>
 
       {departments.length > 0 ? (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
-          gap: '24px', 
-          alignItems: 'stretch' // <-- ВАЖНО: Карточки растягиваются по высоте
-        }}>
+        <div className="department-grid">
           {departments.map(dept => (
             <DeptCard key={dept.id} dept={dept} isAdminView={false} />
           ))}

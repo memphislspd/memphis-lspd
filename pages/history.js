@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Header from '../components/Header';
 
-// Иконки и цвета по типу заявки
 const TYPE_META = {
   promotion: { icon: '📈', color: '#4CAF50', label: 'Повышение' },
   transfer: { icon: '🔄', color: '#2196F3', label: 'Перевод' },
@@ -17,7 +17,6 @@ const TYPE_META = {
   complaint: { icon: '🚨', color: '#FF0000', label: 'Жалоба' }
 };
 
-// Красивая дата
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   const now = new Date();
@@ -27,13 +26,13 @@ function formatDate(dateStr) {
   const days = Math.floor(diff / 86400000);
 
   if (minutes < 1) return 'только что';
-  if (minutes < 60) return `${minutes} мин назад`;
-  if (hours < 24) return `${hours} ч назад`;
-  if (days < 7) return `${days} дн назад`;
-  
-  return date.toLocaleDateString('ru-RU', { 
-    day: '2-digit', 
-    month: 'short', 
+  if (minutes < 60) return minutes + ' мин назад';
+  if (hours < 24) return hours + ' ч назад';
+  if (days < 7) return days + ' дн назад';
+
+  return date.toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
@@ -58,235 +57,79 @@ export default function History() {
     }).catch(() => router.push('/'));
   }, []);
 
-if (loading) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
+  if (loading) {
+    return <div className="history-loading"><span className="form-loading__spinner" /></div>;
+  }
 
-  // Уникальные типы для фильтра
-  const availableTypes = ['all', ...new Set(history.map(h => h.type).filter(Boolean))];
-  const filtered = filter === 'all' ? history : history.filter(h => h.type === filter);
+  const availableTypes = ['all', ...new Set(history.map(item => item.type).filter(Boolean))];
+  const filtered = filter === 'all' ? history : history.filter(item => item.type === filter);
 
   return (
-    <div style={{ minHeight:'100vh', background:'linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 100%)', color:'white' }}>
-
-      {/* Sticky шапка */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(10,10,26,0.85)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        marginBottom: '30px'
-      }}>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          maxWidth: '900px', margin: '0 auto', padding: '16px 20px', gap: '16px'
-        }}>
-          <button 
-            onClick={() => router.push('/dashboard')}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'white',
-              border: '1px solid rgba(255,255,255,0.1)',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12"/>
-              <polyline points="12 19 5 12 12 5"/>
-            </svg>
-            Назад
-          </button>
-
-          <div style={{ fontSize: '16px', fontWeight: 600, color: 'white' }}>
-            Мои заявки
+    <div className="site-page-shell history-page">
+      <Header user={user} />
+      <main className="history-content">
+        <div className="history-heading">
+          <div>
+            <span className="history-eyebrow">MEMPHIS LSPD / ЛИЧНЫЙ КАБИНЕТ</span>
+            <h1>История обращений</h1>
+            <p>Все отправленные вами заявления и обращения в одном месте.</p>
           </div>
-
-          <div style={{ 
-            fontSize: '12px', 
-            color: '#8b8ba7',
-            background: 'rgba(255,255,255,0.05)',
-            padding: '6px 12px',
-            borderRadius: '8px',
-            fontWeight: 600,
-            minWidth: '80px',
-            textAlign: 'center'
-          }}>
-            {filtered.length}
+          <div className="history-count" aria-label={'Всего обращений: ' + filtered.length}>
+            <strong>{filtered.length}</strong>
+            <span>ЗАПИСЕЙ</span>
           </div>
         </div>
-      </div>
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px 40px' }}>
-
-        {/* Заголовок */}
-        <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px' }}>
-          <div style={{ width:'4px', height:'20px', background:'#5865F2', borderRadius:'2px' }} />
-          <h1 style={{ fontSize:'20px', margin:0, fontWeight:600 }}>
-            История заявок
-          </h1>
-        </div>
-
-        {/* Фильтр по типам */}
         {history.length > 0 && availableTypes.length > 2 && (
-          <div style={{ 
-            display: 'flex', 
-            gap: '8px', 
-            marginBottom: '20px', 
-            overflowX: 'auto',
-            paddingBottom: '4px'
-          }}>
+          <div className="history-filters" role="group" aria-label="Фильтр по типу обращения">
             {availableTypes.map(type => {
               const meta = TYPE_META[type];
               const isActive = filter === type;
               return (
                 <button
                   key={type}
+                  type="button"
+                  className={isActive ? 'history-filter is-active' : 'history-filter'}
                   onClick={() => setFilter(type)}
-                  style={{
-                    background: isActive ? (meta?.color || '#5865F2') + '25' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${isActive ? (meta?.color || '#5865F2') + '60' : 'rgba(255,255,255,0.08)'}`,
-                    color: isActive ? 'white' : '#8b8ba7',
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s'
-                  }}
+                  aria-pressed={isActive}
                 >
-                  {type === 'all' ? '📁 Все' : `${meta?.icon || '📄'} ${meta?.label || type}`}
+                  {type === 'all' ? 'Все обращения' : (meta?.icon || '📄') + ' ' + (meta?.label || type)}
                 </button>
               );
             })}
           </div>
         )}
 
-        {/* Список заявок */}
         {filtered.length === 0 ? (
-          <div style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '16px',
-            padding: '60px 30px',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px', opacity: 0.5 }}>📭</div>
-            <h3 style={{ fontSize: '18px', marginBottom: '8px', fontWeight: 600 }}>
-              У вас пока нет заявок
-            </h3>
-            <p style={{ color: '#8b8ba7', fontSize: '14px', margin: 0 }}>
-              Отправьте первую заявку через дашборд
-            </p>
+          <div className="history-empty">
+            <div className="history-empty__mark" aria-hidden="true">—</div>
+            <h2>Пока нет обращений</h2>
+            <p>Отправленные вами обращения появятся здесь.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {filtered.map((item, i) => {
-              const meta = TYPE_META[item.type] || { icon: '📄', color: '#5865F2', label: 'Заявка' };
+          <div className="history-list">
+            {filtered.map((item, index) => {
+              const meta = TYPE_META[item.type] || { icon: '📄', color: '#7f9fc7', label: 'Заявка' };
               return (
-                <div
-                  key={i}
-                  style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '14px',
-                    padding: '16px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    transition: 'all 0.2s',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                    e.currentTarget.style.borderColor = meta.color + '60';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                  }}
-                >
-                  {/* Цветная полоска слева */}
-                  <div style={{
-                    position: 'absolute', top: 0, left: 0, bottom: 0,
-                    width: '3px', background: meta.color
-                  }} />
-
-                  {/* Иконка */}
-                  <div style={{
-                    width: '44px',
-                    height: '44px',
-                    minWidth: '44px',
-                    borderRadius: '12px',
-                    background: meta.color + '15',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '22px'
-                  }}>
-                    {meta.icon}
+                <article className="history-item" key={item.id || (item.type + '-' + item.date + '-' + index)}>
+                  <div className="history-item__icon" aria-hidden="true">{meta.icon}</div>
+                  <div className="history-item__content">
+                    <strong>{item.title || meta.label}</strong>
+                    <span className="history-item__date">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      {formatDate(item.date)}
+                    </span>
                   </div>
-
-                  {/* Контент */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: 'white',
-                      marginBottom: '4px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {item.title || meta.label}
-                    </div>
-                    <div style={{
-                      fontSize: '12px',
-                      color: '#8b8ba7',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10"/>
-                          <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                        {formatDate(item.date)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Статус бейдж */}
-                  <div style={{
-                    background: 'rgba(76,175,80,0.15)',
-                    border: '1px solid rgba(76,175,80,0.3)',
-                    color: '#4CAF50',
-                    padding: '4px 10px',
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap'
-                  }}>
-                    Отправлено
-                  </div>
-                </div>
+                  <span className="history-status"><i />Отправлено</span>
+                </article>
               );
             })}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

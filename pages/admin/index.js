@@ -88,31 +88,28 @@ export default function AdminHub() {
     <PageLayout user={user}>
       
       {/* Заголовок терминала */}
-      <div style={{ marginBottom: '40px' }}>
-        <div style={{ 
-          display: 'inline-flex', alignItems: 'center', gap: '10px', 
-          background: 'rgba(255, 38, 64, 0.1)', border: '1px solid rgba(255, 38, 64, 0.3)', 
-          padding: '6px 14px', borderRadius: '4px', marginBottom: '20px' 
-        }}>
-          <span style={{ color: '#ff2640', fontSize: '12px', animation: 'blink 1.5s step-end infinite' }}>●</span>
-          <span style={{ color: '#ff2640', fontSize: '11px', fontWeight: '800', letterSpacing: '1px', fontFamily: "'DM Mono', monospace" }}>
+      <div className="admin-page-heading">
+        <div className="admin-access-tag">
+          <span className="admin-access-tag__dot">●</span>
+          <span className="admin-access-tag__label">
             ADMINISTRATOR ACCESS
           </span>
         </div>
         
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>
+        <h1 className="admin-page-heading__title">
           Центр Управления
         </h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>
+        <p className="admin-page-heading__description">
           Панель администратора Memphis Police Department.
         </p>
       </div>
 
       {/* Сетка модулей */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '20px' }}>
+      <div className="admin-tools-grid">
         {ADMIN_TOOLS.filter(tool => !tool.isRestricted || isSuperAdmin).map((tool) => (
-          <div 
+          <div
             key={tool.title}
+            className={tool.isRestricted ? 'admin-tool-card is-restricted' : 'admin-tool-card'}
             onClick={() => router.push(tool.path)}
             style={{
               background: 'rgba(11, 15, 22, 0.6)',
