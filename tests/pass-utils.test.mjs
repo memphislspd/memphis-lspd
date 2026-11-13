@@ -12,7 +12,6 @@ const validPass = {
   name: 'Test User',
   staticId: '12345',
   passNumber: 'PASS-001',
-  issueDate: '2026-11-01',
   validFrom: '2026-11-01',
   validUntil: '2026-11-30',
   link: ''
@@ -59,12 +58,10 @@ test('normalizes submitted pass fields to trimmed strings', () => {
     name: '  Test User  ',
     staticId: 12345,
     passNumber: ' PASS-001 ',
-    issueDate: ' 2026-11-01 '
   }), {
     name: 'Test User',
     staticId: '12345',
     passNumber: 'PASS-001',
-    issueDate: '2026-11-01',
     validFrom: '',
     validUntil: '',
     link: ''
@@ -79,7 +76,6 @@ test('accepts a valid pass and optional HTTP links', () => {
 
 test('rejects missing required fields and invalid dates', () => {
   assert.match(validatePass({ ...validPass, name: '' }), /Заполните имя/);
-  assert.match(validatePass({ ...validPass, issueDate: '2026-02-29' }), /дату выдачи/);
   assert.match(validatePass({ ...validPass, validFrom: '2026-02-30' }), /корректные даты/);
 });
 
