@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
 import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle } from '../../components/adminStyles';
 
 const actionButtonStyle = {
   WebkitAppearance: 'none',
@@ -72,7 +73,7 @@ export default function AdminAuditLogsPage() {
             <button type="button" onClick={() => loadLogs(offset)} disabled={loading} style={{ ...actionButtonStyle, opacity: loading ? 0.45 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>ОБНОВИТЬ</button>
           }
         />
-        <div style={{ border: '1px solid rgba(148,163,184,0.15)', borderRadius: '8px', overflow: 'hidden', background: 'rgba(11,15,22,0.6)' }}>
+        <div style={{ ...adminPanelStyle }}>
           {loading && <div style={{ padding: '24px', color: '#9ca3af' }}>Загрузка журнала...</div>}
           {!loading && logs.length === 0 && <div style={{ padding: '28px', textAlign: 'center', color: '#9ca3af' }}>Записей пока нет. Новые действия администраторов будут появляться здесь.</div>}
           {!loading && logs.map((entry, index) => (
