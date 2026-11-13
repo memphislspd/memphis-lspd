@@ -232,10 +232,10 @@ export default async function handler(req, res) {
   const STAFF_ROLE_ID = '1552313180041121802';
   const HIGH_RANK_ROLE_ID = '1514608894679191597';
   if (employeeOnlyTypes.has(type) && !userRoles.includes(STAFF_ROLE_ID)) {
-    return rejectSubmission(res, user, type, formData, leaveType, 403, 'Для подачи этой формы требуется роль сотрудника LSPD');
+    return res.status(403).json({ error: 'Для подачи этой формы требуется роль сотрудника LSPD' });
   }
   if (type === 'highrank' && !userRoles.includes(HIGH_RANK_ROLE_ID)) {
-    return rejectSubmission(res, user, type, formData, leaveType, 403, 'Для подачи отчёта требуется роль старшего состава');
+    return res.status(403).json({ error: 'Для подачи отчёта требуется роль старшего состава' });
   }
 
   const ip = req.headers['x-vercel-forwarded-for'] || req.headers['x-real-ip'] || 'unknown';
