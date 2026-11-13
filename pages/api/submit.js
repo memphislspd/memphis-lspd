@@ -223,7 +223,7 @@ export default async function handler(req, res) {
 
   if (!isWhitelisted) {
     const isLocked = await kv.get('lspd:global:locked');
-    if (isLocked) { const ttl = await kv.ttl('lspd:global:locked'); return rejectSubmission(res, user, type, formData, leaveType, 429, `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl||1800)/60)} мин.`); }
+    if (isLocked) { const ttl = await kv.ttl('lspd:global:locked'); return rejectSubmission(res, user, type, formData, leaveType, 429, `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl||3600)/60)} мин.`); }
     const gc = await kv.get('lspd:global:requests');
     const ngc = gc ? parseInt(gc) + 1 : 1;
     if (ngc > 10) { await kv.set('lspd:global:locked', '1', { ex: 3600 }); await kv.del('lspd:global:requests'); return rejectSubmission(res, user, type, formData, leaveType, 429, '🚫 Сайт заблокирован на 60 минут.'); }
