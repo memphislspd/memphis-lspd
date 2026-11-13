@@ -90,8 +90,8 @@ export default function PassesPage() {
             <button type="submit" style={{ 
               ...adminPrimaryButtonStyle, padding: '12px 24px', width: '100%'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#5b96ff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'var(--blue)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(63, 131, 248, 0.24)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(63, 131, 248, 0.14)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
               [ ВЫДАТЬ ПРОПУСК ]
             </button>
