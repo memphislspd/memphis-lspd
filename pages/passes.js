@@ -9,7 +9,6 @@ const EMPTY_FORM = {
   name: '',
   staticId: '',
   passNumber: '',
-  issueDate: '',
   validFrom: '',
   validUntil: '',
   link: ''
@@ -73,7 +72,7 @@ export default function PassesPage() {
   const [editingId, setEditingId] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('issueDateDesc');
+  const [sortBy, setSortBy] = useState('validFromDesc');
   const [today, setToday] = useState(todayUtc);
 
   const fetchPasses = async () => {
@@ -143,7 +142,6 @@ export default function PassesPage() {
       name: pass.name || '',
       staticId: pass.staticId || '',
       passNumber: pass.passNumber || '',
-      issueDate: dateForInput(pass.issueDate),
       validFrom: dateForInput(pass.validFrom),
       validUntil: dateForInput(pass.validUntil),
       link: pass.link || ''
@@ -188,7 +186,7 @@ export default function PassesPage() {
       if (sortBy === 'name') return compareText(a, b, 'name');
       if (sortBy === 'passNumber') return compareText(a, b, 'passNumber');
       if (sortBy === 'validUntil') return compareText(a, b, 'validUntil');
-      return compareText(b, a, 'issueDate');
+      return compareText(b, a, 'validFrom');
     });
     return filtered;
   }, [passes, search, statusFilter, sortBy, today]);
@@ -196,9 +194,9 @@ export default function PassesPage() {
   if (!user) return null;
 
   const gridColumns = isAdmin
-    ? '1.2fr 0.75fr 0.65fr 0.85fr 1.2fr 0.45fr 1fr 1.4fr'
-    : '1.2fr 0.75fr 0.65fr 0.85fr 1.2fr 0.45fr 1fr';
-  const gridMinWidth = isAdmin ? '1120px' : '980px';
+    ? '1.2fr 0.75fr 0.65fr 1.2fr 0.45fr 1fr 1.4fr'
+    : '1.2fr 0.75fr 0.65fr 1.2fr 0.45fr 1fr';
+  const gridMinWidth = isAdmin ? '1020px' : '860px';
 
   const updateField = (field, value) => setFormData(current => ({ ...current, [field]: value }));
 
@@ -228,10 +226,6 @@ export default function PassesPage() {
             <label style={fieldLabelStyle}>
               НОМЕР ПРОПУСКА
               <input required maxLength={40} value={formData.passNumber} onChange={e => updateField('passNumber', e.target.value)} placeholder="Номер" style={inputStyle} />
-            </label>
-            <label style={fieldLabelStyle}>
-              ДАТА ВЫДАЧИ
-              <input required type="date" value={formData.issueDate} onChange={e => updateField('issueDate', e.target.value)} style={inputStyle} />
             </label>
             <label style={fieldLabelStyle}>
               ДЕЙСТВУЕТ ОТ
@@ -283,7 +277,7 @@ export default function PassesPage() {
             <option value="unspecified">Срок не задан</option>
           </select>
           <select value={sortBy} onChange={e => setSortBy(e.target.value)} aria-label="Сортировка пропусков" style={inputStyle}>
-            <option value="issueDateDesc">Сначала новые</option>
+            <option value="validFromDesc">Сначала по дате начала</option>
             <option value="name">По имени</option>
             <option value="passNumber">По номеру</option>
             <option value="validUntil">По окончанию срока</option>
@@ -309,7 +303,6 @@ export default function PassesPage() {
               <div>Имя</div>
               <div>Статик</div>
               <div>Номер</div>
-              <div>Выдан</div>
               <div>Период действия</div>
               <div>Ссылка</div>
               <div>Статус</div>
@@ -340,7 +333,6 @@ export default function PassesPage() {
                   <div style={{ fontWeight: 700, color: 'white', fontFamily: "'Space Grotesk', sans-serif", fontSize: '13px', overflowWrap: 'anywhere' }}>{pass.name}</div>
                   <div style={{ color: '#9ca3af' }}>{pass.staticId}</div>
                   <div style={{ color: 'var(--blue)', fontWeight: 700 }}>#{pass.passNumber}</div>
-                  <div style={{ color: '#9ca3af' }}>{formatDate(pass.issueDate)}</div>
                   <div style={{ color: '#cbd5e1', lineHeight: 1.6 }}>
                     {pass.validFrom && pass.validUntil
                       ? <>{formatDate(pass.validFrom)}<span style={{ color: '#64748b' }}> — </span>{formatDate(pass.validUntil)}</>
