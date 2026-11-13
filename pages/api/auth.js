@@ -2,6 +2,7 @@
 import { timingSafeEqual } from 'crypto';
 import { getDiscordToken, getDiscordUser, createToken, isAccountOldEnough } from '../../lib/discord';
 import { kv } from '@vercel/kv';
+import { getDiscordAvatarUrl } from '../../lib/avatar';
 
 const GUILD_ID = '1514608894666735717'; // Твой сервер LSPD
 const OAUTH_COOKIE_PATH = '/api/auth';
@@ -154,6 +155,17 @@ export default async function handler(req, res) {
     // 4. Сохраняем роли и информацию пользователя для админки проверки.
     await kv.set(`user:roles:${user.id}`, userRoles, { ex: 7 * 24 * 3600 });
     await kv.set(`user:info:${user.id}`, { username: user.username, avatar: user.avatar }, { ex: 7 * 24 * 3600 });
+
+    // Discord-фото фиксируется при первом входе и не перезаписывает выбор пользователя.
+    try {
+      const avatarKey = `lspd:profile-avatar:${user.id}`;
+      const savedAvatar = await kv.get(avatarKey);
+      if (!savedAvatar) {
+        await kv.set(avatarKey, { source: 'discord', url: getDiscordAvatarUrl(user), updatedAt: Date.now() }, { nx: true });
+      }
+    } catch (avatarError) {
+      console.error('Не удалось сохранить первоначальный аватар Discord:', avatarError);
+    }
 
     // 5. Создаем сессию и очищаем временные OAuth cookies.
     const jwtToken = createToken({ ...user, roles: userRoles });

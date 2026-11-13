@@ -7,6 +7,7 @@ export default function Header({ user }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [savedProfileAvatar, setSavedProfileAvatar] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -30,6 +31,42 @@ export default function Header({ user }) {
   }, [user]);
 
   useEffect(() => {
+    if (!user?.id) {
+      setSavedProfileAvatar('');
+      return undefined;
+    }
+    let active = true;
+    const storageKey = `memphis-lspd:profile-avatar:${user.id}`;
+    let cachedAvatar = '';
+    try {
+      cachedAvatar = window.sessionStorage.getItem(storageKey) || '';
+      if (cachedAvatar) setSavedProfileAvatar(cachedAvatar);
+    } catch {}
+    if (!cachedAvatar) {
+      fetch('/api/profile/avatar')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (active && data?.avatarUrl) {
+            setSavedProfileAvatar(data.avatarUrl);
+            try { window.sessionStorage.setItem(storageKey, data.avatarUrl); } catch {}
+          }
+        })
+        .catch(() => {});
+    }
+    const handleAvatarUpdate = event => {
+      if (active && typeof event.detail === 'string') {
+        setSavedProfileAvatar(event.detail);
+        try { window.sessionStorage.setItem(storageKey, event.detail); } catch {}
+      }
+    };
+    window.addEventListener('profile-avatar-updated', handleAvatarUpdate);
+    return () => {
+      active = false;
+      window.removeEventListener('profile-avatar-updated', handleAvatarUpdate);
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
     const closeMenu = () => setIsMenuOpen(false);
     router.events.on('routeChangeStart', closeMenu);
     return () => router.events.off('routeChangeStart', closeMenu);
@@ -47,7 +84,7 @@ export default function Header({ user }) {
   }, [isMenuOpen]);
 
   const profileName = user?.global_name || user?.username || 'Профиль';
-  const profileAvatar = user?.avatar_url || (user?.avatar && user?.id
+  const profileAvatar = savedProfileAvatar || user?.avatar_url || (user?.avatar && user?.id
     ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
     : null);
 

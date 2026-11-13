@@ -44,7 +44,13 @@ export default async function handler(req, res) {
     res.status(200).json({
       total: parseInt(total),
       today: parseInt(todayCount),
-      history: history.map(h => { try { return JSON.parse(h); } catch { return h; } }),
+      history: history.map(h => {
+        let item = h;
+        try { item = JSON.parse(h); } catch {}
+        if (!item || typeof item !== 'object') return item;
+        // До появления статусов в истории сохранялись только успешные отправки.
+        return { ...item, status: item.status === 'not_sent' ? 'not_sent' : 'sent' };
+      }),
       chart,
       maxCount
     });

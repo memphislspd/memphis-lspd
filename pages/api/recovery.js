@@ -1,9 +1,15 @@
 import { verifyToken } from '../../lib/discord';
 import { kv } from '@vercel/kv';
+import { recordSubmissionHistory } from '../../lib/submission-history';
 
 const WEBHOOK_URL = process.env.WEBHOOK_RECOVERY;
 const ROLE_PING = '1514608894679191592';
 const STAFF_ROLE_ID = '1552313180041121802';
+
+async function rejectRecovery(res, user, statusCode, message) {
+  await recordSubmissionHistory(user.id, { type: 'recovery', title: 'Отработка взыскания', status: 'not_sent' });
+  return res.status(statusCode).json({ error: message });
+}
 
 const MP_LABELS = {
   drop: 'Дроп',
@@ -20,30 +26,30 @@ export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
   if (!Array.isArray(user.roles) || !user.roles.includes(STAFF_ROLE_ID)) {
-    return res.status(403).json({ error: 'Для подачи этой формы требуется роль сотрудника LSPD' });
+    return rejectRecovery(res, user, 403, 'Для подачи этой формы требуется роль сотрудника LSPD');
   }
 
   const { warn, rank, method, suppliesProof, mpList, comment } = req.body;
 
   if (!warn || !rank || !method) {
-    return res.status(400).json({ error: 'Заполните обязательные поля' });
+    return rejectRecovery(res, user, 400, 'Заполните обязательные поля');
   }
   if (method === 'supplies' && !suppliesProof) {
-    return res.status(400).json({ error: 'Нужен скриншот склада' });
+    return rejectRecovery(res, user, 400, 'Нужен скриншот склада');
   }
   if (method === 'points') {
     if (!Array.isArray(mpList) || mpList.length === 0) {
-      return res.status(400).json({ error: 'Добавьте хотя бы одно МП' });
+      return rejectRecovery(res, user, 400, 'Добавьте хотя бы одно МП');
     }
     for (const mp of mpList) {
       if (!mp.type || !mp.proof) {
-        return res.status(400).json({ error: 'Заполните все МП' });
+        return rejectRecovery(res, user, 400, 'Заполните все МП');
       }
     }
   }
 
   if (!WEBHOOK_URL) {
-    return res.status(500).json({ error: 'Вебхук не настроен' });
+    return rejectRecovery(res, user, 500, 'Вебхук не настроен');
   }
 
   const fields = [
@@ -87,7 +93,7 @@ export default async function handler(req, res) {
     (embed.author?.name || '').length +
     fields.reduce((total, field) => total + field.name.length + field.value.length, 0);
   if (fields.length > 25 || fields.some(field => field.value.length > 1024) || embedTextLength > 6000) {
-    return res.status(400).json({ error: 'Слишком много текста или приложений для одного сообщения Discord. Сократите доказательства и комментарий.' });
+    return rejectRecovery(res, user, 400, 'Слишком много текста или приложений для одного сообщения Discord. Сократите доказательства и комментарий.');
   }
 
 
@@ -105,25 +111,19 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errText = await response.text();
-      return res.status(500).json({ error: `Discord: ${errText}` });
+      return rejectRecovery(res, user, 502, `Discord: ${errText}`);
     }
 
-    const today = new Date().toISOString().split('T')[0];
-    await kv.incr('lspd:stats:total');
-    await kv.incr(`lspd:stats:${today}`);
-    await kv.lpush(
-      `lspd:history:${user.id}`,
-      JSON.stringify({
-        type: 'recovery',
-        title: 'Отработка взыскания',
-        date: new Date().toISOString(),
-        id: Date.now().toString(36),
-      })
-    );
-    await kv.ltrim(`lspd:history:${user.id}`, 0, 49);
-
-    res.status(200).json({ success: true });
+    await recordSubmissionHistory(user.id, { type: 'recovery', title: 'Отработка взыскания', status: 'sent' });
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await kv.incr('lspd:stats:total');
+      await kv.incr(`lspd:stats:${today}`);
+    } catch (storageError) {
+      console.error('Recovery delivered to Discord, but stats storage failed:', storageError);
+    }
+    return res.status(200).json({ success: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    await rejectRecovery(res, user, 502, e.message || 'Не удалось отправить заявку');
   }
 }

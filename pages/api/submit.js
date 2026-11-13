@@ -3,6 +3,7 @@ import { verifyToken } from '../../lib/discord';
 import { isBlacklisted, addToBlacklist } from '../../lib/blacklist';
 import { checkSpam } from '../../lib/antispam';
 import { kv } from '@vercel/kv';
+import { recordSubmissionHistory } from '../../lib/submission-history';
 import { 
   getDepartment, 
   getReportWebhook, 
@@ -12,6 +13,15 @@ import {
 } from '../../lib/departments';
 
 const WHITELIST = ['200102286473691139'];
+
+async function rejectSubmission(res, user, type, formData, leaveType, statusCode, message) {
+  await recordSubmissionHistory(user.id, {
+    type,
+    title: getFormTitle(type, formData?.department, formData?.targetDepartment, leaveType),
+    status: 'not_sent',
+  });
+  return res.status(statusCode).json({ error: message });
+}
 
 const webhooks = {
   promotion: process.env.WEBHOOK_PROMOTION,
@@ -195,17 +205,17 @@ export default async function handler(req, res) {
   if (!validTypes.has(type)) return res.status(400).json({ error: 'Неизвестный тип заявления' });
 
   const validationError = validateSubmission(type, formData, leaveType);
-  if (validationError) return res.status(400).json({ error: validationError });
+  if (validationError) return rejectSubmission(res, user, type, formData, leaveType, 400, validationError);
 
   const employeeOnlyTypes = new Set(['report', 'transfer', 'resignation', 'weapon-request', 'leave', 'promotion']);
   const userRoles = Array.isArray(user.roles) ? user.roles : [];
   const STAFF_ROLE_ID = '1552313180041121802';
   const HIGH_RANK_ROLE_ID = '1514608894679191597';
   if (employeeOnlyTypes.has(type) && !userRoles.includes(STAFF_ROLE_ID)) {
-    return res.status(403).json({ error: 'Для подачи этой формы требуется роль сотрудника LSPD' });
+    return rejectSubmission(res, user, type, formData, leaveType, 403, 'Для подачи этой формы требуется роль сотрудника LSPD');
   }
   if (type === 'highrank' && !userRoles.includes(HIGH_RANK_ROLE_ID)) {
-    return res.status(403).json({ error: 'Для подачи отчёта требуется роль старшего состава' });
+    return rejectSubmission(res, user, type, formData, leaveType, 403, 'Для подачи отчёта требуется роль старшего состава');
   }
 
   const ip = req.headers['x-vercel-forwarded-for'] || req.headers['x-real-ip'] || 'unknown';
@@ -213,16 +223,16 @@ export default async function handler(req, res) {
 
   if (!isWhitelisted) {
     const isLocked = await kv.get('lspd:global:locked');
-    if (isLocked) { const ttl = await kv.ttl('lspd:global:locked'); return res.status(429).json({ error: `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl||1800)/60)} мин.` }); }
+    if (isLocked) { const ttl = await kv.ttl('lspd:global:locked'); return rejectSubmission(res, user, type, formData, leaveType, 429, `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl||1800)/60)} мин.`); }
     const gc = await kv.get('lspd:global:requests');
     const ngc = gc ? parseInt(gc) + 1 : 1;
-    if (ngc > 10) { await kv.set('lspd:global:locked', '1', { ex: 1800 }); await kv.del('lspd:global:requests'); return res.status(429).json({ error: '🚫 Сайт заблокирован на 30 минут.' }); }
+    if (ngc > 10) { await kv.set('lspd:global:locked', '1', { ex: 1800 }); await kv.del('lspd:global:requests'); return rejectSubmission(res, user, type, formData, leaveType, 429, '🚫 Сайт заблокирован на 30 минут.'); }
     await kv.set('lspd:global:requests', ngc, { ex: 20 });
 
-    if (await isBlacklisted(user.id, ip)) return res.status(403).json({ error: '⛔ Вы заблокированы.' });
+    if (await isBlacklisted(user.id, ip)) return rejectSubmission(res, user, type, formData, leaveType, 403, '⛔ Вы заблокированы.');
 
     const spamCheck = await checkSpam(user.id, ip);
-    if (spamCheck.isSpam) { if (spamCheck.ban) await addToBlacklist(user.id, user.username, spamCheck.reason, ip); return res.status(429).json({ error: spamCheck.message }); }
+    if (spamCheck.isSpam) { if (spamCheck.ban) await addToBlacklist(user.id, user.username, spamCheck.reason, ip); return rejectSubmission(res, user, type, formData, leaveType, 429, spamCheck.message); }
   }
 
   const department = formData.department;
@@ -232,13 +242,13 @@ export default async function handler(req, res) {
 
   if (type === 'report') {
     const dept = getDepartment(department);
-    if (!dept) return res.status(400).json({ error: 'Выберите отдел' });
+    if (!dept) return rejectSubmission(res, user, type, formData, leaveType, 400, 'Выберите отдел');
     webhookUrl = getReportWebhook(department);
-    if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
+    if (!webhookUrl) return rejectSubmission(res, user, type, formData, leaveType, 500, 'Вебхук не настроен');
     roleMentions = getRoleMentions(department);
   } else if (type === 'transfer') {
     webhookUrl = getTransferWebhook(targetDepartment);
-    if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
+    if (!webhookUrl) return rejectSubmission(res, user, type, formData, leaveType, 500, 'Вебхук не настроен');
     roleMentions = getRoleMentions(targetDepartment);
   } else if (type === 'highrank') { webhookUrl = webhooks.highrank; roleMentions = '<@&1514608894700159142> <@&1514690313233371226>'; }
   else if (type === 'resignation') { webhookUrl = webhooks.resignation; roleMentions = '<@&1514608894679191597>'; }
@@ -253,11 +263,11 @@ export default async function handler(req, res) {
     roleMentions = getRoleMentions(department);
     threadId = leaveType === 'ooc' ? '1541113530743390288' : '1541113565505781891';
   } else { webhookUrl = webhooks.promotion; roleMentions = '<@&1514608894679191597>'; }
-  if (!webhookUrl) return res.status(500).json({ error: 'Вебхук не настроен' });
+  if (!webhookUrl) return rejectSubmission(res, user, type, formData, leaveType, 500, 'Вебхук не настроен');
 
   if (!isWhitelisted) {
     const ipCount = await kv.get(`lspd:spam:ip:${ip}`);
-    if (ipCount && parseInt(ipCount) >= 6) return res.status(429).json({ error: '🚫 Слишком много с IP.' });
+    if (ipCount && parseInt(ipCount) >= 6) return rejectSubmission(res, user, type, formData, leaveType, 429, '🚫 Слишком много с IP.');
   }
 
   const embed = {
@@ -269,7 +279,7 @@ export default async function handler(req, res) {
     timestamp: new Date().toISOString()
   };
   const embedError = validateEmbed(embed);
-  if (embedError) return res.status(400).json({ error: embedError });
+  if (embedError) return rejectSubmission(res, user, type, formData, leaveType, 400, embedError);
 
   // Приватная запись — каноническая копия жалобы. Публичная сводка отправляется после неё.
   const result = await sendToDiscord(webhookUrl, {
@@ -281,8 +291,11 @@ export default async function handler(req, res) {
   });
 
   if (!result.success) {
-    return res.status(502).json({ error: `Не удалось отправить: ${result.error || 'ошибка Discord'}` });
+    return rejectSubmission(res, user, type, formData, leaveType, 502, `Не удалось отправить: ${result.error || 'ошибка Discord'}`);
   }
+
+  // Discord подтвердил доставку основного сообщения — фиксируем успех сразу.
+  await recordSubmissionHistory(user.id, { type, title: embed.title, status: 'sent' });
 
   let publicWarning = null;
   if (type === 'complaint') {
@@ -316,11 +329,6 @@ export default async function handler(req, res) {
     const today = new Date().toISOString().split('T')[0];
     await kv.incr('lspd:stats:total');
     await kv.incr(`lspd:stats:${today}`);
-    await kv.lpush(`lspd:history:${user.id}`, JSON.stringify({
-      type, title: embed.title, date: new Date().toISOString(), id: Date.now().toString(36)
-    }));
-    await kv.ltrim(`lspd:history:${user.id}`, 0, 49);
-
     const globalRequest = {
       id: Date.now().toString(),
       type: type || 'unknown',

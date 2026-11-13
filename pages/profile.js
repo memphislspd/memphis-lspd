@@ -1,5 +1,5 @@
 // pages/profile.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { DEPARTMENTS } from '../lib/departments';
 import PageLayout from '../components/PageLayout';
@@ -13,17 +13,33 @@ export default function Profile() {
   const [editingName, setEditingName] = useState(false);
   const [editingDept, setEditingDept] = useState(false);
   const [newName, setNewName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const avatarInputRef = useRef(null);
 
   useEffect(() => {
     fetch('/api/me').then(r => r.json()).then(d => {
       if (!d.user) { router.push('/'); return; }
       setUser(d.user);
       setLoading(false);
-    });
+    }).catch(() => router.replace('/'));
+
     fetch('/api/profile').then(r => r.json()).then(d => {
-      setProfile(d.profile);
-      setNewName(d.profile.fullName || '');
-    });
+      const nextProfile = d?.profile || { fullName: '', department: '' };
+      setProfile(nextProfile);
+      setNewName(nextProfile.fullName || '');
+    }).catch(() => window.toast?.error('Не удалось загрузить данные профиля.'));
+
+    fetch('/api/profile/avatar').then(r => r.json()).then(d => {
+      if (d?.avatarUrl) setAvatarUrl(d.avatarUrl);
+    }).catch(() => window.toast?.error('Не удалось загрузить фото профиля.'));
+
+    fetch('/api/stats').then(r => r.json()).then(d => {
+      setHistory(Array.isArray(d?.history) ? d.history : []);
+    }).catch(() => window.toast?.error('Не удалось загрузить историю обращений.'))
+      .finally(() => setHistoryLoading(false));
   }, []);
 
   const saveName = async () => {
@@ -51,6 +67,60 @@ export default function Profile() {
       setProfile(d.profile);
       setEditingDept(false);
       window.toast.success(deptId ? 'Отдел обновлён!' : 'Отдел убран');
+    }
+  };
+
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      window.toast.error('Выберите файл изображения.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      window.toast.error('Исходный файл слишком большой. Максимум 10 МБ.');
+      return;
+    }
+    setSavingAvatar(true);
+    try {
+      const bitmap = await createImageBitmap(file);
+      if (bitmap.width > 12000 || bitmap.height > 12000) {
+        bitmap.close?.();
+        throw new Error('Слишком большое разрешение изображения.');
+      }
+      const size = 512;
+      const crop = Math.min(bitmap.width, bitmap.height);
+      const sx = (bitmap.width - crop) / 2;
+      const sy = (bitmap.height - crop) / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext('2d');
+      if (!context) {
+        bitmap.close?.();
+        throw new Error('Не удалось обработать изображение.');
+      }
+      context.drawImage(bitmap, sx, sy, crop, crop, 0, 0, size, size);
+      bitmap.close?.();
+      let avatar = canvas.toDataURL('image/jpeg', 0.84);
+      if (avatar.length > 350000) avatar = canvas.toDataURL('image/jpeg', 0.72);
+      if (avatar.length > 350000) avatar = canvas.toDataURL('image/jpeg', 0.6);
+      if (avatar.length > 350000) throw new Error('Выберите другое фото: его не удалось сжать до допустимого размера.');
+      const response = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Не удалось сохранить фото.');
+      setAvatarUrl(data.avatarUrl);
+      window.dispatchEvent(new CustomEvent('profile-avatar-updated', { detail: data.avatarUrl }));
+      window.toast.success('Фото профиля обновлено!');
+    } catch (error) {
+      window.toast.error(error.message || 'Не удалось обработать изображение.');
+    } finally {
+      setSavingAvatar(false);
     }
   };
 
@@ -95,12 +165,24 @@ export default function Profile() {
               padding: '3px', background: 'linear-gradient(135deg, var(--blue), #9C27B0)',
               boxShadow: '0 0 30px rgba(63, 131, 248, 0.2)'
             }}>
-              <img 
-                src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`} 
-                alt="Avatar" 
-                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid #0b0f16' }} 
+              <img
+                src={avatarUrl || (user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256` : 'https://cdn.discordapp.com/embed/avatars/0.png')}
+                alt="Фото профиля"
+                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid #0b0f16' }}
               />
             </div>
+            <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={savingAvatar}
+              style={{ ...btnOutline, marginBottom: '20px', color: savingAvatar ? '#64748b' : '#a9caff', borderColor: 'rgba(63, 131, 248, 0.45)' }}
+            >
+              {savingAvatar ? 'ОБРАБОТКА ФОТО...' : 'ИЗМЕНИТЬ ФОТО'}
+            </button>
+            <p style={{ color: '#64748b', fontSize: '11px', lineHeight: 1.5, margin: '-8px 0 20px' }}>
+              При первом входе фото берётся из Discord. Дальше оно хранится отдельно и не меняется автоматически.
+            </p>
 
             <h2 style={{ margin: '0 0 6px', fontSize: '24px', fontWeight: '800', fontFamily: "'Space Grotesk', sans-serif", color: 'white' }}>
               {user.username}
@@ -226,6 +308,55 @@ export default function Profile() {
             </div>
           </div>
 
+        </div>
+      </div>
+      <div style={{ ...panelStyle, marginTop: '30px' }}>
+        <div style={panelHeaderStyle}>[ ИСТОРИЯ ОБРАЩЕНИЙ ]</div>
+        <div style={{ padding: '8px 24px' }}>
+          {historyLoading ? (
+            <div style={{ padding: '22px 0', color: '#7f8a9a', fontSize: '13px' }}>Загрузка истории...</div>
+          ) : history.length === 0 ? (
+            <div style={{ padding: '22px 0', color: '#7f8a9a', fontSize: '13px' }}>Пока нет отправленных обращений.</div>
+          ) : (
+            history.slice(0, 10).map((item, index) => {
+              const sent = item.status !== 'not_sent';
+              const date = item.date && !Number.isNaN(new Date(item.date).getTime())
+                ? new Date(item.date).toLocaleString('ru-RU', { dateStyle: 'medium', timeStyle: 'short' })
+                : 'Дата неизвестна';
+              return (
+                <div
+                  key={item.id || `${item.type || 'request'}-${index}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '14px',
+                    flexWrap: 'wrap',
+                    padding: '16px 0',
+                    borderBottom: index !== Math.min(history.length, 10) - 1 ? '1px solid rgba(148, 163, 184, 0.1)' : 'none',
+                  }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ color: '#e5edf8', fontSize: '14px', fontWeight: 600, marginBottom: '5px' }}>{item.title || 'Обращение'}</div>
+                    <div style={{ color: '#718096', fontFamily: "'DM Mono', monospace", fontSize: '11px' }}>{date}</div>
+                  </div>
+                  <span style={{
+                    flex: '0 0 auto',
+                    padding: '6px 9px',
+                    borderRadius: '3px',
+                    border: `1px solid ${sent ? 'rgba(76, 175, 80, .35)' : 'rgba(255, 82, 82, .35)'}`,
+                    background: sent ? 'rgba(76, 175, 80, .1)' : 'rgba(255, 82, 82, .1)',
+                    color: sent ? '#81c784' : '#ff8a80',
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: '10px',
+                    letterSpacing: '.4px',
+                  }}>
+                    {sent ? 'ОТПРАВЛЕНО' : 'НЕ ОТПРАВЛЕНО'}
+                  </span>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </PageLayout>
