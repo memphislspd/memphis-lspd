@@ -2,6 +2,7 @@
 import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
 import { hasAdminAccess } from '../../lib/admins';
+import { mutateJsonArray } from '../../lib/kv-atomic';
 
 export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
@@ -24,10 +25,7 @@ export default async function handler(req, res) {
     if (!name || !description) return res.status(400).json({ error: 'Заполните обязательные поля' });
 
     try {
-      const departments = await kv.get('lspd:departments_roster') || [];
-      const newDept = { id: Date.now().toString(), name, icon: icon || '🏢', description, leaders: leaders || [] };
-      departments.push(newDept);
-      await kv.set('lspd:departments_roster', departments);
+      const departments = await mutateJsonArray('lspd:departments_roster', 'add', { id: Date.now().toString(), name, icon: icon || '🏢', description, leaders: leaders || [] });
       return res.status(200).json({ success: true, departments });
     } catch (e) {
       return res.status(500).json({ error: 'Ошибка сохранения' });
@@ -40,20 +38,10 @@ export default async function handler(req, res) {
     const { id, name, icon, description, leaders } = req.body;
     
     try {
-      let departments = await kv.get('lspd:departments_roster') || [];
-      const index = departments.findIndex(d => d.id === id);
-      
-      if (index === -1) return res.status(404).json({ error: 'Отдел не найден' });
-      
-      departments[index] = { 
-        ...departments[index], 
-        name, 
-        icon: icon || '🏢', 
-        description, 
-        leaders: leaders || [] 
-      };
-      
-      await kv.set('lspd:departments_roster', departments);
+      const current = await kv.get('lspd:departments_roster') || [];
+      const existing = current.find(d => d.id === id);
+      if (!existing) return res.status(404).json({ error: 'Отдел не найден' });
+      const departments = await mutateJsonArray('lspd:departments_roster', 'update', { ...existing, name, icon: icon || '🏢', description, leaders: leaders || [] });
       return res.status(200).json({ success: true, departments });
     } catch (e) {
       return res.status(500).json({ error: 'Ошибка обновления' });
@@ -65,9 +53,7 @@ export default async function handler(req, res) {
     if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
     const { id } = req.body;
     try {
-      let departments = await kv.get('lspd:departments_roster') || [];
-      departments = departments.filter(d => d.id !== id);
-      await kv.set('lspd:departments_roster', departments);
+      const departments = await mutateJsonArray('lspd:departments_roster', 'delete', { id });
       return res.status(200).json({ success: true, departments });
     } catch (e) {
       return res.status(500).json({ error: 'Ошибка удаления' });
