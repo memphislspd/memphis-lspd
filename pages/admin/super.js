@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
 import AdminSectionHeader from '../../components/AdminSectionHeader';
-import { adminPanelStyle, adminInputStyle, adminPrimaryButtonStyle, adminDangerButtonStyle } from '../../components/adminStyles';
+import { adminPanelStyle, adminInputStyle, adminPrimaryButtonStyle, adminDangerButtonStyle, adminSuccessButtonStyle } from '../../components/adminStyles';
 
 export default function SuperAdminPage() {
   const router = useRouter();
@@ -83,15 +83,15 @@ export default function SuperAdminPage() {
         <div style={{ ...adminPanelStyle, marginBottom: '32px' }}>
           {admins.map(id => <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '14px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
             <span style={{ fontFamily: 'monospace', color: '#FFD700' }}>{id}</span>
-            <button onClick={() => removeAdmin(id)}>ОТОЗВАТЬ</button>
+            <button type="button" onClick={() => removeAdmin(id)} style={{ ...adminDangerButtonStyle, minHeight: '36px', padding: '7px 12px' }}>ОТОЗВАТЬ</button>
           </div>)}
           {admins.length === 0 && <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af' }}>Ручных админов пока нет.</div>}
         </div>
         <h2 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: '700', fontFamily: "'Space Grotesk', sans-serif" }}>Запрещённые Discord ID</h2>
         <div style={{ ...adminPanelStyle }}>
-          {denied.map(id => <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          {denied.map(id => <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '14px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
             <span style={{ fontFamily: 'monospace', color: '#ff6b6b' }}>{id}</span>
-            <button onClick={() => clearDeny(id)}>СНЯТЬ ЗАПРЕТ</button>
+            <button type="button" onClick={() => clearDeny(id)} style={{ ...adminSuccessButtonStyle, minHeight: '36px', padding: '7px 12px' }}>СНЯТЬ ЗАПРЕТ</button>
           </div>)}
           {denied.length === 0 && <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af' }}>Запретов нет.</div>}
         </div>
