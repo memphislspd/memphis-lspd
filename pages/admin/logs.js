@@ -2,21 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminPrimaryButtonStyle } from '../../components/adminStyles';
 
 const actionButtonStyle = {
+  ...adminPrimaryButtonStyle,
   WebkitAppearance: 'none',
   appearance: 'none',
-  background: 'rgba(30, 41, 59, 0.72)',
-  color: '#cbd5e1',
-  border: '1px solid rgba(148, 163, 184, 0.28)',
-  borderRadius: '8px',
-  padding: '10px 16px',
-  fontSize: '13px',
-  fontWeight: '600',
-  letterSpacing: '0.04em',
-  lineHeight: 1.4,
-  cursor: 'pointer',
-  touchAction: 'manipulation',
   transition: 'background 150ms ease, border-color 150ms ease, opacity 150ms ease',
 };
 
@@ -64,13 +56,14 @@ export default function AdminAuditLogsPage() {
   return (
     <AdminPageGuard superAdminOnly>
       <PageLayout user={user}>
-        <button type="button" onClick={() => router.push('/admin')} style={{ WebkitAppearance: 'none', appearance: 'none', marginBottom: '20px', padding: '6px 0', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>← Назад в админку</button>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '10px' }}>
-          <h1 style={{ fontSize: '36px', fontWeight: '800' }}>Журнал действий</h1>
-          <button type="button" onClick={() => loadLogs(offset)} disabled={loading} style={{ ...actionButtonStyle, opacity: loading ? 0.45 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>ОБНОВИТЬ</button>
-        </div>
-        <p style={{ color: '#9ca3af', marginBottom: '24px' }}>История административных изменений. Доступна только владельцу супер-админки.</p>
-        <div style={{ border: '1px solid rgba(148,163,184,0.15)', borderRadius: '8px', overflow: 'hidden', background: 'rgba(11,15,22,0.6)' }}>
+        <AdminSectionHeader
+          title="Журнал действий"
+          description="История административных изменений. Доступна только владельцу супер-админки."
+          actions={
+            <button type="button" onClick={() => loadLogs(offset)} disabled={loading} style={{ ...actionButtonStyle, opacity: loading ? 0.45 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>ОБНОВИТЬ</button>
+          }
+        />
+        <div style={{ ...adminPanelStyle }}>
           {loading && <div style={{ padding: '24px', color: '#9ca3af' }}>Загрузка журнала...</div>}
           {!loading && logs.length === 0 && <div style={{ padding: '28px', textAlign: 'center', color: '#9ca3af' }}>Записей пока нет. Новые действия администраторов будут появляться здесь.</div>}
           {!loading && logs.map((entry, index) => (

@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminPanelHeaderStyle } from '../../components/adminStyles';
 
 export default function ResetPage() {
   const router = useRouter();
@@ -38,17 +40,10 @@ export default function ResetPage() {
   return (
     <AdminPageGuard>
       <PageLayout user={user}>
-      <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontFamily: "'DM Mono', monospace", fontSize: '12px' }}>
-        ← НАЗАД В АДМИНКУ
-      </button>
-      
-      <div style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>Разблокировка</h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Снятие глобального лока сайта.</p>
-      </div>
+      <AdminSectionHeader title="Разблокировка" description="Снятие глобального лока сайта." />
 
-      <div style={{ background: 'rgba(11, 15, 22, 0.6)', border: '1px solid rgba(148, 163, 184, 0.15)', borderRadius: '4px', overflow: 'hidden', maxWidth: '600px' }}>
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)', background: 'rgba(0,0,0,0.3)', color: '#ff2640', fontSize: '12px', fontFamily: "'DM Mono', monospace", letterSpacing: '1px' }}>
+      <div style={{ ...adminPanelStyle, maxWidth: '600px' }}>
+        <div style={{ ...adminPanelHeaderStyle, color: '#ff6b7d' }}>
           [ СИСТЕМА БЕЗОПАСНОСТИ ]
         </div>
         <div style={{ padding: '30px', textAlign: 'center' }}>

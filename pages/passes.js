@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../components/PageLayout';
+import AdminSectionHeader from '../components/AdminSectionHeader';
+import { adminPanelStyle, adminPanelHeaderStyle, adminInputStyle, adminPrimaryButtonStyle } from '../components/adminStyles';
 
 export default function PassesPage() {
   const router = useRouter();
@@ -55,30 +57,23 @@ export default function PassesPage() {
   // Обновили сетку, добавив колонку для ссылки (1fr)
   const gridColumns = isAdmin ? '1.5fr 1fr 1fr 1fr 1fr 50px' : '1.5fr 1fr 1fr 1fr 1fr';
 
-  const inputStyle = { 
-    flex: '1 1 150px', padding: '12px', 
-    background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(148, 163, 184, 0.2)', 
-    color: 'white', borderRadius: '4px', fontFamily: "'DM Mono', monospace", 
-    fontSize: '12px', outline: 'none'
-  };
+  const inputStyle = { ...adminInputStyle, flex: '1 1 150px', fontSize: '12px' };
 
   return (
     <PageLayout user={user}>
-      <div style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>Реестр пропусков</h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>База данных выданных пропусков на территорию департамента.</p>
-      </div>
+      <AdminSectionHeader
+        title="Реестр пропусков"
+        description="База данных выданных пропусков на территорию департамента."
+        showBack={isAdmin}
+      />
 
       {/* ТЕРМИНАЛ: ДОБАВЛЕНИЕ ПРОПУСКА */}
       {isAdmin && (
         <div style={{ 
-          background: 'rgba(11, 15, 22, 0.6)', border: '1px solid rgba(148, 163, 184, 0.15)', 
-          borderRadius: '4px', marginBottom: '30px', overflow: 'hidden' 
+          ...adminPanelStyle, marginBottom: '30px' 
         }}>
           <div style={{ 
-            padding: '12px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)',
-            background: 'rgba(0, 0, 0, 0.3)', color: 'var(--blue)', fontSize: '12px',
-            fontFamily: "'DM Mono', monospace", letterSpacing: '1px', display: 'flex', gap: '10px' 
+            ...adminPanelHeaderStyle, justifyContent: 'flex-start' 
           }}>
             <span style={{ animation: 'blink 1s step-end infinite' }}>█</span> ГЕНЕРАЦИЯ НОВОГО ПРОПУСКА
           </div>
@@ -93,14 +88,10 @@ export default function PassesPage() {
             <input type="url" placeholder="ССЫЛКА (URL)" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} style={{...inputStyle, flex: '1 1 100%'}} />
             
             <button type="submit" style={{ 
-              padding: '12px 24px', background: 'var(--blue)', color: 'white', 
-              border: 'none', borderRadius: '4px', cursor: 'pointer', 
-              fontWeight: 'bold', height: '42px', fontSize: '12px',
-              fontFamily: "'DM Mono', monospace", letterSpacing: '1px',
-              transition: 'all 0.2s', boxShadow: '0 4px 15px rgba(63, 131, 248, 0.2)', width: '100%'
+              ...adminPrimaryButtonStyle, padding: '12px 24px', width: '100%'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#5b96ff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'var(--blue)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(63, 131, 248, 0.24)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(63, 131, 248, 0.14)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
               [ ВЫДАТЬ ПРОПУСК ]
             </button>
@@ -110,14 +101,11 @@ export default function PassesPage() {
 
       {/* ТЕРМИНАЛ: ТАБЛИЦА ПРОПУСКОВ */}
       <div style={{ 
-        background: 'rgba(11, 15, 22, 0.6)', border: '1px solid rgba(148, 163, 184, 0.15)', 
-        borderRadius: '4px', overflow: 'hidden' 
+        ...adminPanelStyle 
       }}>
         
         <div style={{ 
-          padding: '12px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)',
-          background: 'rgba(0, 0, 0, 0.3)', color: 'var(--blue)', fontSize: '12px',
-          fontFamily: "'DM Mono', monospace", letterSpacing: '1px', display: 'flex', justifyContent: 'space-between'
+          ...adminPanelHeaderStyle
         }}>
           <div style={{ display: 'flex', gap: '10px' }}>
             <span>█</span> РЕЕСТР ВЫДАННЫХ ПРОПУСКОВ
@@ -125,6 +113,8 @@ export default function PassesPage() {
           <div style={{ color: '#7f8a9a' }}>ЗАПИСЕЙ: {passes.length}</div>
         </div>
 
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div style={{ minWidth: isAdmin ? '680px' : '620px' }}>
         {/* Заголовки колонок (Добавлена "Ссылка") */}
         <div style={{ 
           display: 'grid', gridTemplateColumns: gridColumns, padding: '16px 20px', 
@@ -199,6 +189,8 @@ export default function PassesPage() {
               )}
             </div>
           ))}
+        </div>
+        </div>
         </div>
         
         {passes.length === 0 && (

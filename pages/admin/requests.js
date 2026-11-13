@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminPanelHeaderStyle } from '../../components/adminStyles';
 
 export default function RequestsPage() {
   const router = useRouter();
@@ -52,23 +54,18 @@ export default function RequestsPage() {
   return (
     <AdminPageGuard>
       <PageLayout user={user}>
-      <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontFamily: "'DM Mono', monospace", fontSize: '12px' }}>
-        ← НАЗАД В АДМИНКУ
-      </button>
+      <AdminSectionHeader title="Архив заявок" description="Все отправленные формы, сохраненные в базе данных." />
 
-      <div style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>Архив заявок</h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Все отправленные формы, сохраненные в базе данных.</p>
-      </div>
-
-      <div style={{ background: 'rgba(11, 15, 22, 0.6)', border: '1px solid rgba(148, 163, 184, 0.15)', borderRadius: '4px', overflow: 'hidden' }}>
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)', background: 'rgba(0,0,0,0.3)', color: 'var(--blue)', fontSize: '12px', fontFamily: "'DM Mono', monospace", letterSpacing: '1px', display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ ...adminPanelStyle }}>
+        <div style={{ ...adminPanelHeaderStyle }}>
           <span>[ СИСТЕМНЫЙ ЛОГ ЗАЯВОК ]</span>
           <span>ЗАПИСЕЙ: {submissions.length}</span>
         </div>
 
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div style={{ minWidth: '760px' }}>
         {/* Заголовки колонок */}
-        <div style={{ display: 'grid', gridTemplateColumns: '100px 1.5fr 1.2fr 100px 120px 140px', padding: '16px 20px', background: 'rgba(255,255,255,0.02)', fontSize: '11px', color: '#7f8a9a', fontFamily: "'DM Mono', monospace", borderBottom: '1px solid rgba(148, 163, 184, 0.1)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '90px 1.5fr 1.2fr 86px 110px 130px', padding: '16px 20px', background: 'rgba(255,255,255,0.02)', fontSize: '11px', color: '#7f8a9a', fontFamily: "'DM Mono', monospace", borderBottom: '1px solid rgba(148, 163, 184, 0.1)' }}>
           <div>ТИП</div>
           <div>ЗАГОЛОВОК</div>
           <div>ОТПРАВИТЕЛЬ</div>
@@ -94,7 +91,7 @@ export default function RequestsPage() {
             return (
               <div key={req.id} style={{ 
                 display: 'grid', 
-                gridTemplateColumns: '100px 1.5fr 1.2fr 100px 120px 140px', 
+                gridTemplateColumns: '90px 1.5fr 1.2fr 86px 110px 130px', 
                 padding: '16px 20px', 
                 borderBottom: '1px solid rgba(148, 163, 184, 0.05)', 
                 alignItems: 'center', 
@@ -159,6 +156,8 @@ export default function RequestsPage() {
               </div>
             );
           })}
+        </div>
+        </div>
         </div>
 
         {submissions.length === 0 && (

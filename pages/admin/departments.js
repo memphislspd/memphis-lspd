@@ -4,6 +4,8 @@ import { useRouter } from 'next/router';
 import DeptCard from '../../components/DeptCard';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminInputStyle, adminPanelStyle, adminPanelHeaderStyle } from '../../components/adminStyles';
 
 export default function AdminDepartmentsPage() {
   const router = useRouter();
@@ -85,35 +87,19 @@ export default function AdminDepartmentsPage() {
 
   if (loading || !user) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
 
-  const inputStyle = { 
-    flex: '1 1 200px', padding: '12px', 
-    background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(148, 163, 184, 0.2)', 
-    color: 'white', borderRadius: '4px', fontFamily: "'DM Mono', monospace", 
-    fontSize: '12px', outline: 'none'
-  };
+  const inputStyle = { ...adminInputStyle, flex: '1 1 200px', fontSize: '12px' };
 
   return (
     <AdminPageGuard>
       <PageLayout user={user}>
-      <div style={{ marginBottom: '40px' }}>
-        <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontFamily: "'DM Mono', monospace", fontSize: '12px' }}>
-          ← НАЗАД В АДМИНКУ
-        </button>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>
-          {editingId ? 'Редактирование отдела' : 'Управление отделами'}
-        </h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Создание и редактирование подразделений департамента.</p>
-      </div>
+      <AdminSectionHeader title={editingId ? 'Редактирование отдела' : 'Управление отделами'} description="Создание и редактирование подразделений департамента." />
 
       {/* ФОРМА (ТЕРМИНАЛ) */}
       <div style={{ 
-        background: 'rgba(11, 15, 22, 0.6)', border: '1px solid rgba(148, 163, 184, 0.15)', 
-        borderRadius: '4px', marginBottom: '40px', overflow: 'hidden' 
+        ...adminPanelStyle, marginBottom: '40px' 
       }}>
         <div style={{ 
-          padding: '12px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)',
-          background: 'rgba(0, 0, 0, 0.3)', color: 'var(--blue)', fontSize: '12px',
-          fontFamily: "'DM Mono', monospace", letterSpacing: '1px' 
+          ...adminPanelHeaderStyle 
         }}>
           <span style={{ animation: 'blink 1s step-end infinite' }}>█</span> {editingId ? 'РЕДАКТИРОВАНИЕ ЗАПИСИ' : 'СОЗДАНИЕ НОВОГО ОТДЕЛА'}
         </div>
@@ -159,7 +145,7 @@ export default function AdminDepartmentsPage() {
       </div>
 
       {/* СЕТКА КАРТОЧЕК */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px', alignItems: 'stretch' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '24px', alignItems: 'stretch' }}>
         {departments.map(dept => (
           <DeptCard key={dept.id} dept={dept} onDelete={handleDelete} onEdit={handleEdit} isAdminView={true} />
         ))}

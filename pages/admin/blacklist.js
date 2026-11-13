@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminPanelHeaderStyle, adminInputStyle } from '../../components/adminStyles';
 
 export default function BlacklistPage() {
   const router = useRouter();
@@ -90,19 +92,13 @@ export default function BlacklistPage() {
   );
 
   // Общие стили
-  const panelStyle = { background: 'rgba(11, 15, 22, 0.6)', border: '1px solid rgba(148, 163, 184, 0.15)', borderRadius: '4px', overflow: 'hidden', marginBottom: '24px' };
-  const panelHeaderStyle = { padding: '12px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)', background: 'rgba(0,0,0,0.3)', color: 'var(--blue)', fontSize: '12px', fontFamily: "'DM Mono', monospace", letterSpacing: '1px', display: 'flex', justifyContent: 'space-between' };
-  const inputStyle = { width: '100%', padding: '12px 14px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(148, 163, 184, 0.2)', color: 'white', fontSize: '14px', borderRadius: '4px', fontFamily: "'DM Mono', monospace", boxSizing: 'border-box', outline: 'none' };
+  const panelStyle = { ...adminPanelStyle, marginBottom: '24px' };
+  const panelHeaderStyle = { ...adminPanelHeaderStyle };
+  const inputStyle = { ...adminInputStyle, fontSize: '14px' };
 
   return (
     <PageLayout user={user}>
-      <div style={{ marginBottom: '40px' }}>
-        <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontFamily: "'DM Mono', monospace", fontSize: '12px' }}>
-          ← НАЗАД В АДМИНКУ
-        </button>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>Управление банами</h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Модерация, сброс лимитов и черный список.</p>
-      </div>
+      <AdminSectionHeader title="Управление банами" description="Модерация, сброс лимитов и черный список." />
 
       {/* БЛОК: СБРОС СПАМ-ЛИМИТА */}
       <div style={panelStyle}>
@@ -156,8 +152,8 @@ export default function BlacklistPage() {
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {filtered.map(ban => (
               <div key={ban.id} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '20px', borderBottom: '1px solid rgba(148, 163, 184, 0.05)',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
+                padding: '18px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.05)',
                 transition: 'background 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 38, 64, 0.05)'}
@@ -180,7 +176,7 @@ export default function BlacklistPage() {
                   border: '1px solid rgba(76, 175, 80, 0.3)', padding: '8px 16px',
                   borderRadius: '4px', fontSize: '12px', fontWeight: 'bold',
                   cursor: 'pointer', fontFamily: "'DM Mono', monospace",
-                  whiteSpace: 'nowrap', marginLeft: '20px', transition: 'all 0.2s'
+                  whiteSpace: 'nowrap', marginLeft: '0', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(76, 175, 80, 0.2)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(76, 175, 80, 0.1)'}
