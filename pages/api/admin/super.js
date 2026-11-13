@@ -25,6 +25,9 @@ export default async function handler(req, res) {
     const { discordId } = req.body || {};
     if (!validId(discordId)) return res.status(400).json({ error: 'Неверный Discord ID' });
     const id = String(discordId);
+    if (id === String(user.id) && req.method === 'PUT') {
+      return res.status(400).json({ error: 'Нельзя запретить админ-доступ для собственного аккаунта супер-администратора' });
+    }
 
     if (req.method === 'POST') {
       await kv.srem(DENIED_ADMINS_KEY, id);
