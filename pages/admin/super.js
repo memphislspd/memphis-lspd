@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
 
 export default function SuperAdminPage() {
   const router = useRouter();
@@ -71,9 +72,7 @@ export default function SuperAdminPage() {
   return (
     <AdminPageGuard superAdminOnly>
       <PageLayout user={user}>
-        <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>← Назад в админку</button>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '10px' }}>Супер-Админка</h1>
-        <p style={{ color: '#9ca3af', marginBottom: '24px' }}>Выдача и отзыв ручного доступа, а также безусловный запрет админских прав по Discord ID.</p>
+        <AdminSectionHeader title="Супер-Админка" description="Выдача и отзыв ручного доступа, а также безусловный запрет админских прав по Discord ID." />
         <form onSubmit={e => { e.preventDefault(); changeAccess('POST'); }} style={{ display: 'flex', gap: '15px', marginBottom: '12px' }}>
           <input type="text" placeholder="Discord ID" value={newId} onChange={e => setNewId(e.target.value)} required />
           <button type="submit" style={{ width: '200px', padding: '0 20px' }}>ВЫДАТЬ АДМИНКУ</button>
