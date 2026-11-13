@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
 
 export default function BlacklistPage() {
   const router = useRouter();
@@ -96,13 +97,7 @@ export default function BlacklistPage() {
 
   return (
     <PageLayout user={user}>
-      <div style={{ marginBottom: '40px' }}>
-        <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontFamily: "'DM Mono', monospace", fontSize: '12px' }}>
-          ← НАЗАД В АДМИНКУ
-        </button>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>Управление банами</h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Модерация, сброс лимитов и черный список.</p>
-      </div>
+      <AdminSectionHeader title="Управление банами" description="Модерация, сброс лимитов и черный список." />
 
       {/* БЛОК: СБРОС СПАМ-ЛИМИТА */}
       <div style={panelStyle}>
