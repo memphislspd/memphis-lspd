@@ -352,7 +352,7 @@ export default function PassesPage() {
                     fontFamily: "'DM Mono', monospace"
                   }}
                 >
-                  <div style={{ fontWeight: 700, color: 'white', fontFamily: "'Space Grotesk', sans-serif', fontSize: '13px', overflowWrap: 'anywhere' }}>{pass.name}</div>
+                  <div style={{ fontWeight: 700, color: 'white', fontFamily: "'Space Grotesk', sans-serif", fontSize: '13px', overflowWrap: 'anywhere' }}>{pass.name}</div>
                   <div style={{ color: '#9ca3af' }}>{pass.staticId}</div>
                   <div style={{ color: 'var(--blue)', fontWeight: 700 }}>#{pass.passNumber}</div>
                   <div style={{ color: '#9ca3af' }}>{formatDate(pass.issueDate)}</div>
