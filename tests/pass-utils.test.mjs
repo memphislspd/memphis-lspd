@@ -80,7 +80,7 @@ test('accepts a valid pass and optional HTTP links', () => {
 test('rejects missing required fields and invalid dates', () => {
   assert.match(validatePass({ ...validPass, name: '' }), /Заполните имя/);
   assert.match(validatePass({ ...validPass, issueDate: '2026-02-29' }), /дату выдачи/);
-  assert.match(validatePass({ ...validPass, validFrom: '2026-12-01' }), /корректные даты/);
+  assert.match(validatePass({ ...validPass, validFrom: '2026-02-30' }), /корректные даты/);
 });
 
 test('rejects reversed validity periods', () => {
