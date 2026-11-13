@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
 import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminInputStyle, adminPrimaryButtonStyle, adminDangerButtonStyle } from '../../components/adminStyles';
 
 export default function SuperAdminPage() {
   const router = useRouter();
@@ -73,21 +74,21 @@ export default function SuperAdminPage() {
     <AdminPageGuard superAdminOnly>
       <PageLayout user={user}>
         <AdminSectionHeader title="Супер-Админка" description="Выдача и отзыв ручного доступа, а также безусловный запрет админских прав по Discord ID." />
-        <form onSubmit={e => { e.preventDefault(); changeAccess('POST'); }} style={{ display: 'flex', gap: '15px', marginBottom: '12px' }}>
-          <input type="text" placeholder="Discord ID" value={newId} onChange={e => setNewId(e.target.value)} required />
-          <button type="submit" style={{ width: '200px', padding: '0 20px' }}>ВЫДАТЬ АДМИНКУ</button>
+        <form onSubmit={e => { e.preventDefault(); changeAccess('POST'); }} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <input type="text" placeholder="Discord ID" value={newId} onChange={e => setNewId(e.target.value)} required style={{ ...adminInputStyle, flex: '1 1 240px' }} />
+          <button type="submit" style={{ ...adminPrimaryButtonStyle, flex: '0 1 220px' }}>ВЫДАТЬ АДМИНКУ</button>
         </form>
-        <button onClick={() => changeAccess('PUT')} style={{ marginBottom: '32px', background: '#7f1d1d', color: '#fff', border: '1px solid #ef4444', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer' }}>ЗАПРЕТИТЬ АДМИНКУ ПО ID</button>
-        <h2>Ручные администраторы</h2>
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden', marginBottom: '32px' }}>
-          {admins.map(id => <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <button type="button" onClick={() => changeAccess('PUT')} style={{ ...adminDangerButtonStyle, marginBottom: '32px' }}>ЗАПРЕТИТЬ АДМИНКУ ПО ID</button>
+        <h2 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: '700', fontFamily: "'Space Grotesk', sans-serif" }}>Ручные администраторы</h2>
+        <div style={{ ...adminPanelStyle, marginBottom: '32px' }}>
+          {admins.map(id => <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '14px 20px', borderBottom: '1px solid rgba(148,163,184,0.1)' }}>
             <span style={{ fontFamily: 'monospace', color: '#FFD700' }}>{id}</span>
             <button onClick={() => removeAdmin(id)}>ОТОЗВАТЬ</button>
           </div>)}
           {admins.length === 0 && <div style={{ padding: '24px', textAlign: 'center', color: '#9ca3af' }}>Ручных админов пока нет.</div>}
         </div>
-        <h2>Запрещённые Discord ID</h2>
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', overflow: 'hidden' }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: '700', fontFamily: "'Space Grotesk', sans-serif" }}>Запрещённые Discord ID</h2>
+        <div style={{ ...adminPanelStyle }}>
           {denied.map(id => <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             <span style={{ fontFamily: 'monospace', color: '#ff6b6b' }}>{id}</span>
             <button onClick={() => clearDeny(id)}>СНЯТЬ ЗАПРЕТ</button>
