@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
 
   const userId = req.body?.userId;
-  if (!/^\\d{15,22}$/.test(String(userId || ''))) {
+    if (!/^\d{15,22}$/.test(String(userId || ''))) {
     return res.status(400).json({ error: 'Укажите корректный Discord ID' });
   }
 
