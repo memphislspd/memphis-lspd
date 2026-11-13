@@ -1,5 +1,6 @@
 import { verifyToken } from '../../lib/discord';
 import { kv } from '@vercel/kv';
+import { DEPARTMENTS } from '../../lib/departments';
 
 function isObjectRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -48,8 +49,9 @@ export default async function handler(req, res) {
     if (hasFullName && (typeof body.fullName !== 'string' || body.fullName.length > 120)) {
       return res.status(400).json({ error: 'Имя должно содержать не более 120 символов' });
     }
-    if (hasDepartment && (typeof body.department !== 'string' || body.department.length > 32)) {
-      return res.status(400).json({ error: 'Некорректное название отдела' });
+    if (hasDepartment && (typeof body.department !== 'string' || body.department.length > 32 ||
+        (body.department !== '' && !DEPARTMENTS.some(department => department.id === body.department)))) {
+      return res.status(400).json({ error: 'Выберите существующий отдел' });
     }
 
     try {
