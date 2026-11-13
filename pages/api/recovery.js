@@ -41,7 +41,7 @@ export default async function handler(req, res) {
 
   const { warn, rank, method, suppliesProof, mpList, comment } = req.body;
 
-  if (!isBoundedText(warn, 120) || !['cadet', 'regular'].includes(rank) ||
+  if (!['1/3', '2/3'].includes(warn) || !['cadet', 'regular'].includes(rank) ||
       !['supplies', 'points'].includes(method) || !isBoundedText(comment, 900, { optional: true })) {
     return rejectRecovery(res, user, 400, 'Проверьте обязательные поля и допустимые значения.');
   }
