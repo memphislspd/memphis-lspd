@@ -34,7 +34,8 @@ export default async function handler(req, res) {
     }
 
     if (action === 'unban') {
-      await removeFromBlacklist(String(userId));
+      const removed = await removeFromBlacklist(String(userId));
+      if (!removed) return res.status(404).json({ error: 'Пользователь не найден в чёрном списке' });
       await logAdminAction(user, { action: 'blacklist.remove', description: 'Снял блокировку пользователя', targetId: userId });
       return res.status(200).json({ success: true, message: 'Разбанен' });
     }
