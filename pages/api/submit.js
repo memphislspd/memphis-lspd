@@ -22,9 +22,7 @@ if redis.call('EXISTS', KEYS[2]) == 1 then
 end
 
 local count = redis.call('INCR', KEYS[1])
-if count == 1 then
-  redis.call('EXPIRE', KEYS[1], 20)
-end
+redis.call('EXPIRE', KEYS[1], 20)
 
 if count > 10 then
   redis.call('SET', KEYS[2], '1', 'EX', 3600)
