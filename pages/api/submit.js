@@ -207,7 +207,8 @@ async function sendToDiscord(webhookUrl, data, retries = 3) {
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (res.ok) return { success: true };
       if (res.status === 429) { await new Promise(r => setTimeout(r, (parseInt(res.headers.get('Retry-After')) || 5) * 1000)); continue; }
-      return { success: false, error: await res.text() };
+      console.error('Submission webhook failed:', { status: res.status });
+      return { success: false, error: 'ошибка Discord' };
     } catch (e) { lastError = e; if (i < retries - 1) await new Promise(r => setTimeout(r, 1000 * (i + 1))); }
   }
   return { success: false, error: lastError?.message };
