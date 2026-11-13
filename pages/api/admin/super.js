@@ -1,5 +1,5 @@
 import { verifyToken } from '../../../lib/discord';
-import { isSuperAdmin } from '../../../lib/admins';
+import { isSuperAdmin, hasAdminAccess } from '../../../lib/admins';
 import { kv } from '@vercel/kv';
 
 const MANUAL_ADMINS_KEY = 'lspd:manual_admins';
@@ -9,7 +9,7 @@ const validId = value => /^\d{15,22}$/.test(String(value || ''));
 export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
-  if (!isSuperAdmin(user)) return res.status(403).json({ error: 'Только создатель может управлять этим' });
+  if (!isSuperAdmin(user) || !(await hasAdminAccess(user))) return res.status(403).json({ error: 'Только активный супер-администратор может управлять этим' });
 
   try {
     if (req.method === 'GET') {
@@ -28,7 +28,6 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       await kv.srem(DENIED_ADMINS_KEY, id);
-      await kv.sadd(MANUAL_ADMINS_KEY + ':set', id);
       const current = await kv.get(MANUAL_ADMINS_KEY);
       const admins = Array.isArray(current) ? current : [];
       if (!admins.includes(id)) {
