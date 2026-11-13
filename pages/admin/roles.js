@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
 
 const CHECK_ROLES = [
   { id: '1514608894700159145', name: 'Роль 1' },
@@ -40,10 +41,7 @@ export default function RoleCheckerPage() {
   return (
     <AdminPageGuard>
       <PageLayout user={user}>
-      <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>← Назад в админку</button>
-      
-      <h1 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '10px' }}>Проверка ролей</h1>
-      <p style={{ color: '#9ca3af', marginBottom: '40px' }}>Введите Discord ID, чтобы узнать, какие роли у человека были при последнем входе.</p>
+      <AdminSectionHeader title="Проверка ролей" description="Введите Discord ID, чтобы узнать, какие роли у человека были при последнем входе." />
 
       <form onSubmit={handleSearch} style={{ display: 'flex', gap: '15px', marginBottom: '40px' }}>
         <input 
