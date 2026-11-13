@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import DeptCard from '../../components/DeptCard';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
 
 export default function AdminDepartmentsPage() {
   const router = useRouter();
@@ -95,15 +96,7 @@ export default function AdminDepartmentsPage() {
   return (
     <AdminPageGuard>
       <PageLayout user={user}>
-      <div style={{ marginBottom: '40px' }}>
-        <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#9ca3af', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontFamily: "'DM Mono', monospace", fontSize: '12px' }}>
-          ← НАЗАД В АДМИНКУ
-        </button>
-        <h1 style={{ fontSize: '36px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-1px', fontFamily: "'Space Grotesk', sans-serif" }}>
-          {editingId ? 'Редактирование отдела' : 'Управление отделами'}
-        </h1>
-        <p style={{ color: '#9ca3af', fontSize: '15px', margin: 0 }}>Создание и редактирование подразделений департамента.</p>
-      </div>
+      <AdminSectionHeader title={editingId ? 'Редактирование отдела' : 'Управление отделами'} description="Создание и редактирование подразделений департамента." />
 
       {/* ФОРМА (ТЕРМИНАЛ) */}
       <div style={{ 
