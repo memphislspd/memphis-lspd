@@ -14,6 +14,27 @@ import {
 
 const WHITELIST = ['200102286473691139'];
 
+const GLOBAL_RATE_LIMIT_SCRIPT = `
+if redis.call('EXISTS', KEYS[2]) == 1 then
+  local ttl = redis.call('TTL', KEYS[2])
+  if ttl < 1 then ttl = 3600 end
+  return {1, ttl}
+end
+
+local count = redis.call('INCR', KEYS[1])
+if count == 1 then
+  redis.call('EXPIRE', KEYS[1], 20)
+end
+
+if count > 10 then
+  redis.call('SET', KEYS[2], '1', 'EX', 3600)
+  redis.call('DEL', KEYS[1])
+  return {1, 3600}
+end
+
+return {0, count}
+`;
+
 async function rejectSubmission(res, user, type, formData, leaveType, statusCode, message) {
   await recordSubmissionHistory(user.id, {
     type,
@@ -222,17 +243,39 @@ export default async function handler(req, res) {
   const isWhitelisted = WHITELIST.includes(user.id);
 
   if (!isWhitelisted) {
-    const isLocked = await kv.get('lspd:global:locked');
-    if (isLocked) { const ttl = await kv.ttl('lspd:global:locked'); return rejectSubmission(res, user, type, formData, leaveType, 429, `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl||3600)/60)} мин.`); }
-    const gc = await kv.get('lspd:global:requests');
-    const ngc = gc ? parseInt(gc) + 1 : 1;
-    if (ngc > 10) { await kv.set('lspd:global:locked', '1', { ex: 3600 }); await kv.del('lspd:global:requests'); return rejectSubmission(res, user, type, formData, leaveType, 429, '🚫 Сайт заблокирован на 60 минут.'); }
-    await kv.set('lspd:global:requests', ngc, { ex: 20 });
+    try {
+      const globalLimit = await kv.eval(
+        GLOBAL_RATE_LIMIT_SCRIPT,
+        ['lspd:global:requests', 'lspd:global:locked'],
+        []
+      );
+      if (!Array.isArray(globalLimit) || globalLimit.length < 2) {
+        throw new Error('Global submission limit returned an invalid storage response');
+      }
+      const [isLocked, ttl] = globalLimit.map(Number);
+      if (isLocked) {
+        return rejectSubmission(
+          res, user, type, formData, leaveType, 429,
+          `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl > 0 ? ttl : 3600) / 60)} мин.`
+        );
+      }
 
-    if (await isBlacklisted(user.id, ip)) return rejectSubmission(res, user, type, formData, leaveType, 403, '⛔ Вы заблокированы.');
+      if (await isBlacklisted(user.id, ip)) {
+        return rejectSubmission(res, user, type, formData, leaveType, 403, '⛔ Вы заблокированы.');
+      }
 
-    const spamCheck = await checkSpam(user.id, ip);
-    if (spamCheck.isSpam) { if (spamCheck.ban) await addToBlacklist(user.id, user.username, spamCheck.reason, ip); return rejectSubmission(res, user, type, formData, leaveType, 429, spamCheck.message); }
+      const spamCheck = await checkSpam(user.id, ip);
+      if (spamCheck.isSpam) {
+        if (spamCheck.ban) await addToBlacklist(user.id, user.username, spamCheck.reason, ip);
+        return rejectSubmission(res, user, type, formData, leaveType, 429, spamCheck.message);
+      }
+    } catch (error) {
+      console.error('Submission protection storage failed:', error);
+      return rejectSubmission(
+        res, user, type, formData, leaveType, 503,
+        'Защита отправки временно недоступна. Попробуйте позже.'
+      );
+    }
   }
 
   const department = formData.department;
