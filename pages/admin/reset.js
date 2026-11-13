@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
 import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminPanelHeaderStyle } from '../../components/adminStyles';
 
 export default function ResetPage() {
   const router = useRouter();
@@ -41,8 +42,8 @@ export default function ResetPage() {
       <PageLayout user={user}>
       <AdminSectionHeader title="Разблокировка" description="Снятие глобального лока сайта." />
 
-      <div style={{ background: 'rgba(11, 15, 22, 0.6)', border: '1px solid rgba(148, 163, 184, 0.15)', borderRadius: '4px', overflow: 'hidden', maxWidth: '600px' }}>
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)', background: 'rgba(0,0,0,0.3)', color: '#ff2640', fontSize: '12px', fontFamily: "'DM Mono', monospace", letterSpacing: '1px' }}>
+      <div style={{ ...adminPanelStyle, maxWidth: '600px' }}>
+        <div style={{ ...adminPanelHeaderStyle, color: '#ff6b7d' }}>
           [ СИСТЕМА БЕЗОПАСНОСТИ ]
         </div>
         <div style={{ padding: '30px', textAlign: 'center' }}>
