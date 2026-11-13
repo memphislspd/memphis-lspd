@@ -1,6 +1,7 @@
 import { verifyToken } from '../../../lib/discord';
 import { hasAdminAccess } from '../../../lib/admins';
 import { kv } from '@vercel/kv';
+import { markSubmissionProcessed } from '../../../lib/kv-atomic';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -40,23 +41,7 @@ export default async function handler(req, res) {
     const { id, action } = req.body;
     
     if (action === 'process') {
-      // Читаем всю историю, обновляем одну запись, сохраняем обратно
-      const all = await kv.lrange('lspd:submissions:all', 0, 199);
-      const updated = all.map(item => {
-        try {
-          const parsed = typeof item === 'string' ? JSON.parse(item) : item;
-          if (parsed.id === id) parsed.processed = true;
-          return JSON.stringify(parsed);
-        } catch {
-          return item;
-        }
-      });
-
-      await kv.del('lspd:submissions:all');
-      // Восстанавливаем в обратном порядке (LPUSH добавляет в начало)
-      for (let i = updated.length - 1; i >= 0; i--) {
-        await kv.rpush('lspd:submissions:all', updated[i]);
-      }
+      await markSubmissionProcessed(id);
 
       res.status(200).json({ success: true });
       return;
