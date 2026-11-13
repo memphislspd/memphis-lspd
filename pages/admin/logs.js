@@ -3,22 +3,12 @@ import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
 import AdminSectionHeader from '../../components/AdminSectionHeader';
-import { adminPanelStyle } from '../../components/adminStyles';
+import { adminPanelStyle, adminPrimaryButtonStyle } from '../../components/adminStyles';
 
 const actionButtonStyle = {
+  ...adminPrimaryButtonStyle,
   WebkitAppearance: 'none',
   appearance: 'none',
-  background: 'rgba(30, 41, 59, 0.72)',
-  color: '#cbd5e1',
-  border: '1px solid rgba(148, 163, 184, 0.28)',
-  borderRadius: '8px',
-  padding: '10px 16px',
-  fontSize: '13px',
-  fontWeight: '600',
-  letterSpacing: '0.04em',
-  lineHeight: 1.4,
-  cursor: 'pointer',
-  touchAction: 'manipulation',
   transition: 'background 150ms ease, border-color 150ms ease, opacity 150ms ease',
 };
 
