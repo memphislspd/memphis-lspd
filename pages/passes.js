@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import PageLayout from '../components/PageLayout';
 import AdminSectionHeader from '../components/AdminSectionHeader';
 import { adminPanelStyle, adminPanelHeaderStyle, adminInputStyle, adminPrimaryButtonStyle } from '../components/adminStyles';
+import { getPassDisplayStatus } from '../lib/pass-utils.mjs';
 
 const EMPTY_FORM = {
   name: '',
@@ -47,28 +48,6 @@ const secondaryButtonStyle = {
 function todayUtc() {
   // API и интерфейс используют одну календарную дату UTC для одинакового статуса у всех сотрудников.
   return new Date().toISOString().slice(0, 10);
-}
-
-function isDateOnly(value) {
-  if (typeof value !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00.000Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
-
-function getPassStatus(pass, today) {
-  if (pass.revokedAt) {
-    return { kind: 'revoked', label: 'АННУЛИРОВАН', reason: 'Аннулирован администратором' };
-  }
-  if (isDateOnly(pass.validUntil) && today > pass.validUntil) {
-    return { kind: 'expired', label: 'АННУЛИРОВАН', reason: 'Срок действия истёк автоматически' };
-  }
-  if (isDateOnly(pass.validFrom) && today < pass.validFrom) {
-    return { kind: 'pending', label: 'ЕЩЁ НЕ ДЕЙСТВУЕТ', reason: 'Срок действия ещё не начался' };
-  }
-  if (isDateOnly(pass.validFrom) && isDateOnly(pass.validUntil)) {
-    return { kind: 'active', label: 'ДЕЙСТВУЕТ', reason: 'Пропуск действителен' };
-  }
-  return { kind: 'unspecified', label: 'СРОК НЕ ЗАДАН', reason: 'Для старой записи не указан период действия' };
 }
 
 function formatDate(value) {
@@ -193,7 +172,7 @@ export default function PassesPage() {
   const visiblePasses = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('ru-RU');
     const filtered = passes.filter(pass => {
-      const status = getPassStatus(pass, today);
+      const status = getPassDisplayStatus(pass, today);
       const matchesSearch = !query || [pass.name, pass.staticId, pass.passNumber]
         .some(value => String(value || '').toLocaleLowerCase('ru-RU').includes(query));
       const matchesStatus = statusFilter === 'all'
@@ -338,7 +317,7 @@ export default function PassesPage() {
             </div>
 
             {visiblePasses.map(pass => {
-              const status = getPassStatus(pass, today);
+              const status = getPassDisplayStatus(pass, today);
               const statusColor = status.kind === 'active' ? '#4ade80'
                 : status.kind === 'revoked' || status.kind === 'expired' ? '#ff5268'
                 : status.kind === 'pending' ? '#fbbf24' : '#94a3b8';
