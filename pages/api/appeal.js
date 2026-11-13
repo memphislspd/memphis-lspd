@@ -114,8 +114,8 @@ export default async function handler(req, res) {
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      return rejectAppeal(res, user, 502, `Discord: ${errText}`);
+      console.error('Appeal webhook failed:', { status: response.status });
+      return rejectAppeal(res, user, 502, 'Не удалось отправить обжалование. Попробуйте позже или обратитесь к администратору.');
     }
 
     await recordSubmissionHistory(user.id, { type: 'appeal', title: 'Обжалование наказания', status: 'sent' });
@@ -127,7 +127,8 @@ export default async function handler(req, res) {
       console.error('Appeal delivered to Discord, but stats storage failed:', storageError);
     }
     return res.status(200).json({ success: true });
-  } catch (e) {
-    await rejectAppeal(res, user, 502, e.message || 'Не удалось отправить заявку');
+  } catch (error) {
+    console.error('Appeal submission failed:', error);
+    await rejectAppeal(res, user, 502, 'Не удалось отправить обжалование. Попробуйте позже или обратитесь к администратору.');
   }
 }
