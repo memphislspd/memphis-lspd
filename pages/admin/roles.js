@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
 import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminInputStyle, adminPrimaryButtonStyle } from '../../components/adminStyles';
 
 const CHECK_ROLES = [
   { id: '1514608894700159145', name: 'Роль 1' },
@@ -43,16 +44,17 @@ export default function RoleCheckerPage() {
       <PageLayout user={user}>
       <AdminSectionHeader title="Проверка ролей" description="Введите Discord ID, чтобы узнать, какие роли у человека были при последнем входе." />
 
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '15px', marginBottom: '40px' }}>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '32px' }}>
         <input 
           type="text" placeholder="Введите Discord ID пользователя" 
-          value={searchId} onChange={e => setSearchId(e.target.value)} required 
+          value={searchId} onChange={e => setSearchId(e.target.value)} required
+          style={{ ...adminInputStyle, flex: '1 1 240px' }}
         />
-        <button type="submit" style={{ width: '200px', padding: '0 20px' }}>{loading ? 'ПОИСК...' : 'НАЙТИ'}</button>
+        <button type="submit" style={{ ...adminPrimaryButtonStyle, flex: '0 0 140px' }}>{loading ? 'ПОИСК...' : 'НАЙТИ'}</button>
       </form>
 
       {result && (
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '30px' }}>
+        <div style={{ ...adminPanelStyle, padding: '24px' }}>
           {result.status === 404 ? (
             <div style={{ color: '#ff2640', textAlign: 'center', fontWeight: 'bold' }}>{result.data.error}</div>
           ) : (
@@ -70,7 +72,7 @@ export default function RoleCheckerPage() {
                 {CHECK_ROLES.map(r => {
                   const hasRole = result.data.roles.includes(r.id);
                   return (
-                    <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 20px', background: hasRole ? 'rgba(76,175,80,0.1)' : 'rgba(255,255,255,0.02)', border: `1px solid ${hasRole ? '#4CAF50' : 'rgba(255,255,255,0.05)'}`, borderRadius: '8px' }}>
+                    <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 20px', background: hasRole ? 'rgba(76,175,80,0.1)' : 'rgba(255,255,255,0.02)', border: `1px solid ${hasRole ? '#4CAF50' : 'rgba(255,255,255,0.05)'}`, borderRadius: '4px' }}>
                       <span style={{ fontWeight: 'bold' }}>{r.name}</span>
                       <span style={{ color: hasRole ? '#4CAF50' : '#666', fontWeight: 'bold' }}>{hasRole ? 'ЕСТЬ' : 'НЕТ'}</span>
                     </div>
