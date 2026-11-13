@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     return rejectAppeal(res, user, 400, 'Ссылки на доказательства должны быть корректными HTTPS-ссылками.');
   }
   if (extraScreenshots !== undefined && (!Array.isArray(extraScreenshots) || extraScreenshots.length > 15 ||
-      extraScreenshots.some(value => !isBoundedText(value, 2048) || !isHttpsUrl(value)))) {
+      extraScreenshots.filter(value => typeof value === 'string' && value.trim()).some(value => !isBoundedText(value, 2048) || !isHttpsUrl(value)))) {
     return rejectAppeal(res, user, 400, 'Дополнительные доказательства должны содержать не более 15 корректных HTTPS-ссылок.');
   }
 
