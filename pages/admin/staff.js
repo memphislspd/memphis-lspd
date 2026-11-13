@@ -3,14 +3,22 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import StaffCard from '../../components/StaffCard';
 import AdminPageGuard from '../../components/AdminPageGuard';
+import PageLayout from '../../components/PageLayout';
+import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminInputStyle, adminPrimaryButtonStyle } from '../../components/adminStyles';
 
 export default function AdminStaffPage() {
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({ name: '', rank: 'Chief of Police', discord: '', avatar: '' });
 
   useEffect(() => {
+    fetch('/api/me', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => setUser(data.user || null))
+      .catch(() => setUser(null));
     fetchStaff();
   }, []);
 
@@ -48,35 +56,43 @@ export default function AdminStaffPage() {
     if (res.ok) fetchStaff();
   };
 
-  if (loading) return <div style={{ color: 'white', padding: '50px', textAlign: 'center' }}>Загрузка...</div>;
+  if (loading || !user) return <div style={{ minHeight: '100vh', background: '#030303' }} />;
 
   return (
     <AdminPageGuard>
-      <div style={{ minHeight: '100vh', background: '#0a0a0a', color: 'white', padding: '40px 20px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <button onClick={() => router.push('/admin')} style={{ marginBottom: '20px', background: 'transparent', color: '#8b8ba7', border: 'none', cursor: 'pointer' }}>← Назад в админку</button>
-        <h1 style={{ fontSize: '24px', marginBottom: '30px' }}>Управление Старшим Составом</h1>
+      <PageLayout user={user}>
+        <AdminSectionHeader title="Старший состав" description="Управление высшим командованием департамента." />
 
-        {/* Форма добавления */}
-        <form onSubmit={handleAdd} style={{ background: '#121212', padding: '20px', borderRadius: '12px', border: '1px solid #2a2a2a', marginBottom: '40px', display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-          <input type="text" placeholder="Имя (Ник)" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={{ flex: '1 1 200px', padding: '12px', background: '#1a1a1a', border: '1px solid #333', color: 'white', borderRadius: '8px' }} />
-          <select value={formData.rank} onChange={e => setFormData({...formData, rank: e.target.value})} style={{ flex: '1 1 200px', padding: '12px', background: '#1a1a1a', border: '1px solid #333', color: 'white', borderRadius: '8px' }}>
+        <form onSubmit={handleAdd} style={{
+          ...adminPanelStyle,
+          padding: '20px',
+          marginBottom: '32px',
+          display: 'flex',
+          alignItems: 'stretch',
+          gap: '12px',
+          flexWrap: 'wrap',
+        }}>
+          <input type="text" placeholder="Имя (ник)" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={{ ...adminInputStyle, flex: '1 1 200px' }} />
+          <select value={formData.rank} onChange={e => setFormData({...formData, rank: e.target.value})} style={{ ...adminInputStyle, flex: '1 1 200px' }}>
             <option value="Chief of Police">Chief of Police</option>
             <option value="Deputy Chief">Deputy Chief</option>
           </select>
-          <input type="text" placeholder="Discord (@tag)" required value={formData.discord} onChange={e => setFormData({...formData, discord: e.target.value})} style={{ flex: '1 1 200px', padding: '12px', background: '#1a1a1a', border: '1px solid #333', color: 'white', borderRadius: '8px' }} />
-          <input type="text" placeholder="Ссылка на аватарку (URL)" value={formData.avatar} onChange={e => setFormData({...formData, avatar: e.target.value})} style={{ flex: '1 1 100%', padding: '12px', background: '#1a1a1a', border: '1px solid #333', color: 'white', borderRadius: '8px' }} />
-          <button type="submit" style={{ flex: '1 1 100%', padding: '14px', background: '#2563EB', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Добавить в состав</button>
+          <input type="text" placeholder="Discord (@tag)" required value={formData.discord} onChange={e => setFormData({...formData, discord: e.target.value})} style={{ ...adminInputStyle, flex: '1 1 200px' }} />
+          <input type="url" placeholder="Ссылка на аватарку (URL)" value={formData.avatar} onChange={e => setFormData({...formData, avatar: e.target.value})} style={{ ...adminInputStyle, flex: '1 1 100%' }} />
+          <button type="submit" style={{ ...adminPrimaryButtonStyle, flex: '1 1 100%' }}>ДОБАВИТЬ В СОСТАВ</button>
         </form>
 
-        {/* Сетка с карточками */}
-        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))', gap: '18px', alignItems: 'stretch' }}>
           {staff.map(member => (
             <StaffCard key={member.id} member={member} onDelete={handleDelete} isAdminView={true} />
           ))}
+          {staff.length === 0 && (
+            <div style={{ ...adminPanelStyle, gridColumn: '1 / -1', padding: '28px 20px', textAlign: 'center', color: '#8b98aa', fontSize: '13px' }}>
+              Сотрудники старшего состава пока не добавлены.
+            </div>
+          )}
         </div>
-      </div>
-      </div>
+      </PageLayout>
     </AdminPageGuard>
   );
 }
