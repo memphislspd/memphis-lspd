@@ -191,6 +191,7 @@ export default function PassesPage() {
           ))}
         </div>
         </div>
+        </div>
         
         {passes.length === 0 && (
           <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280', fontFamily: "'DM Mono', monospace", fontSize: '13px' }}>
