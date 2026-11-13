@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import PageLayout from '../../components/PageLayout';
 import AdminPageGuard from '../../components/AdminPageGuard';
 import AdminSectionHeader from '../../components/AdminSectionHeader';
+import { adminPanelStyle, adminPanelHeaderStyle } from '../../components/adminStyles';
 
 export default function RequestsPage() {
   const router = useRouter();
@@ -55,14 +56,14 @@ export default function RequestsPage() {
       <PageLayout user={user}>
       <AdminSectionHeader title="Архив заявок" description="Все отправленные формы, сохраненные в базе данных." />
 
-      <div style={{ background: 'rgba(11, 15, 22, 0.6)', border: '1px solid rgba(148, 163, 184, 0.15)', borderRadius: '4px', overflow: 'hidden' }}>
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.15)', background: 'rgba(0,0,0,0.3)', color: 'var(--blue)', fontSize: '12px', fontFamily: "'DM Mono', monospace", letterSpacing: '1px', display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ ...adminPanelStyle }}>
+        <div style={{ ...adminPanelHeaderStyle }}>
           <span>[ СИСТЕМНЫЙ ЛОГ ЗАЯВОК ]</span>
           <span>ЗАПИСЕЙ: {submissions.length}</span>
         </div>
 
         {/* Заголовки колонок */}
-        <div style={{ display: 'grid', gridTemplateColumns: '100px 1.5fr 1.2fr 100px 120px 140px', padding: '16px 20px', background: 'rgba(255,255,255,0.02)', fontSize: '11px', color: '#7f8a9a', fontFamily: "'DM Mono', monospace", borderBottom: '1px solid rgba(148, 163, 184, 0.1)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '90px 1.5fr 1.2fr 86px 110px 130px', padding: '16px 20px', background: 'rgba(255,255,255,0.02)', fontSize: '11px', color: '#7f8a9a', fontFamily: "'DM Mono', monospace", borderBottom: '1px solid rgba(148, 163, 184, 0.1)' }}>
           <div>ТИП</div>
           <div>ЗАГОЛОВОК</div>
           <div>ОТПРАВИТЕЛЬ</div>
