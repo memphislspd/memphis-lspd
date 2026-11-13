@@ -122,8 +122,8 @@ export default async function handler(req, res) {
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      return rejectRecovery(res, user, 502, `Discord: ${errText}`);
+      console.error('Recovery webhook failed:', { status: response.status });
+      return rejectRecovery(res, user, 502, 'Не удалось отправить заявку. Попробуйте позже или обратитесь к администратору.');
     }
 
     await recordSubmissionHistory(user.id, { type: 'recovery', title: 'Отработка взыскания', status: 'sent' });
@@ -135,7 +135,8 @@ export default async function handler(req, res) {
       console.error('Recovery delivered to Discord, but stats storage failed:', storageError);
     }
     return res.status(200).json({ success: true });
-  } catch (e) {
-    await rejectRecovery(res, user, 502, e.message || 'Не удалось отправить заявку');
+  } catch (error) {
+    console.error('Recovery submission failed:', error);
+    await rejectRecovery(res, user, 502, 'Не удалось отправить заявку. Попробуйте позже или обратитесь к администратору.');
   }
 }
