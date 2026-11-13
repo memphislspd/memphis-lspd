@@ -17,8 +17,14 @@ export default function AdminStaffPage() {
   useEffect(() => {
     fetch('/api/me', { cache: 'no-store' })
       .then(r => r.json())
-      .then(data => setUser(data.user || null))
-      .catch(() => setUser(null));
+      .then(data => {
+        if (!data.user) {
+          router.replace('/');
+          return;
+        }
+        setUser(data.user);
+      })
+      .catch(() => router.replace('/'));
     fetchStaff();
   }, []);
 
