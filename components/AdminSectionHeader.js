@@ -1,32 +1,34 @@
 import { useRouter } from 'next/router';
 
-export default function AdminSectionHeader({ title, description, actions }) {
+export default function AdminSectionHeader({ title, description, actions, showBack = true }) {
   const router = useRouter();
 
   return (
     <header style={{ marginBottom: '36px' }}>
-      <button
-        type="button"
-        onClick={() => router.push('/admin')}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          marginBottom: '18px',
-          padding: '4px 0',
-          background: 'transparent',
-          color: '#91a0b5',
-          border: 'none',
-          cursor: 'pointer',
-          fontWeight: '700',
-          fontFamily: "'DM Mono', monospace",
-          fontSize: '11px',
-          letterSpacing: '0.06em',
-          touchAction: 'manipulation',
-        }}
-      >
-        ← НАЗАД В АДМИНКУ
-      </button>
+      {showBack && (
+        <button
+          type="button"
+          onClick={() => router.push('/admin')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '18px',
+            padding: '4px 0',
+            background: 'transparent',
+            color: '#91a0b5',
+            border: 'none',
+            cursor: 'pointer',
+            fontWeight: '700',
+            fontFamily: "'DM Mono', monospace",
+            fontSize: '11px',
+            letterSpacing: '0.06em',
+            touchAction: 'manipulation',
+          }}
+        >
+          ← НАЗАД В АДМИНКУ
+        </button>
+      )}
 
       <div style={{
         display: 'flex',
