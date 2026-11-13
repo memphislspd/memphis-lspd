@@ -152,8 +152,8 @@ export default function BlacklistPage() {
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {filtered.map(ban => (
               <div key={ban.id} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '20px', borderBottom: '1px solid rgba(148, 163, 184, 0.05)',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
+                padding: '18px 20px', borderBottom: '1px solid rgba(148, 163, 184, 0.05)',
                 transition: 'background 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 38, 64, 0.05)'}
@@ -176,7 +176,7 @@ export default function BlacklistPage() {
                   border: '1px solid rgba(76, 175, 80, 0.3)', padding: '8px 16px',
                   borderRadius: '4px', fontSize: '12px', fontWeight: 'bold',
                   cursor: 'pointer', fontFamily: "'DM Mono', monospace",
-                  whiteSpace: 'nowrap', marginLeft: '20px', transition: 'all 0.2s'
+                  whiteSpace: 'nowrap', marginLeft: '0', transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(76, 175, 80, 0.2)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(76, 175, 80, 0.1)'}
