@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      await kv.srem(DENIED_ADMINS_KEY, id);
+      // Выдача ручного доступа не снимает явный запрет: для этого есть отдельный PATCH.
       const current = await kv.get(MANUAL_ADMINS_KEY);
       const admins = Array.isArray(current) ? current : [];
       if (!admins.includes(id)) {
