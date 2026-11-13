@@ -3,7 +3,7 @@ import { verifyToken } from '../../lib/discord';
 import { hasAdminAccess } from '../../lib/admins';
 import { mutateJsonArray, patchJsonArrayItem } from '../../lib/kv-atomic';
 import { logAdminAction } from '../../lib/admin-audit';
-import { getPassStatus, isValidDate, normalizePass, validatePass } from '../../lib/pass-utils.mjs';
+import { getPassStatus, normalizePass, validatePass } from '../../lib/pass-utils.mjs';
 
 const PASSES_KEY = 'lspd:passes';
 
