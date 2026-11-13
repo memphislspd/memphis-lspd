@@ -2,6 +2,7 @@ import { verifyToken } from '../../../lib/discord';
 import { isSuperAdmin, hasAdminAccess } from '../../../lib/admins';
 import { kv } from '@vercel/kv';
 import { logAdminAction } from '../../../lib/admin-audit';
+import { mutateStringArray } from '../../../lib/kv-atomic';
 
 const MANUAL_ADMINS_KEY = 'lspd:manual_admins';
 const DENIED_ADMINS_KEY = 'lspd:admin_denied_ids';
@@ -32,29 +33,20 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       // Выдача ручного доступа не снимает явный запрет: для этого есть отдельный PATCH.
-      const current = await kv.get(MANUAL_ADMINS_KEY);
-      const admins = Array.isArray(current) ? current : [];
-      if (!admins.includes(id)) {
-        admins.push(id);
-        await kv.set(MANUAL_ADMINS_KEY, admins);
-      }
+      await mutateStringArray(MANUAL_ADMINS_KEY, 'add', id);
       await logAdminAction(user, { action: 'admin.manual_grant', description: 'Выдал ручной доступ администратора', targetId: id });
       return res.status(200).json({ success: true });
     }
 
     if (req.method === 'DELETE') {
-      const current = await kv.get(MANUAL_ADMINS_KEY);
-      const admins = Array.isArray(current) ? current : [];
-      await kv.set(MANUAL_ADMINS_KEY, admins.filter(value => String(value) !== id));
+      await mutateStringArray(MANUAL_ADMINS_KEY, 'remove', id);
       await logAdminAction(user, { action: 'admin.manual_revoke', description: 'Отозвал ручной доступ администратора', targetId: id });
       return res.status(200).json({ success: true });
     }
 
     if (req.method === 'PUT') {
       await kv.sadd(DENIED_ADMINS_KEY, id);
-      const current = await kv.get(MANUAL_ADMINS_KEY);
-      const admins = Array.isArray(current) ? current : [];
-      await kv.set(MANUAL_ADMINS_KEY, admins.filter(value => String(value) !== id));
+      await mutateStringArray(MANUAL_ADMINS_KEY, 'remove', id);
       await logAdminAction(user, { action: 'admin.deny', description: 'Добавил Discord ID в список запрета админ-доступа', targetId: id });
       return res.status(200).json({ success: true });
     }
