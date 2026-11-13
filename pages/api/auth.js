@@ -1,11 +1,12 @@
 // pages/api/auth.js
-import { timingSafeEqual } from 'crypto';
+import { createHash, timingSafeEqual } from 'crypto';
 import { getDiscordToken, getDiscordUser, createToken, isAccountOldEnough } from '../../lib/discord';
 import { kv } from '@vercel/kv';
 import { getDiscordAvatarUrl } from '../../lib/avatar';
 
 const GUILD_ID = '1514608894666735717'; // Твой сервер LSPD
 const OAUTH_COOKIE_PATH = '/api/auth';
+const CALLBACK_LOCK_TTL_SECONDS = 10 * 60;
 
 function safeReturnTo(encodedValue) {
   if (
@@ -76,6 +77,23 @@ function redirectWithClearedCookies(req, res, destination) {
   return res.redirect(destination);
 }
 
+
+function getOAuthCallbackKey(code) {
+  // Store only a digest: the one-time authorization code must never appear in KV keys or logs.
+  const digest = createHash('sha256').update(code).digest('hex');
+  return `oauth:callback:${digest}`;
+}
+
+function logOAuthFailure(req, error) {
+  const requestId = req.headers['x-vercel-id'] || req.headers['x-request-id'] || null;
+  console.error('[AUTH] OAuth callback failed', {
+    requestId: typeof requestId === 'string' ? requestId.slice(0, 160) : null,
+    stage: error?.oauthStage || 'callback',
+    category: error?.oauthCategory || 'unexpected_error',
+    httpStatus: Number.isInteger(error?.httpStatus) ? error.httpStatus : null,
+  });
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Referrer-Policy', 'no-referrer');
@@ -103,12 +121,45 @@ export default async function handler(req, res) {
     return redirectWithClearedCookies(req, res, '/?error=no_code');
   }
 
+  const callbackKey = getOAuthCallbackKey(code);
+  let callbackLockAcquired = false;
+
   try {
+    // Claim this one-time code atomically before contacting Discord. Parallel callback
+    // requests therefore cannot exchange the same code more than once.
+    const lockResult = await kv.set(callbackKey, 'processing', {
+      ex: CALLBACK_LOCK_TTL_SECONDS,
+      nx: true,
+    });
+
+    if (lockResult !== 'OK') {
+      let existingStatus = await kv.get(callbackKey);
+
+      // A parallel callback may still be finishing. Briefly wait for its final state
+      // rather than racing it with a second token exchange.
+      for (let attempt = 0; existingStatus === 'processing' && attempt < 4; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 150));
+        existingStatus = await kv.get(callbackKey);
+      }
+
+      if (existingStatus === 'completed') {
+        return redirectWithClearedCookies(req, res, redirectTo);
+      }
+      if (existingStatus === 'failed') {
+        return redirectWithClearedCookies(req, res, '/?error=auth_failed');
+      }
+      return redirectWithClearedCookies(req, res, '/?error=oauth_in_progress');
+    }
+
+    callbackLockAcquired = true;
+
     const tokenData = await getDiscordToken(code);
     const user = await getDiscordUser(tokenData.access_token);
 
     const accountCheck = isAccountOldEnough(user, 5);
     if (!accountCheck.oldEnough) {
+      await kv.set(callbackKey, 'failed', { ex: CALLBACK_LOCK_TTL_SECONDS });
+      callbackLockAcquired = false;
       return redirectWithClearedCookies(
         req,
         res,
@@ -130,7 +181,10 @@ export default async function handler(req, res) {
         console.error('[АВТОРИЗАЦИЯ] Ошибка получения серверов:', guildsRes.status);
       }
     } catch (e) {
-      console.error('Ошибка получения серверов:', e.message);
+      console.error('[АВТОРИЗАЦИЯ] Ошибка получения серверов:', {
+        category: 'guild_list_request_failed',
+        name: e?.name || 'Error',
+      });
     }
 
     // 2. Сохраняем токен и список серверов в KV.
@@ -149,7 +203,10 @@ export default async function handler(req, res) {
         userRoles = member.roles || [];
       }
     } catch (e) {
-      console.error('Ошибка ролей LSPD:', e.message);
+      console.error('[АВТОРИЗАЦИЯ] Ошибка получения ролей LSPD:', {
+        category: 'guild_member_request_failed',
+        name: e?.name || 'Error',
+      });
     }
 
     // 4. Сохраняем роли и информацию пользователя для админки проверки.
@@ -164,8 +221,15 @@ export default async function handler(req, res) {
         await kv.set(avatarKey, { source: 'discord', url: getDiscordAvatarUrl(user), updatedAt: Date.now() }, { nx: true });
       }
     } catch (avatarError) {
-      console.error('Не удалось сохранить первоначальный аватар Discord:', avatarError);
+      console.error('[АВТОРИЗАЦИЯ] Не удалось сохранить первоначальный аватар Discord:', {
+        category: 'avatar_storage_failed',
+        name: avatarError?.name || 'Error',
+      });
     }
+
+    // Create the completed marker before issuing the browser session cookie.
+    await kv.set(callbackKey, 'completed', { ex: CALLBACK_LOCK_TTL_SECONDS });
+    callbackLockAcquired = false;
 
     // 5. Создаем сессию и очищаем временные OAuth cookies.
     const jwtToken = createToken({ ...user, roles: userRoles });
@@ -179,7 +243,17 @@ export default async function handler(req, res) {
     return res.redirect(redirectTo);
 
   } catch (authError) {
-    console.error('Auth error:', authError);
+    if (callbackLockAcquired) {
+      try {
+        // The authorization code is one-use. Keep the failed marker briefly so a
+        // refresh or parallel callback cannot submit the same code again.
+        await kv.set(callbackKey, 'failed', { ex: CALLBACK_LOCK_TTL_SECONDS });
+      } catch {
+        // The original error is more useful than a secondary KV marker failure.
+      }
+    }
+
+    logOAuthFailure(req, authError);
     return redirectWithClearedCookies(req, res, '/?error=auth_failed');
   }
 }
