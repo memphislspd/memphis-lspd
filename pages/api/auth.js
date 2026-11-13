@@ -227,12 +227,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Create the completed marker before issuing the browser session cookie.
+    // 5. Создаем сессию, фиксируем успешную обработку и очищаем временные OAuth cookies.
+    const jwtToken = createToken({ ...user, roles: userRoles });
     await kv.set(callbackKey, 'completed', { ex: CALLBACK_LOCK_TTL_SECONDS });
     callbackLockAcquired = false;
-
-    // 5. Создаем сессию и очищаем временные OAuth cookies.
-    const jwtToken = createToken({ ...user, roles: userRoles });
     const secure = process.env.NODE_ENV === 'production' ||
       req.headers['x-forwarded-proto'] === 'https';
     const secureFlag = secure ? '; Secure' : '';
