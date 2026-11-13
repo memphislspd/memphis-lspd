@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
 
     const { action, userId, username, reason } = req.body || {};
-    if (!/^\\d{15,22}$/.test(String(userId || ''))) {
+    if (!/^\d{15,22}$/.test(String(userId || ''))) {
       return res.status(400).json({ error: 'Укажите корректный Discord ID' });
     }
     if (action !== 'ban' && action !== 'unban') {
