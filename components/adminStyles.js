@@ -57,6 +57,13 @@ export const adminDangerButtonStyle = {
   border: '1px solid rgba(255, 38, 64, 0.3)',
 };
 
+export const adminSuccessButtonStyle = {
+  ...adminPrimaryButtonStyle,
+  background: 'rgba(76, 175, 80, 0.1)',
+  color: '#75d28a',
+  border: '1px solid rgba(76, 175, 80, 0.3)',
+};
+
 export const adminEmptyStateStyle = {
   padding: '32px 20px',
   textAlign: 'center',
