@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
   if (!Array.isArray(user.roles) || !user.roles.includes(STAFF_ROLE_ID)) {
-    return rejectRecovery(res, user, 403, 'Для подачи этой формы требуется роль сотрудника LSPD');
+    return res.status(403).json({ error: 'Для подачи этой формы требуется роль сотрудника LSPD' });
   }
   let rateAllowed;
   try {
