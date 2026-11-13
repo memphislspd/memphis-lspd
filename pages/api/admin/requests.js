@@ -2,6 +2,7 @@ import { verifyToken } from '../../../lib/discord';
 import { hasAdminAccess } from '../../../lib/admins';
 import { kv } from '@vercel/kv';
 import { markSubmissionProcessed } from '../../../lib/kv-atomic';
+import { logAdminAction } from '../../../lib/admin-audit';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -42,6 +43,7 @@ export default async function handler(req, res) {
     
     if (action === 'process') {
       await markSubmissionProcessed(id);
+      await logAdminAction(user, { action: 'submission.process', description: 'Отметил заявку обработанной', targetId: id });
 
       res.status(200).json({ success: true });
       return;

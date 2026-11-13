@@ -1,6 +1,7 @@
 import { verifyToken } from '../../../lib/discord';
 import { hasAdminAccess } from '../../../lib/admins';
 import { getBlacklist, removeFromBlacklist, addToBlacklist } from '../../../lib/blacklist';
+import { logAdminAction } from '../../../lib/admin-audit';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -21,11 +22,13 @@ export default async function handler(req, res) {
     
     if (action === 'unban') {
       await removeFromBlacklist(userId);
+      await logAdminAction(user, { action: 'blacklist.remove', description: 'Снял блокировку пользователя', targetId: userId });
       return res.status(200).json({ success: true, message: 'Разбанен' });
     }
     
     if (action === 'ban') {
       await addToBlacklist(userId, username || 'Неизвестный', reason || 'Ручной бан');
+      await logAdminAction(user, { action: 'blacklist.add', description: 'Добавил пользователя в чёрный список', targetId: userId, targetName: username || null });
       return res.status(200).json({ success: true, message: 'Забанен' });
     }
     

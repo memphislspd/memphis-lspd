@@ -3,6 +3,7 @@ import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
 import { hasAdminAccess } from '../../lib/admins';
 import { mutateJsonArray } from '../../lib/kv-atomic';
+import { logAdminAction } from '../../lib/admin-audit';
 
 export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
@@ -21,7 +22,9 @@ export default async function handler(req, res) {
     
     if (!name || !staticId || !passNumber || !issueDate) return res.status(400).json({ error: 'Заполните обязательные поля' });
     
-    const passes = await mutateJsonArray('lspd:passes', 'add', { id: Date.now().toString(), name, staticId, passNumber, issueDate, link: link || '' });
+    const pass = { id: Date.now().toString(), name, staticId, passNumber, issueDate, link: link || '' };
+    const passes = await mutateJsonArray('lspd:passes', 'add', pass);
+    await logAdminAction(user, { action: 'pass.create', description: 'Добавил пропуск', targetId: pass.id, targetName: name });
     
     return res.status(200).json(passes);
   }
@@ -31,7 +34,10 @@ export default async function handler(req, res) {
     if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
     const { id } = req.body;
     
+    const current = await kv.get('lspd:passes') || [];
+    const pass = current.find(item => String(item.id) === String(id));
     const passes = await mutateJsonArray('lspd:passes', 'delete', { id });
+    await logAdminAction(user, { action: 'pass.delete', description: 'Удалил пропуск', targetId: id, targetName: pass?.name || null });
     
     return res.status(200).json(passes);
   }

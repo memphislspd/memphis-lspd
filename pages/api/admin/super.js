@@ -1,6 +1,7 @@
 import { verifyToken } from '../../../lib/discord';
 import { isSuperAdmin, hasAdminAccess } from '../../../lib/admins';
 import { kv } from '@vercel/kv';
+import { logAdminAction } from '../../../lib/admin-audit';
 
 const MANUAL_ADMINS_KEY = 'lspd:manual_admins';
 const DENIED_ADMINS_KEY = 'lspd:admin_denied_ids';
@@ -37,6 +38,7 @@ export default async function handler(req, res) {
         admins.push(id);
         await kv.set(MANUAL_ADMINS_KEY, admins);
       }
+      await logAdminAction(user, { action: 'admin.manual_grant', description: 'Выдал ручной доступ администратора', targetId: id });
       return res.status(200).json({ success: true });
     }
 
@@ -44,6 +46,7 @@ export default async function handler(req, res) {
       const current = await kv.get(MANUAL_ADMINS_KEY);
       const admins = Array.isArray(current) ? current : [];
       await kv.set(MANUAL_ADMINS_KEY, admins.filter(value => String(value) !== id));
+      await logAdminAction(user, { action: 'admin.manual_revoke', description: 'Отозвал ручной доступ администратора', targetId: id });
       return res.status(200).json({ success: true });
     }
 
@@ -52,11 +55,13 @@ export default async function handler(req, res) {
       const current = await kv.get(MANUAL_ADMINS_KEY);
       const admins = Array.isArray(current) ? current : [];
       await kv.set(MANUAL_ADMINS_KEY, admins.filter(value => String(value) !== id));
+      await logAdminAction(user, { action: 'admin.deny', description: 'Добавил Discord ID в список запрета админ-доступа', targetId: id });
       return res.status(200).json({ success: true });
     }
 
     if (req.method === 'PATCH') {
       await kv.srem(DENIED_ADMINS_KEY, id);
+      await logAdminAction(user, { action: 'admin.undeny', description: 'Снял запрет админ-доступа для Discord ID', targetId: id });
       return res.status(200).json({ success: true });
     }
 

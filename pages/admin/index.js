@@ -52,6 +52,13 @@ const ADMIN_TOOLS = [
     code: 'SYS-08',
     path: '/admin/super',
     isRestricted: true // Выделим её красным цветом
+  },
+  {
+    title: 'Журнал действий',
+    description: 'История административных изменений и операций.',
+    code: 'SYS-09',
+    path: '/admin/logs',
+    isRestricted: true
   }
 ];
 

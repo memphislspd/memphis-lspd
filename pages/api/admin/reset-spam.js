@@ -1,6 +1,7 @@
 import { verifyToken } from '../../../lib/discord';
 import { hasAdminAccess } from '../../../lib/admins';
 import { resetSpam } from '../../../lib/antispam';
+import { logAdminAction } from '../../../lib/admin-audit';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -19,6 +20,7 @@ export default async function handler(req, res) {
   }
 
   await resetSpam(userId);
+  await logAdminAction(user, { action: 'antispam.user_reset', description: 'Сбросил спам-лимит пользователя', targetId: userId });
   
   res.status(200).json({ success: true, message: `Спам-лимит для ${userId} сброшен!` });
 }
