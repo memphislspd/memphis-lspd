@@ -104,9 +104,9 @@ export default function Profile() {
       context.drawImage(bitmap, sx, sy, crop, crop, 0, 0, size, size);
       bitmap.close?.();
       let avatar = canvas.toDataURL('image/jpeg', 0.84);
-      if (avatar.length > 350000) avatar = canvas.toDataURL('image/jpeg', 0.72);
-      if (avatar.length > 350000) avatar = canvas.toDataURL('image/jpeg', 0.6);
-      if (avatar.length > 350000) throw new Error('Выберите другое фото: его не удалось сжать до допустимого размера.');
+      if (avatar.length > 340000) avatar = canvas.toDataURL('image/jpeg', 0.72);
+      if (avatar.length > 340000) avatar = canvas.toDataURL('image/jpeg', 0.6);
+      if (avatar.length > 340000) throw new Error('Выберите другое фото: его не удалось сжать до допустимого размера.');
       const response = await fetch('/api/profile/avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
