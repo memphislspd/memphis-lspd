@@ -132,7 +132,7 @@ function validateSubmission(type, data, leaveType) {
     if (weapon.departments && !weapon.departments.includes(data.department)) return 'Дрон доступен только для отделов K9 и DB.';
   }
   if (type === 'hiring') {
-    if (!/^(10|[1-9][0-9]|100)$/.test(data.lawKnowledge)) return 'Оценка знания законов должна быть от 1 до 10.';
+    if (!/^(10|[1-9])$/.test(data.lawKnowledge)) return 'Оценка знания законов должна быть от 1 до 10.';
   }
   if (type === 'premium') {
     if (!getDepartment(data.department)) return 'Выберите существующий отдел.';
@@ -226,7 +226,7 @@ export default async function handler(req, res) {
     if (isLocked) { const ttl = await kv.ttl('lspd:global:locked'); return rejectSubmission(res, user, type, formData, leaveType, 429, `🚫 Сайт заблокирован. Подождите ${Math.ceil((ttl||1800)/60)} мин.`); }
     const gc = await kv.get('lspd:global:requests');
     const ngc = gc ? parseInt(gc) + 1 : 1;
-    if (ngc > 10) { await kv.set('lspd:global:locked', '1', { ex: 1800 }); await kv.del('lspd:global:requests'); return rejectSubmission(res, user, type, formData, leaveType, 429, '🚫 Сайт заблокирован на 30 минут.'); }
+    if (ngc > 10) { await kv.set('lspd:global:locked', '1', { ex: 3600 }); await kv.del('lspd:global:requests'); return rejectSubmission(res, user, type, formData, leaveType, 429, '🚫 Сайт заблокирован на 60 минут.'); }
     await kv.set('lspd:global:requests', ngc, { ex: 20 });
 
     if (await isBlacklisted(user.id, ip)) return rejectSubmission(res, user, type, formData, leaveType, 403, '⛔ Вы заблокированы.');
