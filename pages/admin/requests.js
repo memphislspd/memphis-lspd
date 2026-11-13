@@ -62,6 +62,8 @@ export default function RequestsPage() {
           <span>ЗАПИСЕЙ: {submissions.length}</span>
         </div>
 
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div style={{ minWidth: '760px' }}>
         {/* Заголовки колонок */}
         <div style={{ display: 'grid', gridTemplateColumns: '90px 1.5fr 1.2fr 86px 110px 130px', padding: '16px 20px', background: 'rgba(255,255,255,0.02)', fontSize: '11px', color: '#7f8a9a', fontFamily: "'DM Mono', monospace", borderBottom: '1px solid rgba(148, 163, 184, 0.1)' }}>
           <div>ТИП</div>
@@ -89,7 +91,7 @@ export default function RequestsPage() {
             return (
               <div key={req.id} style={{ 
                 display: 'grid', 
-                gridTemplateColumns: '100px 1.5fr 1.2fr 100px 120px 140px', 
+                gridTemplateColumns: '90px 1.5fr 1.2fr 86px 110px 130px', 
                 padding: '16px 20px', 
                 borderBottom: '1px solid rgba(148, 163, 184, 0.05)', 
                 alignItems: 'center', 
@@ -154,6 +156,8 @@ export default function RequestsPage() {
               </div>
             );
           })}
+        </div>
+        </div>
         </div>
 
         {submissions.length === 0 && (
