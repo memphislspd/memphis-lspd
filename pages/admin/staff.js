@@ -78,7 +78,7 @@ export default function AdminStaffPage() {
             <option value="Deputy Chief">Deputy Chief</option>
           </select>
           <input type="text" placeholder="Discord (@tag)" required value={formData.discord} onChange={e => setFormData({...formData, discord: e.target.value})} style={{ ...adminInputStyle, flex: '1 1 200px' }} />
-          <input type="url" placeholder="Ссылка на аватарку (URL)" value={formData.avatar} onChange={e => setFormData({...formData, avatar: e.target.value})} style={{ ...adminInputStyle, flex: '1 1 100%' }} />
+          <input type="text" placeholder="Ссылка на аватарку (URL)" value={formData.avatar} onChange={e => setFormData({...formData, avatar: e.target.value})} style={{ ...adminInputStyle, flex: '1 1 100%' }} />
           <button type="submit" style={{ ...adminPrimaryButtonStyle, flex: '1 1 100%' }}>ДОБАВИТЬ В СОСТАВ</button>
         </form>
 
