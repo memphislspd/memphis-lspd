@@ -109,7 +109,7 @@ export default function AdminHub() {
       </div>
 
       {/* Сетка модулей */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '20px' }}>
         {ADMIN_TOOLS.filter(tool => !tool.isRestricted || isSuperAdmin).map((tool) => (
           <div 
             key={tool.title}
