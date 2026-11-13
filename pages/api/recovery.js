@@ -1,7 +1,7 @@
 import { verifyToken } from '../../lib/discord';
 import { kv } from '@vercel/kv';
 import { recordSubmissionHistory } from '../../lib/submission-history';
-import { checkFormRateLimit, isBoundedText, isHttpsUrl } from '../../lib/form-security';
+import { checkFormRateLimit, isBoundedText, isHttpsUrl, areHttpsUrls } from '../../lib/form-security';
 
 const WEBHOOK_URL = process.env.WEBHOOK_RECOVERY;
 const ROLE_PING = '1514608894679191592';
@@ -49,12 +49,12 @@ export default async function handler(req, res) {
     return rejectRecovery(res, user, 400, 'Добавьте корректную HTTPS-ссылку на скриншот склада.');
   }
   if (method === 'points') {
-    if (!Array.isArray(mpList) || mpList.length === 0 || mpList.length > 15) {
-      return rejectRecovery(res, user, 400, 'Добавьте от 1 до 15 МП.');
+    if (!Array.isArray(mpList) || mpList.length === 0 || mpList.length > 18) {
+      return rejectRecovery(res, user, 400, 'Добавьте от 1 до 18 МП.');
     }
     for (const mp of mpList) {
       if (!mp || !['drop', 'supply', 'bank', 'dept_mp'].includes(mp.type) ||
-          !isBoundedText(mp.proof, 2048) || !isHttpsUrl(mp.proof)) {
+          !isBoundedText(mp.proof, 2048) || !areHttpsUrls(mp.proof)) {
         return rejectRecovery(res, user, 400, 'Каждое МП должно содержать допустимый тип и корректную HTTPS-ссылку.');
       }
     }
