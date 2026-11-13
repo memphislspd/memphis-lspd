@@ -39,18 +39,29 @@ export default async function handler(req, res) {
 
   // POST — пометить обработанной
   if (req.method === 'POST') {
-    const { id, action } = req.body;
-    
-    if (action === 'process') {
-      await markSubmissionProcessed(id);
-      await logAdminAction(user, { action: 'submission.process', description: 'Отметил заявку обработанной', targetId: id });
-
-      res.status(200).json({ success: true });
-      return;
+    const { id, action } = req.body || {};
+    if (action !== 'process') {
+      return res.status(400).json({ error: 'Неизвестное действие' });
+    }
+    if ((typeof id !== 'string' && typeof id !== 'number') || !String(id).trim() || String(id).length > 80) {
+      return res.status(400).json({ error: 'Укажите корректный ID заявки' });
     }
 
-    res.status(400).json({ error: 'Неизвестное действие' });
-    return;
+    try {
+      const updated = await markSubmissionProcessed(id);
+      if (Number(updated) !== 1) {
+        return res.status(404).json({ error: 'Заявка не найдена' });
+      }
+      await logAdminAction(user, {
+        action: 'submission.process',
+        description: 'Отметил заявку обработанной',
+        targetId: id
+      });
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Submission processing failed:', error);
+      return res.status(500).json({ error: 'Не удалось обработать заявку' });
+    }
   }
 
   res.status(405).json({ error: 'Method not allowed' });
