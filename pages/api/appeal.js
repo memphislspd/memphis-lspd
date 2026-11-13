@@ -1,6 +1,7 @@
 import { verifyToken } from '../../lib/discord';
 import { kv } from '@vercel/kv';
 import { recordSubmissionHistory } from '../../lib/submission-history';
+import { checkFormRateLimit, isBoundedText, isHttpsUrl } from '../../lib/form-security';
 
 const WEBHOOK_URL = process.env.WEBHOOK_RECOVERY;
 const ROLE_PING = '1514608894679191592';
@@ -21,6 +22,15 @@ export default async function handler(req, res) {
   if (!Array.isArray(user.roles) || !user.roles.includes(STAFF_ROLE_ID)) {
     return rejectAppeal(res, user, 403, 'Для подачи этой формы требуется роль сотрудника LSPD');
   }
+  let rateAllowed;
+  try {
+    rateAllowed = await checkFormRateLimit(user.id, 'appeal', 3, 900);
+  } catch (error) {
+    console.error('appeal rate-limit storage failed:', error);
+    return res.status(503).json({ error: 'Защита формы временно недоступна. Попробуйте позже.' });
+  }
+  if (!rateAllowed) return res.status(429).json({ error: 'Слишком много отправок. Повторите через 15 минут.' });
+
 
   const {
     fullName,
@@ -32,8 +42,18 @@ export default async function handler(req, res) {
     comment,
   } = req.body;
 
-  if (!fullName || !rank || !date || !screenshotInLine || !screenshotOnMP) {
-    return rejectAppeal(res, user, 400, 'Заполните обязательные поля');
+  if (!isBoundedText(fullName, 120) || !isBoundedText(rank, 40) ||
+      !isBoundedText(date, 40) || !isBoundedText(screenshotInLine, 2048) ||
+      !isBoundedText(screenshotOnMP, 2048) ||
+      !isBoundedText(comment, 900, { optional: true })) {
+    return rejectAppeal(res, user, 400, 'Проверьте обязательные поля и ограничения длины текста.');
+  }
+  if (!isHttpsUrl(screenshotInLine) || !isHttpsUrl(screenshotOnMP)) {
+    return rejectAppeal(res, user, 400, 'Ссылки на доказательства должны быть корректными HTTPS-ссылками.');
+  }
+  if (extraScreenshots !== undefined && (!Array.isArray(extraScreenshots) || extraScreenshots.length > 15 ||
+      extraScreenshots.filter(value => typeof value === 'string' && value.trim()).some(value => !isBoundedText(value, 2048) || !isHttpsUrl(value)))) {
+    return rejectAppeal(res, user, 400, 'Дополнительные доказательства должны содержать не более 15 корректных HTTPS-ссылок.');
   }
 
   if (!WEBHOOK_URL) {

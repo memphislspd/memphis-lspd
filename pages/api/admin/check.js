@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   return res.status(200).json({
     isAdmin: admin,
-    isSuperAdmin: isSuperAdmin(user),
+    isSuperAdmin: isSuperAdmin(user) && admin,
     userId: user.id,
     roles,
   });

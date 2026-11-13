@@ -1,6 +1,7 @@
 import { verifyToken } from '../../lib/discord';
 import { kv } from '@vercel/kv';
 import { recordSubmissionHistory } from '../../lib/submission-history';
+import { checkFormRateLimit, isBoundedText, isHttpsUrl, areHttpsUrls } from '../../lib/form-security';
 
 const WEBHOOK_URL = process.env.WEBHOOK_RECOVERY;
 const ROLE_PING = '1514608894679191592';
@@ -28,22 +29,33 @@ export default async function handler(req, res) {
   if (!Array.isArray(user.roles) || !user.roles.includes(STAFF_ROLE_ID)) {
     return rejectRecovery(res, user, 403, 'Для подачи этой формы требуется роль сотрудника LSPD');
   }
+  let rateAllowed;
+  try {
+    rateAllowed = await checkFormRateLimit(user.id, 'recovery', 3, 900);
+  } catch (error) {
+    console.error('recovery rate-limit storage failed:', error);
+    return res.status(503).json({ error: 'Защита формы временно недоступна. Попробуйте позже.' });
+  }
+  if (!rateAllowed) return res.status(429).json({ error: 'Слишком много отправок. Повторите через 15 минут.' });
+
 
   const { warn, rank, method, suppliesProof, mpList, comment } = req.body;
 
-  if (!warn || !rank || !method) {
-    return rejectRecovery(res, user, 400, 'Заполните обязательные поля');
+  if (!['1/3', '2/3'].includes(warn) || !['cadet', 'regular'].includes(rank) ||
+      !['supplies', 'points'].includes(method) || !isBoundedText(comment, 900, { optional: true })) {
+    return rejectRecovery(res, user, 400, 'Проверьте обязательные поля и допустимые значения.');
   }
-  if (method === 'supplies' && !suppliesProof) {
-    return rejectRecovery(res, user, 400, 'Нужен скриншот склада');
+  if (method === 'supplies' && (!isBoundedText(suppliesProof, 2048) || !isHttpsUrl(suppliesProof))) {
+    return rejectRecovery(res, user, 400, 'Добавьте корректную HTTPS-ссылку на скриншот склада.');
   }
   if (method === 'points') {
-    if (!Array.isArray(mpList) || mpList.length === 0) {
-      return rejectRecovery(res, user, 400, 'Добавьте хотя бы одно МП');
+    if (!Array.isArray(mpList) || mpList.length === 0 || mpList.length > 18) {
+      return rejectRecovery(res, user, 400, 'Добавьте от 1 до 18 МП.');
     }
     for (const mp of mpList) {
-      if (!mp.type || !mp.proof) {
-        return rejectRecovery(res, user, 400, 'Заполните все МП');
+      if (!mp || !['drop', 'supply', 'bank', 'dept_mp'].includes(mp.type) ||
+          !isBoundedText(mp.proof, 2048) || !areHttpsUrls(mp.proof)) {
+        return rejectRecovery(res, user, 400, 'Каждое МП должно содержать допустимый тип и корректную HTTPS-ссылку.');
       }
     }
   }

@@ -2,6 +2,7 @@
 import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
 import { hasAdminAccess } from '../../lib/admins';
+import { mutateJsonArray } from '../../lib/kv-atomic';
 
 export default async function handler(req, res) {
   // GET используется публичной секцией руководства на стартовой странице.
@@ -31,18 +32,7 @@ export default async function handler(req, res) {
     }
 
     try {
-      const staff = await kv.get('lspd:staff_roster') || [];
-      
-      const newMember = {
-        id: Date.now().toString(), // Уникальный ID
-        name,
-        rank,
-        discord,
-        avatar: avatar || '', // Если аватарки нет, будет пусто
-      };
-
-      staff.push(newMember);
-      await kv.set('lspd:staff_roster', staff);
+      const staff = await mutateJsonArray('lspd:staff_roster', 'add', { id: Date.now().toString(), name, rank, discord, avatar: avatar || '' });
 
       return res.status(200).json({ success: true, staff });
     } catch (e) {
@@ -54,9 +44,7 @@ export default async function handler(req, res) {
   if (req.method === 'DELETE') {
     const { id } = req.body;
     try {
-      let staff = await kv.get('lspd:staff_roster') || [];
-      staff = staff.filter(s => s.id !== id);
-      await kv.set('lspd:staff_roster', staff);
+      const staff = await mutateJsonArray('lspd:staff_roster', 'delete', { id });
       return res.status(200).json({ success: true, staff });
     } catch (e) {
       return res.status(500).json({ error: 'Ошибка удаления' });
