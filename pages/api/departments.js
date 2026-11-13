@@ -3,6 +3,7 @@ import { kv } from '@vercel/kv';
 import { verifyToken } from '../../lib/discord';
 import { hasAdminAccess } from '../../lib/admins';
 import { mutateJsonArray } from '../../lib/kv-atomic';
+import { logAdminAction } from '../../lib/admin-audit';
 
 export default async function handler(req, res) {
   const user = verifyToken(req.cookies.token);
@@ -25,7 +26,9 @@ export default async function handler(req, res) {
     if (!name || !description) return res.status(400).json({ error: 'Заполните обязательные поля' });
 
     try {
-      const departments = await mutateJsonArray('lspd:departments_roster', 'add', { id: Date.now().toString(), name, icon: icon || '🏢', description, leaders: leaders || [] });
+      const department = { id: Date.now().toString(), name, icon: icon || '🏢', description, leaders: leaders || [] };
+      const departments = await mutateJsonArray('lspd:departments_roster', 'add', department);
+      await logAdminAction(user, { action: 'department.create', description: 'Создал отдел', targetId: department.id, targetName: name });
       return res.status(200).json({ success: true, departments });
     } catch (e) {
       return res.status(500).json({ error: 'Ошибка сохранения' });
@@ -42,6 +45,7 @@ export default async function handler(req, res) {
       const existing = current.find(d => d.id === id);
       if (!existing) return res.status(404).json({ error: 'Отдел не найден' });
       const departments = await mutateJsonArray('lspd:departments_roster', 'update', { ...existing, name, icon: icon || '🏢', description, leaders: leaders || [] });
+      await logAdminAction(user, { action: 'department.update', description: 'Изменил отдел', targetId: id, targetName: name || existing.name });
       return res.status(200).json({ success: true, departments });
     } catch (e) {
       return res.status(500).json({ error: 'Ошибка обновления' });
@@ -53,7 +57,10 @@ export default async function handler(req, res) {
     if (!(await hasAdminAccess(user))) return res.status(403).json({ error: 'Нет доступа' });
     const { id } = req.body;
     try {
+      const current = await kv.get('lspd:departments_roster') || [];
+      const existing = current.find(department => String(department.id) === String(id));
       const departments = await mutateJsonArray('lspd:departments_roster', 'delete', { id });
+      await logAdminAction(user, { action: 'department.delete', description: 'Удалил отдел', targetId: id, targetName: existing?.name || null });
       return res.status(200).json({ success: true, departments });
     } catch (e) {
       return res.status(500).json({ error: 'Ошибка удаления' });
