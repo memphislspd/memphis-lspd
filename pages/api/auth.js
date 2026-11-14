@@ -190,9 +190,16 @@ export default async function handler(req, res) {
       });
     }
 
-    // Не трактуем сбой получения списка серверов как отсутствие серверов.
+    // If Discord's guild-list endpoint fails temporarily, retain the last known list.
+    if (!Array.isArray(userGuildIds)) {
+      const previousGuildIds = await kv.get(`user:guilds:${user.id}`).catch(() => null);
+      if (Array.isArray(previousGuildIds)) userGuildIds = previousGuildIds;
+    }
+
     await kv.set(`oauth:token:${user.id}`, tokenData.access_token, { ex: 7 * 24 * 3600 });
-    await kv.set(`user:guilds:${user.id}`, userGuildIds, { ex: 7 * 24 * 3600 });
+    if (Array.isArray(userGuildIds)) {
+      await kv.set(`user:guilds:${user.id}`, userGuildIds, { ex: 7 * 24 * 3600 });
+    }
 
     // Один снимок ролей для админки, /hub и криминальных проверок.
     const previousGuildRoles = await kv.get(`user:guild_roles:${user.id}`).catch(() => null);
