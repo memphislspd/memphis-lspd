@@ -12,7 +12,7 @@ export default function Home() {
   const [staff, setStaff] = useState([]);
 
   useEffect(() => {
-    if (!router.isReady) return undefined;
+    if (!router.isReady) return;
 
     if (router.query.error === 'new_account') {
       setError(`Ваш Discord аккаунт создан ${router.query.days || '0'} дней назад. Требуется минимум ${router.query.min || '5'} дней.`);
@@ -21,17 +21,28 @@ export default function Home() {
     } else if (router.query.error) {
       setError('Ошибка авторизации. Попробуйте снова.');
     }
+  }, [router.isReady, router.query.error, router.query.days, router.query.min]);
+
+  // Session bootstrap and criminal check run once per page mount.
+  useEffect(() => {
+    if (!router.isReady) return undefined;
+    let cancelled = false;
 
     fetch('/api/me')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
+        if (cancelled) return;
         setUser(data?.user || null);
         if (data?.user) {
           fetch('/api/check-criminal', { method: 'POST' }).catch(() => {});
         }
       })
-      .catch(() => setUser(null));
-  }, [router.isReady, router.query.error, router.query.days, router.query.min, router.query.redirect]);
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      });
+
+    return () => { cancelled = true; };
+  }, [router.isReady]);
 
   useEffect(() => {
     const controller = new AbortController();

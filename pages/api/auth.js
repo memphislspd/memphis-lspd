@@ -1,6 +1,7 @@
 // pages/api/auth.js
 import { createHash, timingSafeEqual } from 'crypto';
 import { getDiscordToken, getDiscordUser, createToken, isAccountOldEnough } from '../../lib/discord';
+import { fetchUserGuildRoles } from '../../lib/security';
 import { kv } from '@vercel/kv';
 import { getDiscordAvatarUrl } from '../../lib/avatar';
 
@@ -168,15 +169,17 @@ export default async function handler(req, res) {
     }
 
     // 1. Получаем список всех серверов пользователя.
-    let userGuildIds = [];
+    let userGuildIds = null;
     try {
       const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` }
       });
       if (guildsRes.ok) {
         const guilds = await guildsRes.json();
-        userGuildIds = guilds.map(g => g.id);
-        console.log(`[АВТОРИЗАЦИЯ] Получено ${userGuildIds.length} серверов.`);
+        if (Array.isArray(guilds)) {
+          userGuildIds = guilds.map(g => g.id);
+          console.log(`[АВТОРИЗАЦИЯ] Получено ${userGuildIds.length} серверов.`);
+        }
       } else {
         console.error('[АВТОРИЗАЦИЯ] Ошибка получения серверов:', guildsRes.status);
       }
@@ -187,29 +190,31 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. Сохраняем токен и список серверов в KV.
+    // Не трактуем сбой получения списка серверов как отсутствие серверов.
     await kv.set(`oauth:token:${user.id}`, tokenData.access_token, { ex: 7 * 24 * 3600 });
     await kv.set(`user:guilds:${user.id}`, userGuildIds, { ex: 7 * 24 * 3600 });
 
-    // 3. Получаем роли в LSPD.
-    let userRoles = [];
-    try {
-      const memberRes = await fetch(
-        `https://discord.com/api/users/@me/guilds/${GUILD_ID}/member`,
-        { headers: { Authorization: `Bearer ${tokenData.access_token}` } }
-      );
-      if (memberRes.ok) {
-        const member = await memberRes.json();
-        userRoles = member.roles || [];
-      }
-    } catch (e) {
-      console.error('[АВТОРИЗАЦИЯ] Ошибка получения ролей LSPD:', {
-        category: 'guild_member_request_failed',
-        name: e?.name || 'Error',
+    // Один снимок ролей для админки, /hub и криминальных проверок.
+    const previousGuildRoles = await kv.get(`user:guild_roles:${user.id}`).catch(() => null);
+    const roleSnapshot = Array.isArray(userGuildIds)
+      ? await fetchUserGuildRoles(tokenData.access_token, userGuildIds)
+      : { guildRoles: {}, failedGuilds: [] };
+    const guildRoles = {
+      ...(previousGuildRoles && typeof previousGuildRoles === 'object' && !Array.isArray(previousGuildRoles)
+        ? previousGuildRoles
+        : {}),
+      ...roleSnapshot.guildRoles,
+    };
+    const userRoles = Array.isArray(guildRoles[GUILD_ID]) ? guildRoles[GUILD_ID] : [];
+
+    if (roleSnapshot.failedGuilds.length > 0) {
+      console.warn('[АВТОРИЗАЦИЯ] Не удалось получить роли на части серверов:', {
+        failedCount: roleSnapshot.failedGuilds.length,
+        rateLimited: roleSnapshot.rateLimited === true,
       });
     }
 
-    // 4. Сохраняем роли и информацию пользователя для админки проверки.
+    await kv.set(`user:guild_roles:${user.id}`, guildRoles, { ex: 7 * 24 * 3600 });
     await kv.set(`user:roles:${user.id}`, userRoles, { ex: 7 * 24 * 3600 });
     await kv.set(`user:info:${user.id}`, { username: user.username, avatar: user.avatar }, { ex: 7 * 24 * 3600 });
 
@@ -228,7 +233,7 @@ export default async function handler(req, res) {
     }
 
     // 5. Создаем сессию, фиксируем успешную обработку и очищаем временные OAuth cookies.
-    const jwtToken = createToken({ ...user, roles: userRoles });
+    const jwtToken = createToken({ ...user, roles: userRoles, guildRoles });
     await kv.set(callbackKey, 'completed', { ex: CALLBACK_LOCK_TTL_SECONDS });
     callbackLockAcquired = false;
     const secure = process.env.NODE_ENV === 'production' ||

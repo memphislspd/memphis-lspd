@@ -116,7 +116,36 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, cached: false, message: 'No data yet' });
     }
 
-    const checkResult = await checkCriminalActivity(accessToken, userGuildIds);
+    const guildRolesKey = 'user:guild_roles:' + user.id;
+    const cooldownKey = 'discord:role_cooldown:' + user.id;
+    const cooldownUntil = Number(await kv.get(cooldownKey) || 0);
+    if (cooldownUntil > Date.now()) {
+      return res.status(200).json({
+        success: false,
+        incomplete: true,
+        rateLimited: true,
+        retryAfterSeconds: Math.ceil((cooldownUntil - Date.now()) / 1000),
+      });
+    }
+
+    const cachedGuildRoles = await kv.get(guildRolesKey);
+    const checkResult = await checkCriminalActivity(accessToken, userGuildIds, cachedGuildRoles);
+
+    // Save successful guild lookups even if another guild failed. The next attempt
+    // then contacts Discord only for the guilds still missing from this snapshot.
+    if (checkResult.guildRoles && Object.keys(checkResult.guildRoles).length > 0) {
+      try {
+        await kv.set(guildRolesKey, checkResult.guildRoles, { ex: 7 * 24 * 3600 });
+      } catch (error) {
+        console.warn('[КРАЙМ] Не удалось сохранить снимок ролей:', error.message);
+      }
+    }
+
+    if (checkResult.retryAfterSeconds > 0) {
+      const retryAfterSeconds = Math.max(1, Math.ceil(checkResult.retryAfterSeconds));
+      await kv.set(cooldownKey, Date.now() + retryAfterSeconds * 1000, { ex: retryAfterSeconds });
+    }
+
     if (!checkResult.complete) {
       console.warn('[КРАЙМ] Проверка завершилась не полностью:', {
         userId: user.id,
