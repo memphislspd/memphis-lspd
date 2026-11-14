@@ -196,6 +196,7 @@ export default async function handler(req, res) {
 
     // Один снимок ролей для админки, /hub и криминальных проверок.
     const previousGuildRoles = await kv.get(`user:guild_roles:${user.id}`).catch(() => null);
+    const legacyLspdRoles = await kv.get(`user:roles:${user.id}`).catch(() => null);
     const roleSnapshot = Array.isArray(userGuildIds)
       ? await fetchUserGuildRoles(tokenData.access_token, userGuildIds)
       : { guildRoles: {}, failedGuilds: [] };
@@ -205,7 +206,23 @@ export default async function handler(req, res) {
         : {}),
       ...roleSnapshot.guildRoles,
     };
+    // Keep the last known LSPD role snapshot if Discord transiently fails during OAuth.
+    if (
+      !Array.isArray(guildRoles[GUILD_ID]) &&
+      Array.isArray(legacyLspdRoles) &&
+      Array.isArray(userGuildIds) &&
+      userGuildIds.includes(GUILD_ID)
+    ) {
+      guildRoles[GUILD_ID] = legacyLspdRoles;
+    }
     const userRoles = Array.isArray(guildRoles[GUILD_ID]) ? guildRoles[GUILD_ID] : [];
+
+    if (roleSnapshot.rateLimited && roleSnapshot.retryAfterSeconds > 0) {
+      const retryAfterSeconds = Math.max(1, Math.ceil(roleSnapshot.retryAfterSeconds));
+      await kv.set(`discord:role_cooldown:${user.id}`, Date.now() + retryAfterSeconds * 1000, {
+        ex: retryAfterSeconds,
+      }).catch(() => {});
+    }
 
     if (roleSnapshot.failedGuilds.length > 0) {
       console.warn('[АВТОРИЗАЦИЯ] Не удалось получить роли на части серверов:', {
